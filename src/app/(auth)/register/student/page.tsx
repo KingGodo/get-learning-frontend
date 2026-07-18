@@ -1,0 +1,287 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AuthLoading } from "@/components/auth/auth-loading";
+import { useAuth } from "@/components/providers/auth-provider";
+import { ApiRequestError, authApi } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const fieldInput = "h-9 rounded-md border-zinc-200 bg-white px-2.5 text-sm";
+
+export default function RegisterStudentPage() {
+  const { setSession } = useAuth();
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [gender, setGender] = useState("PREFER_NOT_TO_SAY");
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    guardianName: "",
+    guardianPhone: "",
+    guardianEmail: "",
+  });
+
+  function update(key: string, value: string) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+    try {
+      const payload: Record<string, unknown> = {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        phoneNumber: form.phoneNumber,
+        password: form.password,
+        gender,
+        guardianName: form.guardianName,
+        guardianPhone: form.guardianPhone,
+      };
+      if (form.guardianEmail.trim()) {
+        payload.guardianEmail = form.guardianEmail.trim();
+      }
+
+      const data = await authApi.registerStudent(payload);
+      setSession(data.token, { ...data.user, student: data.student });
+      router.replace("/dashboard");
+    } catch (err) {
+      setError(
+        err instanceof ApiRequestError
+          ? err.message
+          : "Registration failed. Please check your details and try again.",
+      );
+      setPending(false);
+    }
+  }
+
+  return (
+    <>
+      {pending && <AuthLoading label="Creating your account…" />}
+
+      <div className="relative w-full max-w-xl self-start pb-8 pt-2 sm:pt-4">
+        <Link
+          href="/register"
+          className="text-[13px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+        >
+          ← Back
+        </Link>
+
+        <h1 className="mt-4 text-xl font-semibold tracking-tight text-black">
+          Join as a student
+        </h1>
+        <p className="mt-1 text-[13px] text-zinc-500">
+          Create your account, then enter a class code from your teacher.
+        </p>
+
+        {error && (
+          <div
+            className="mt-5 border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
+            role="alert"
+          >
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} className="mt-7 space-y-8">
+          <section className="space-y-3.5">
+            <div>
+              <h2 className="text-sm font-semibold text-[#0C1A2E]">You</h2>
+              <p className="mt-0.5 text-[12px] text-zinc-400">
+                Required for your student account
+              </p>
+            </div>
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <Field
+                label="First name"
+                id="firstName"
+                value={form.firstName}
+                onChange={update}
+                required
+              />
+              <Field
+                label="Last name"
+                id="lastName"
+                value={form.lastName}
+                onChange={update}
+                required
+              />
+              <Field
+                label="Email"
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={update}
+                required
+                autoComplete="email"
+              />
+              <Field
+                label="Phone"
+                id="phoneNumber"
+                value={form.phoneNumber}
+                onChange={update}
+                required
+                autoComplete="tel"
+              />
+              <Field
+                label="Password"
+                id="password"
+                type="password"
+                value={form.password}
+                onChange={update}
+                required
+                autoComplete="new-password"
+                hint="At least 8 characters"
+              />
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-zinc-600">Gender</Label>
+                <Select
+                  value={gender}
+                  onValueChange={(v) => setGender(v ?? "PREFER_NOT_TO_SAY")}
+                >
+                  <SelectTrigger className={`w-full ${fieldInput}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MALE">Male</SelectItem>
+                    <SelectItem value="FEMALE">Female</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                    <SelectItem value="PREFER_NOT_TO_SAY">
+                      Prefer not to say
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-3.5 border-t border-zinc-200 pt-7">
+            <div>
+              <h2 className="text-sm font-semibold text-[#0C1A2E]">Guardian</h2>
+              <p className="mt-0.5 text-[12px] text-zinc-400">
+                So we can reach someone if needed
+              </p>
+            </div>
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <Field
+                label="Guardian name"
+                id="guardianName"
+                value={form.guardianName}
+                onChange={update}
+                required
+              />
+              <Field
+                label="Guardian phone"
+                id="guardianPhone"
+                value={form.guardianPhone}
+                onChange={update}
+                required
+                autoComplete="tel"
+              />
+              <Field
+                label="Guardian email"
+                id="guardianEmail"
+                type="email"
+                value={form.guardianEmail}
+                onChange={update}
+                className="sm:col-span-2"
+                autoComplete="email"
+              />
+            </div>
+          </section>
+
+          <Button
+            type="submit"
+            disabled={pending}
+            className="h-9 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+          >
+            Create account
+          </Button>
+        </form>
+
+        <p className="mt-5 text-center text-[13px] text-zinc-500">
+          Teaching instead?{" "}
+          <Link
+            href="/register/teacher"
+            className="font-medium text-[#0C1A2E] hover:underline"
+          >
+            Teacher signup
+          </Link>
+        </p>
+      </div>
+
+      <Image
+        src="/student.svg"
+        alt=""
+        width={240}
+        height={190}
+        className="pointer-events-none absolute bottom-4 right-4 hidden w-[min(28vw,220px)] select-none lg:block"
+        priority
+      />
+    </>
+  );
+}
+
+function Field({
+  label,
+  id,
+  value,
+  onChange,
+  type = "text",
+  required,
+  className,
+  placeholder,
+  hint,
+  autoComplete,
+}: {
+  label: string;
+  id: string;
+  value: string;
+  onChange: (key: string, value: string) => void;
+  type?: string;
+  required?: boolean;
+  className?: string;
+  placeholder?: string;
+  hint?: string;
+  autoComplete?: string;
+}) {
+  return (
+    <div className={`space-y-1.5 ${className ?? ""}`}>
+      <Label htmlFor={id} className="text-[13px] text-zinc-600">
+        {label}
+        {!required && (
+          <span className="ml-1 font-normal text-zinc-400">(optional)</span>
+        )}
+      </Label>
+      <Input
+        id={id}
+        type={type}
+        required={required}
+        value={value}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        onChange={(e) => onChange(id, e.target.value)}
+        className={fieldInput}
+      />
+      {hint && <p className="text-[11px] text-zinc-400">{hint}</p>}
+    </div>
+  );
+}
