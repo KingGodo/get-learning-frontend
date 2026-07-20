@@ -313,16 +313,9 @@ function TeacherSchoolPage() {
             No school yet
           </h2>
           <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
-            Create your school profile to start adding classes and inviting
-            students.
+            Your account is not linked to a school yet. Contact your platform
+            administrator to be assigned to a school.
           </p>
-          <Link
-            href="/school/new"
-            className="mt-5 inline-flex h-9 items-center gap-1.5 bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
-          >
-            <Plus className="size-3.5" />
-            Create school
-          </Link>
         </div>
       </div>
     );

@@ -12,13 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PageLoading } from "@/components/ui/page-loading";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function NewClassPage() {
   const { user } = useAuth();
@@ -46,19 +39,43 @@ export default function NewClassPage() {
     }
     if (!user) return;
 
-    Promise.all([schoolsApi.me(), subjectsApi.list()])
-      .then(([schoolData, subjectData]) => {
-        setSchool(schoolData);
-        setSubjects(subjectData);
-      })
-      .catch((err) => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+
+      const [schoolResult, subjectsResult] = await Promise.allSettled([
+        schoolsApi.me(),
+        subjectsApi.list(),
+      ]);
+
+      if (cancelled) return;
+
+      if (subjectsResult.status === "fulfilled") {
+        const mine = subjectsResult.value;
+        setSubjects(mine);
+        if (mine.length === 1) setSubjectId(mine[0].id);
+      } else {
+        setSubjects([]);
         setError(
-          err instanceof ApiRequestError
-            ? err.message
-            : "Could not load school details",
+          subjectsResult.reason instanceof ApiRequestError
+            ? subjectsResult.reason.message
+            : "Could not load your subjects",
         );
-      })
-      .finally(() => setLoading(false));
+      }
+
+      if (schoolResult.status === "fulfilled") {
+        setSchool(schoolResult.value);
+      }
+
+      setLoading(false);
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
   }, [user, canManage, router]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -171,29 +188,47 @@ export default function NewClassPage() {
           </div>
         )}
         <div className="space-y-1.5">
-          <Label className="text-[13px] text-zinc-600">Subject</Label>
-          <Select
+          <Label htmlFor="subjectId" className="text-[13px] text-zinc-600">
+            Subject
+          </Label>
+          <select
+            id="subjectId"
+            required
             value={subjectId}
-            onValueChange={(v) => setSubjectId(v ?? "")}
+            onChange={(e) => setSubjectId(e.target.value)}
+            disabled={subjects.length === 0}
+            className="h-9 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
           >
-            <SelectTrigger className="h-9 w-full rounded-md bg-transparent">
-              <SelectValue placeholder="Choose subject" />
-            </SelectTrigger>
-            <SelectContent>
-              {subjects.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name} ({s.code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {subjects.length === 0 && (
+            <option value="">
+              {subjects.length === 0
+                ? "No subjects registered yet"
+                : "Choose one of your subjects"}
+            </option>
+            {subjects.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.code})
+              </option>
+            ))}
+          </select>
+          {subjects.length === 0 ? (
             <p className="text-[12px] text-zinc-500">
-              No subjects yet.{" "}
-              <Link href="/subjects" className="font-medium text-[#0C1A2E] hover:underline">
-                Add subjects
-              </Link>{" "}
-              first.
+              Register the subjects you teach first.{" "}
+              <Link
+                href="/subjects/new"
+                className="font-medium text-[#0C1A2E] hover:underline"
+              >
+                Add a subject
+              </Link>
+            </p>
+          ) : (
+            <p className="text-[12px] text-zinc-400">
+              Showing subjects you registered.{" "}
+              <Link
+                href="/subjects"
+                className="font-medium text-[#0C1A2E] hover:underline"
+              >
+                Manage subjects
+              </Link>
             </p>
           )}
         </div>

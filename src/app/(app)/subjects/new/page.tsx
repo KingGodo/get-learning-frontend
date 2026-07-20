@@ -62,7 +62,8 @@ export default function NewSubjectPage() {
           Add a subject
         </h1>
         <p className="mt-1 text-[13px] text-zinc-500">
-          Subjects appear in the catalog when creating classes.
+          Create a subject for your school and start teaching it. You can add
+          more anytime.
         </p>
       </div>
 

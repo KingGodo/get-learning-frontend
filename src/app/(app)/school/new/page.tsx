@@ -15,7 +15,6 @@ export default function NewSchoolPage() {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
   const isAdmin = user?.role === "ADMIN";
-  const canManage = isAdmin || user?.role === "TEACHER";
   const [checking, setChecking] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,34 +31,12 @@ export default function NewSchoolPage() {
 
   useEffect(() => {
     if (!user) return;
-    if (!canManage) {
-      router.replace("/dashboard");
+    if (!isAdmin) {
+      router.replace("/school");
       return;
     }
-
-    // Admins can always create schools for the platform.
-    // Teachers may only create one if they are not already linked.
-    if (isAdmin) {
-      setChecking(false);
-      return;
-    }
-
-    schoolsApi
-      .me()
-      .then(() => {
-        router.replace("/school/edit");
-      })
-      .catch((err) => {
-        if (!(err instanceof ApiRequestError && err.status === 404)) {
-          setError(
-            err instanceof ApiRequestError
-              ? err.message
-              : "Could not verify school",
-          );
-        }
-      })
-      .finally(() => setChecking(false));
-  }, [user, canManage, isAdmin, router]);
+    setChecking(false);
+  }, [user, isAdmin, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

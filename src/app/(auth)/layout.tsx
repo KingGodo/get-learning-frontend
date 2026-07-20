@@ -22,7 +22,7 @@ export default function AuthLayout({
         </Link>
       </header>
 
-      <div className="relative flex flex-1 items-center justify-center px-6 pb-16">
+      <div className="relative flex flex-1 items-start justify-center overflow-y-auto px-6 pb-16 pt-4 sm:items-center sm:pt-0">
         {children}
       </div>
     </div>

@@ -5,20 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthLoading } from "@/components/auth/auth-loading";
+import {
+  Field,
+  GenderSelect,
+  PasswordMatchHint,
+} from "@/components/auth/registration-fields";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, authApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const fieldInput = "h-9 rounded-md border-zinc-200 bg-white px-2.5 text-sm";
 
 export default function RegisterStudentPage() {
   const { setSession } = useAuth();
@@ -32,6 +26,7 @@ export default function RegisterStudentPage() {
     email: "",
     phoneNumber: "",
     password: "",
+    confirmPassword: "",
     guardianName: "",
     guardianPhone: "",
     guardianEmail: "",
@@ -44,6 +39,16 @@ export default function RegisterStudentPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match. Please check and try again.");
+      return;
+    }
+
     setPending(true);
     try {
       const payload: Record<string, unknown> = {
@@ -101,7 +106,12 @@ export default function RegisterStudentPage() {
           </div>
         )}
 
-        <form onSubmit={onSubmit} className="mt-7 space-y-8">
+        <form
+          onSubmit={onSubmit}
+          className="mt-7 space-y-8"
+          autoComplete="on"
+          noValidate
+        >
           <section className="space-y-3.5">
             <div>
               <h2 className="text-sm font-semibold text-[#0C1A2E]">You</h2>
@@ -116,6 +126,7 @@ export default function RegisterStudentPage() {
                 value={form.firstName}
                 onChange={update}
                 required
+                autoComplete="given-name"
               />
               <Field
                 label="Last name"
@@ -123,6 +134,7 @@ export default function RegisterStudentPage() {
                 value={form.lastName}
                 onChange={update}
                 required
+                autoComplete="family-name"
               />
               <Field
                 label="Email"
@@ -131,7 +143,8 @@ export default function RegisterStudentPage() {
                 value={form.email}
                 onChange={update}
                 required
-                autoComplete="email"
+                autoComplete="username"
+                className="sm:col-span-2"
               />
               <Field
                 label="Phone"
@@ -140,7 +153,9 @@ export default function RegisterStudentPage() {
                 onChange={update}
                 required
                 autoComplete="tel"
+                className="sm:col-span-2"
               />
+              <GenderSelect value={gender} onChange={setGender} />
               <Field
                 label="Password"
                 id="password"
@@ -148,27 +163,27 @@ export default function RegisterStudentPage() {
                 value={form.password}
                 onChange={update}
                 required
+                minLength={8}
                 autoComplete="new-password"
+                preventEnterSubmit
                 hint="At least 8 characters"
               />
-              <div className="space-y-1.5">
-                <Label className="text-[13px] text-zinc-600">Gender</Label>
-                <Select
-                  value={gender}
-                  onValueChange={(v) => setGender(v ?? "PREFER_NOT_TO_SAY")}
-                >
-                  <SelectTrigger className={`w-full ${fieldInput}`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MALE">Male</SelectItem>
-                    <SelectItem value="FEMALE">Female</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                    <SelectItem value="PREFER_NOT_TO_SAY">
-                      Prefer not to say
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+              <Field
+                label="Confirm password"
+                id="confirmPassword"
+                type="password"
+                value={form.confirmPassword}
+                onChange={update}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                preventEnterSubmit
+              />
+              <div className="sm:col-span-2">
+                <PasswordMatchHint
+                  password={form.password}
+                  confirmPassword={form.confirmPassword}
+                />
               </div>
             </div>
           </section>
@@ -211,7 +226,7 @@ export default function RegisterStudentPage() {
           <Button
             type="submit"
             disabled={pending}
-            className="h-9 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-11 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
           >
             Create account
           </Button>
@@ -237,51 +252,5 @@ export default function RegisterStudentPage() {
         priority
       />
     </>
-  );
-}
-
-function Field({
-  label,
-  id,
-  value,
-  onChange,
-  type = "text",
-  required,
-  className,
-  placeholder,
-  hint,
-  autoComplete,
-}: {
-  label: string;
-  id: string;
-  value: string;
-  onChange: (key: string, value: string) => void;
-  type?: string;
-  required?: boolean;
-  className?: string;
-  placeholder?: string;
-  hint?: string;
-  autoComplete?: string;
-}) {
-  return (
-    <div className={`space-y-1.5 ${className ?? ""}`}>
-      <Label htmlFor={id} className="text-[13px] text-zinc-600">
-        {label}
-        {!required && (
-          <span className="ml-1 font-normal text-zinc-400">(optional)</span>
-        )}
-      </Label>
-      <Input
-        id={id}
-        type={type}
-        required={required}
-        value={value}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        onChange={(e) => onChange(id, e.target.value)}
-        className={fieldInput}
-      />
-      {hint && <p className="text-[11px] text-zinc-400">{hint}</p>}
-    </div>
   );
 }

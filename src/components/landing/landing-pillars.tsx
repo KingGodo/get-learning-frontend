@@ -41,7 +41,8 @@ const roles = [
   {
     title: "Built for teachers",
     body: "Subjects, classes, assignments, submissions, and notifications — structured so you spend time teaching, not hunting for work.",
-    image: "/landing/teachers.jpg",
+    image: "/hero-classroom.jpg",
+    imageClassName: "object-[center_30%]",
     alt: "Teacher preparing lessons with Lumen",
     href: "/register/teacher",
     cta: "Create teacher account",
@@ -49,7 +50,8 @@ const roles = [
   {
     title: "Built for students",
     body: "Join a class, track deadlines, submit files, and see grades and feedback in one clear view.",
-    image: "/landing/students.jpg",
+    image: "/hero.jpg",
+    imageClassName: "object-center",
     alt: "Student working in Lumen",
     href: "/register/student",
     cta: "Create student account",
@@ -159,7 +161,8 @@ export function LandingPillars() {
                     src={role.image}
                     alt={role.alt}
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                    unoptimized
+                    className={`object-cover transition-transform duration-700 group-hover:scale-[1.02] ${role.imageClassName ?? "object-center"}`}
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
                 </div>
@@ -220,9 +223,10 @@ export function LandingPillars() {
 
           <div className="relative min-h-[280px] lg:min-h-full">
             <Image
-              src="/landing/cta.jpg"
+              src="/hero-classroom.jpg"
               alt="Team collaborating with Lumen"
               fill
+              unoptimized
               className="object-cover object-center"
               sizes="(max-width: 1024px) 100vw, 50vw"
             />

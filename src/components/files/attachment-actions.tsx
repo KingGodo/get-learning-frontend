@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Download, Eye, FileText, Loader2 } from "lucide-react";
-import { ApiRequestError, filesApi } from "@/lib/api";
+import { ApiRequestError, filesApi, getApiOrigin } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export function resolveFileUrl(
@@ -11,9 +11,7 @@ export function resolveFileUrl(
   if (!pathOrUrl) return null;
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
 
-  const apiBase = (
-    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1"
-  ).replace(/\/api\/v1\/?$/, "");
+  const apiBase = getApiOrigin();
 
   if (pathOrUrl.startsWith("/")) return `${apiBase}${pathOrUrl}`;
   return `${apiBase}/uploads/${pathOrUrl}`;

@@ -143,6 +143,7 @@ export type Subject = {
   name: string;
   code: string;
   description?: string | null;
+  isAssigned?: boolean;
 };
 
 export type ClassRoom = {

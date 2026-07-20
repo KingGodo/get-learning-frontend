@@ -3,8 +3,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const ease = [0.22, 1, 0.36, 1] as const;
+
+const navLinks = [
+  { href: "#product", label: "Product" },
+  { href: "#how-it-works", label: "How it works" },
+  { href: "/login", label: "Sign in", isRoute: true },
+  { href: "/register", label: "Get started", isRoute: true, primary: true },
+] as const;
 
 export function LandingHero() {
   return (
@@ -17,22 +34,22 @@ export function LandingHero() {
           >
             Lumen
           </Link>
-          <nav className="flex items-center gap-7 text-sm">
+          <nav className="hidden items-center gap-7 text-sm sm:flex">
             <a
               href="#product"
-              className="hidden font-medium text-white/55 transition-colors hover:text-white sm:inline"
+              className="font-medium text-white/55 transition-colors hover:text-white"
             >
               Product
             </a>
             <a
               href="#how-it-works"
-              className="hidden font-medium text-white/55 transition-colors hover:text-white md:inline"
+              className="font-medium text-white/55 transition-colors hover:text-white"
             >
               How it works
             </a>
             <Link
               href="/login"
-              className="hidden font-medium text-white/55 transition-colors hover:text-white sm:inline"
+              className="font-medium text-white/55 transition-colors hover:text-white"
             >
               Sign in
             </Link>
@@ -43,6 +60,68 @@ export function LandingHero() {
               Get started
             </Link>
           </nav>
+
+          <div className="sm:hidden">
+            <Sheet>
+              <SheetTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/10"
+                    aria-label="Open menu"
+                  />
+                }
+              >
+                <Menu className="size-5" />
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-[min(100vw-2rem,20rem)] border-0 bg-[#0C1A2E] p-0 text-white"
+              >
+                <SheetHeader className="border-b border-white/10 px-5 py-4">
+                  <SheetTitle className="font-display text-left text-white">
+                    Menu
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col gap-1 px-3 py-4">
+                  {navLinks.map((link) =>
+                    link.isRoute ? (
+                      <SheetClose
+                        key={link.href}
+                        nativeButton={false}
+                        render={
+                          <Link
+                            href={link.href}
+                            className={
+                              link.primary
+                                ? "rounded-md px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                                : "rounded-md px-3 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                            }
+                          />
+                        }
+                      >
+                        {link.label}
+                      </SheetClose>
+                    ) : (
+                      <SheetClose
+                        key={link.href}
+                        nativeButton={false}
+                        render={
+                          <a
+                            href={link.href}
+                            className="rounded-md px-3 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                          />
+                        }
+                      >
+                        {link.label}
+                      </SheetClose>
+                    ),
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </header>
 
@@ -107,11 +186,12 @@ export function LandingHero() {
           transition={{ duration: 1, delay: 0.15, ease }}
         >
           <Image
-            src="/landing/hero.jpg"
-            alt="People collaborating on coursework"
+            src="/hero-classroom.jpg"
+            alt="Students studying together at a chalkboard"
             fill
             priority
-            className="object-cover object-[center_35%]"
+            unoptimized
+            className="object-cover object-[center_25%]"
             sizes="(max-width: 1024px) 100vw, 55vw"
           />
         </motion.div>

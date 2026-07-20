@@ -1,7 +1,39 @@
 import type { ApiError, ApiSuccess } from "./types";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
+const DEFAULT_API_URL = "http://localhost:4000/api/v1";
+
+/** API base URL; rewrites localhost to the current host when testing over LAN IP. */
+export function getApiBaseUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL;
+
+  if (typeof window === "undefined") {
+    return configured;
+  }
+
+  try {
+    const url = new URL(configured);
+    const pageHost = window.location.hostname;
+    const isLocalApi =
+      url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    const isRemotePage =
+      pageHost !== "localhost" && pageHost !== "127.0.0.1";
+
+    if (isLocalApi && isRemotePage) {
+      const port = url.port || "4000";
+      const pathname = url.pathname.replace(/\/$/, "") || "/api/v1";
+      return `${window.location.protocol}//${pageHost}:${port}${pathname}`;
+    }
+
+    return configured;
+  } catch {
+    return configured;
+  }
+}
+
+/** API origin without the /api/v1 suffix (for uploads and static files). */
+export function getApiOrigin(): string {
+  return getApiBaseUrl().replace(/\/api\/v1\/?$/, "");
+}
 
 const TOKEN_KEY = "lumen_token";
 
@@ -52,7 +84,7 @@ export async function api<T>(
   if (token) headers.Authorization = `Bearer ${token}`;
   if (!formData) headers["Content-Type"] = "application/json";
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${getApiBaseUrl()}${path}`, {
     method,
     headers,
     body: formData ?? (body !== undefined ? JSON.stringify(body) : undefined),
@@ -80,12 +112,38 @@ export const authApi = {
       body: { email, password },
       token: null,
     }),
+  forgotPassword: (email: string) =>
+    api<{ message: string; resetUrl?: string }>("/auth/forgot-password", {
+      method: "POST",
+      body: { email },
+      token: null,
+    }),
+  resetPassword: (body: {
+    token: string;
+    password: string;
+    confirmPassword: string;
+  }) =>
+    api<{ message: string }>("/auth/reset-password", {
+      method: "POST",
+      body,
+      token: null,
+    }),
   me: () => api<import("./types").User>("/auth/me"),
   updateProfile: (body: Record<string, unknown>) =>
     api<import("./types").User>("/auth/me", {
       method: "PATCH",
       body,
     }),
+  listRegistrationSchools: () =>
+    api<
+      Array<{
+        id: string;
+        name: string;
+        code: string;
+        city: string;
+        province: string;
+      }>
+    >("/auth/register/schools", { token: null }),
   registerTeacher: (body: Record<string, unknown>) =>
     api<{
       token: string;
@@ -119,9 +177,18 @@ export const classesApi = {
 
 export const subjectsApi = {
   list: () => api<import("./types").Subject[]>("/subjects"),
+  schoolCatalog: () =>
+    api<import("./types").Subject[]>("/subjects/school-catalog"),
   get: (id: string) => api<import("./types").SubjectDetail>(`/subjects/${id}`),
   create: (body: Record<string, unknown>) =>
     api<import("./types").Subject>("/subjects", { method: "POST", body }),
+  assign: (id: string) =>
+    api<import("./types").Subject>(`/subjects/${id}/assign`, {
+      method: "POST",
+      body: {},
+    }),
+  unassign: (id: string) =>
+    api<{ success: boolean }>(`/subjects/${id}/assign`, { method: "DELETE" }),
   update: (id: string, body: Record<string, unknown>) =>
     api<import("./types").Subject>(`/subjects/${id}`, {
       method: "PATCH",
