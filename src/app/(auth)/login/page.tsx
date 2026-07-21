@@ -43,7 +43,7 @@ export default function LoginPage() {
         <h1 className="text-xl font-semibold tracking-tight text-black">
           Sign in
         </h1>
-        <p className="mt-1 text-[13px] text-zinc-500">to continue to Lumen</p>
+        <p className="mt-1 text-[13px] text-zinc-500">to continue to Learning Hub</p>
 
         <form onSubmit={onSubmit} className="mt-7 space-y-3.5">
           {error && (
@@ -100,7 +100,7 @@ export default function LoginPage() {
           <div className="flex justify-end">
             <Link
               href="/forgot-password"
-              className="text-[12px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+              className="text-[12px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
             >
               Forgot password?
             </Link>
@@ -108,7 +108,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={pending}
-            className="mt-1 h-9 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="mt-1 h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             {pending ? "Signing in…" : "Continue"}
           </Button>
@@ -118,7 +118,7 @@ export default function LoginPage() {
           Don&apos;t have an account?{" "}
           <Link
             href="/register"
-            className="font-medium text-[#0C1A2E] hover:underline"
+            className="font-medium text-brand-dark hover:underline"
           >
             Create one
           </Link>

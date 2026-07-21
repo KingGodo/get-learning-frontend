@@ -17,7 +17,7 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
       <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
         {label}
       </p>
-      <p className="mt-1.5 text-[13px] text-[#0C1A2E]">{value ?? "—"}</p>
+      <p className="mt-1.5 text-[13px] text-brand-dark">{value ?? "—"}</p>
     </div>
   );
 }
@@ -61,7 +61,7 @@ export default function SchoolDetailPage() {
       <div className="space-y-4">
         <Link
           href="/school"
-          className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Back to schools
@@ -84,7 +84,7 @@ export default function SchoolDetailPage() {
       <div>
         <Link
           href="/school"
-          className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Back to schools
@@ -94,7 +94,7 @@ export default function SchoolDetailPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
               School detail
             </p>
-            <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {school.name}
             </h1>
             <p className="mt-1 font-mono text-[13px] text-zinc-500">
@@ -119,7 +119,7 @@ export default function SchoolDetailPage() {
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
             Users
           </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             {school._count.users}
           </p>
         </div>
@@ -127,7 +127,7 @@ export default function SchoolDetailPage() {
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
             Teachers
           </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             {teachers.length}
           </p>
         </div>
@@ -135,7 +135,7 @@ export default function SchoolDetailPage() {
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
             Students
           </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             {students.length}
           </p>
         </div>
@@ -143,7 +143,7 @@ export default function SchoolDetailPage() {
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
             Classes
           </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             {school._count.classes}
           </p>
         </div>
@@ -212,7 +212,7 @@ export default function SchoolDetailPage() {
                     key={u.id}
                     className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       <Link
                         href={`/users/${u.id}`}
                         className="hover:underline"
@@ -283,7 +283,7 @@ export default function SchoolDetailPage() {
                     key={c.id}
                     className="border-b border-zinc-200/50 text-[13px]"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       <Link
                         href={`/classes/${c.id}`}
                         className="hover:underline"

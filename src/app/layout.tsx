@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { APP_NAME } from "@/lib/brand";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,11 +16,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Lumen — Learning management, clarified",
-    template: "%s · Lumen",
+    default: `${APP_NAME} — Learning management, clarified`,
+    template: `%s · ${APP_NAME}`,
   },
-  description:
-    "Lumen is a minimal learning platform for teachers and students — classes, assignments, and feedback.",
+  description: `${APP_NAME} is a learning platform for teachers and students — classes, assignments, and feedback.`,
 };
 
 export default function RootLayout({

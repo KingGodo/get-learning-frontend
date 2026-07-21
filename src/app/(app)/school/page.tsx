@@ -82,16 +82,16 @@ function AdminSchoolsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Administration
           </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             Schools
           </h1>
           <p className="mt-1 text-[13px] text-zinc-500">
-            Every school registered on the Lumen platform.
+            Every school registered on Learning Hub.
           </p>
         </div>
         <Link
           href="/school/new"
-          className="inline-flex h-9 items-center gap-1.5 bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+          className="inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
         >
           <Plus className="size-3.5" />
           Create school
@@ -104,7 +104,7 @@ function AdminSchoolsPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Total
             </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {schools.length}
             </p>
           </div>
@@ -112,7 +112,7 @@ function AdminSchoolsPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Active
             </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {schools.filter((s) => s.status === "ACTIVE").length}
             </p>
           </div>
@@ -120,7 +120,7 @@ function AdminSchoolsPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Users
             </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {schools.reduce((sum, s) => sum + (s._count?.users ?? 0), 0)}
             </p>
           </div>
@@ -128,7 +128,7 @@ function AdminSchoolsPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Classes
             </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {schools.reduce((sum, s) => sum + (s._count?.classes ?? 0), 0)}
             </p>
           </div>
@@ -157,7 +157,7 @@ function AdminSchoolsPage() {
             className="w-[min(70vw,240px)] select-none"
             priority
           />
-          <h2 className="mt-6 text-base font-semibold text-[#0C1A2E]">
+          <h2 className="mt-6 text-base font-semibold text-brand-dark">
             No schools yet
           </h2>
           <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
@@ -165,7 +165,7 @@ function AdminSchoolsPage() {
           </p>
           <Link
             href="/school/new"
-            className="mt-5 inline-flex h-9 items-center gap-1.5 bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="mt-5 inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             <Plus className="size-3.5" />
             Create school
@@ -173,7 +173,7 @@ function AdminSchoolsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-[#0C1A2E]">No matches</p>
+          <p className="text-sm font-medium text-brand-dark">No matches</p>
           <p className="mt-1 text-[13px] text-zinc-500">
             Try another search term.
           </p>
@@ -201,7 +201,7 @@ function AdminSchoolsPage() {
                     key={school.id}
                     className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       <Link
                         href={`/school/${school.id}`}
                         className="hover:underline"
@@ -292,7 +292,7 @@ function TeacherSchoolPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Administration
           </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             School
           </h1>
           <p className="mt-1 text-[13px] text-zinc-500">
@@ -309,7 +309,7 @@ function TeacherSchoolPage() {
             className="w-[min(70vw,240px)] select-none"
             priority
           />
-          <h2 className="mt-6 text-base font-semibold text-[#0C1A2E]">
+          <h2 className="mt-6 text-base font-semibold text-brand-dark">
             No school yet
           </h2>
           <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
@@ -340,7 +340,7 @@ function TeacherSchoolPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Administration
           </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             {school.name}
           </h1>
           <p className="mt-1 text-[13px] text-zinc-500">
@@ -352,7 +352,7 @@ function TeacherSchoolPage() {
         </div>
         <Link
           href="/school/edit"
-          className="inline-flex h-9 items-center gap-1.5 border border-zinc-200 bg-transparent px-3.5 text-sm font-semibold text-[#0C1A2E] hover:bg-zinc-200/40"
+          className="inline-flex h-9 items-center gap-1.5 border border-zinc-200 bg-transparent px-3.5 text-sm font-semibold text-brand-dark hover:bg-zinc-200/40"
         >
           <Pencil className="size-3.5" />
           Edit school
@@ -366,19 +366,19 @@ function TeacherSchoolPage() {
         <dl className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <dt className="text-[12px] text-zinc-400">Email</dt>
-            <dd className="mt-1 text-sm font-medium text-[#0C1A2E]">
+            <dd className="mt-1 text-sm font-medium text-brand-dark">
               {school.email}
             </dd>
           </div>
           <div>
             <dt className="text-[12px] text-zinc-400">Phone</dt>
-            <dd className="mt-1 text-sm font-medium text-[#0C1A2E]">
+            <dd className="mt-1 text-sm font-medium text-brand-dark">
               {school.phoneNumber || "—"}
             </dd>
           </div>
           <div>
             <dt className="text-[12px] text-zinc-400">Website</dt>
-            <dd className="mt-1 text-sm font-medium text-[#0C1A2E]">
+            <dd className="mt-1 text-sm font-medium text-brand-dark">
               {school.website ? (
                 <a
                   href={school.website}
@@ -395,7 +395,7 @@ function TeacherSchoolPage() {
           </div>
           <div className="sm:col-span-2 lg:col-span-3">
             <dt className="text-[12px] text-zinc-400">Address</dt>
-            <dd className="mt-1 text-sm font-medium text-[#0C1A2E]">
+            <dd className="mt-1 text-sm font-medium text-brand-dark">
               {location || "—"}
             </dd>
           </div>

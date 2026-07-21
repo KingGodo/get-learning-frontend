@@ -83,7 +83,7 @@ export default function AssignmentsPageClient() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Academics
           </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             Assignments
           </h1>
           <p className="mt-1 max-w-lg text-[13px] text-zinc-500">
@@ -129,8 +129,8 @@ export default function AssignmentsPageClient() {
                 className={cn(
                   "h-8 px-3 text-[12px] font-medium transition-colors",
                   statusFilter === status
-                    ? "bg-[#0C1A2E] text-white"
-                    : "text-zinc-500 hover:text-[#0C1A2E]",
+                    ? "bg-brand text-brand-dark"
+                    : "text-zinc-500 hover:text-brand-dark",
                 )}
               >
                 {status === "ALL"
@@ -154,7 +154,7 @@ export default function AssignmentsPageClient() {
             className="w-[min(70vw,240px)] select-none"
             priority
           />
-          <h2 className="mt-6 text-base font-semibold text-[#0C1A2E]">
+          <h2 className="mt-6 text-base font-semibold text-brand-dark">
             No assignments yet
           </h2>
           <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
@@ -170,7 +170,7 @@ export default function AssignmentsPageClient() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-[#0C1A2E]">No matches</p>
+          <p className="text-sm font-medium text-brand-dark">No matches</p>
           <p className="mt-1 text-[13px] text-zinc-500">
             Try another search or status filter.
           </p>
@@ -211,14 +211,14 @@ export default function AssignmentsPageClient() {
                       <td className="py-3.5 pr-4">
                         <Link
                           href={`/assignments/${a.id}`}
-                          className="font-medium text-[#0C1A2E] hover:underline"
+                          className="font-medium text-brand-dark hover:underline"
                         >
                           {a.title}
                         </Link>
                         <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-zinc-400">
                           <span>{a.totalMarks} marks</span>
                           {a.attachment && (
-                            <span className="inline-flex items-center gap-0.5 text-[#0C1A2E]/70">
+                            <span className="inline-flex items-center gap-0.5 text-brand-dark/70">
                               <Paperclip className="size-3" />
                               File attached
                             </span>
@@ -283,7 +283,7 @@ export default function AssignmentsPageClient() {
                       <td className="py-3.5 pl-4 text-right">
                         <Link
                           href={`/assignments/${a.id}`}
-                          className="inline-flex h-8 items-center gap-1 bg-[#0C1A2E] px-3 text-[12px] font-semibold text-white transition-colors hover:bg-[#0C1A2E]/90"
+                          className="inline-flex h-8 items-center gap-1 bg-brand-dark px-3 text-[12px] font-semibold text-white transition-colors hover:bg-brand-dark/90"
                         >
                           {isStudent
                             ? myStatus
@@ -374,7 +374,7 @@ function CreateAssignmentDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button className="h-9 rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90" />
+          <Button className="h-9 rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90" />
         }
       >
         <Plus className="mr-1.5 size-3.5" />
@@ -382,7 +382,7 @@ function CreateAssignmentDialog({
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg font-semibold text-[#0C1A2E]">
+          <DialogTitle className="font-display text-lg font-semibold text-brand-dark">
             New assignment
           </DialogTitle>
         </DialogHeader>
@@ -508,7 +508,7 @@ function CreateAssignmentDialog({
           <Button
             type="submit"
             disabled={pending}
-            className="h-9 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             {pending ? "Publishing…" : "Publish assignment"}
           </Button>

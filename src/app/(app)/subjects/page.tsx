@@ -138,7 +138,7 @@ export default function SubjectsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Academics
           </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             Subjects
           </h1>
           <p className="mt-1 text-[13px] text-zinc-500">
@@ -151,7 +151,7 @@ export default function SubjectsPage() {
         {canManage && (
           <Link
             href="/subjects/new"
-            className="inline-flex h-9 items-center gap-1.5 bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             <Plus className="size-3.5" />
             Add subject
@@ -183,7 +183,7 @@ export default function SubjectsPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               {isTeacher ? "Your subjects" : "Total"}
             </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {subjects.length}
             </p>
           </div>
@@ -212,7 +212,7 @@ export default function SubjectsPage() {
             className="w-[min(70vw,240px)] select-none"
             priority
           />
-          <h2 className="mt-6 text-base font-semibold text-[#0C1A2E]">
+          <h2 className="mt-6 text-base font-semibold text-brand-dark">
             {isTeacher ? "Register your subjects" : "No subjects yet"}
           </h2>
           <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
@@ -223,7 +223,7 @@ export default function SubjectsPage() {
           {canManage && (
             <Link
               href="/subjects/new"
-              className="mt-5 inline-flex h-9 items-center gap-1.5 bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+              className="mt-5 inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
             >
               <Plus className="size-3.5" />
               Add subject
@@ -232,7 +232,7 @@ export default function SubjectsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-[#0C1A2E]">No matches</p>
+          <p className="text-sm font-medium text-brand-dark">No matches</p>
           <p className="mt-1 text-[13px] text-zinc-500">
             Try another search term.
           </p>
@@ -257,7 +257,7 @@ export default function SubjectsPage() {
                     key={s.id}
                     className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       <Link
                         href={`/subjects/${s.id}`}
                         className="hover:underline"
@@ -313,7 +313,7 @@ export default function SubjectsPage() {
       {isTeacher && availableToJoin.length > 0 && (
         <section className="space-y-3 border-t border-zinc-200 pt-7">
           <div>
-            <h2 className="text-sm font-semibold text-[#0C1A2E]">
+            <h2 className="text-sm font-semibold text-brand-dark">
               At your school
             </h2>
             <p className="mt-0.5 text-[12px] text-zinc-400">
@@ -327,7 +327,7 @@ export default function SubjectsPage() {
                 className="flex flex-wrap items-center justify-between gap-3 py-3.5"
               >
                 <div>
-                  <p className="text-[13px] font-medium text-[#0C1A2E]">
+                  <p className="text-[13px] font-medium text-brand-dark">
                     {s.name}
                   </p>
                   <p className="mt-0.5 font-mono text-[12px] text-zinc-500">
@@ -339,7 +339,7 @@ export default function SubjectsPage() {
                   type="button"
                   disabled={assigningId === s.id}
                   onClick={() => void onAssign(s.id)}
-                  className="text-[12px] font-semibold text-[#0C1A2E] transition-opacity hover:opacity-70 disabled:opacity-50"
+                  className="text-[12px] font-semibold text-brand-dark transition-opacity hover:opacity-70 disabled:opacity-50"
                 >
                   {assigningId === s.id ? "Adding…" : "Teach this"}
                 </button>

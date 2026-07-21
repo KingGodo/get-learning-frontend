@@ -142,8 +142,8 @@ export function HeaderNotifications() {
         type="button"
         onClick={() => void openPanel()}
         className={cn(
-          "relative flex size-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-600 transition-colors hover:border-zinc-300 hover:text-[#0C1A2E]",
-          open && "border-[#0C1A2E] text-[#0C1A2E]",
+          "relative flex size-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-600 transition-colors hover:border-zinc-300 hover:text-brand-dark",
+          open && "border-brand text-brand-dark",
         )}
         aria-label={
           unreadCount > 0
@@ -154,7 +154,7 @@ export function HeaderNotifications() {
       >
         <Bell className="size-4" strokeWidth={1.75} />
         {badge && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0C1A2E] px-1 text-[9px] font-semibold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-dark px-1 text-[9px] font-semibold text-white">
             {badge}
           </span>
         )}
@@ -164,7 +164,7 @@ export function HeaderNotifications() {
         <div className="absolute right-0 z-50 mt-2 w-[min(92vw,360px)] border border-zinc-200 bg-white shadow-[0_8px_30px_rgba(12,26,46,0.08)]">
           <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3">
             <div>
-              <p className="text-[13px] font-semibold text-[#0C1A2E]">
+              <p className="text-[13px] font-semibold text-brand-dark">
                 Notifications
               </p>
               <p className="text-[11px] text-zinc-400">
@@ -177,7 +177,7 @@ export function HeaderNotifications() {
               <button
                 type="button"
                 onClick={() => void markAllRead()}
-                className="text-[11px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+                className="text-[11px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
               >
                 Mark all seen
               </button>
@@ -199,14 +199,14 @@ export function HeaderNotifications() {
                 const content = (
                   <div className="flex items-start gap-2.5">
                     {highlight ? (
-                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#197de1]" />
+                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand" />
                     ) : (
                       <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-transparent" />
                     )}
                     <div className="min-w-0 flex-1">
                       <p
                         className={cn(
-                          "text-[13px] text-[#0C1A2E]",
+                          "text-[13px] text-brand-dark",
                           highlight ? "font-semibold" : "font-medium",
                         )}
                       >
@@ -227,7 +227,7 @@ export function HeaderNotifications() {
                     key={n.id}
                     className={cn(
                       "border-b border-zinc-100 last:border-b-0",
-                      highlight && "bg-[#197de1]/[0.04]",
+                      highlight && "bg-brand/[0.04]",
                     )}
                   >
                     {n.href ? (
@@ -259,7 +259,7 @@ export function HeaderNotifications() {
                 markedOnOpenRef.current = false;
                 setHighlightIds(new Set());
               }}
-              className="block text-center text-[12px] font-semibold text-[#0C1A2E] transition-colors hover:underline"
+              className="block text-center text-[12px] font-semibold text-brand-dark transition-colors hover:underline"
             >
               View all notifications
             </Link>

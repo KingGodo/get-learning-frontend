@@ -1,4 +1,10 @@
-export type UserRole = "ADMIN" | "TEACHER" | "STUDENT";
+export type UserRole = "ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT";
+
+export type IssuedCredentials = {
+  email: string;
+  temporaryPassword: string;
+  mustChangePassword: boolean;
+};
 
 export type User = {
   id: string;
@@ -11,6 +17,8 @@ export type User = {
   schoolId?: string | null;
   gender?: string;
   dateOfBirth?: string | null;
+  mustChangePassword?: boolean;
+  status?: string;
   teacher?: Teacher | null;
   student?: Student | null;
   school?: School | null;
@@ -58,6 +66,7 @@ export type AdminUserSummary = {
   role: UserRole;
   status: string;
   schoolId?: string | null;
+  mustChangePassword?: boolean;
   lastLogin?: string | null;
   createdAt: string;
   school?: { id: string; name: string; code: string } | null;
@@ -340,7 +349,49 @@ export type AdminDashboard = {
   upcomingDeadlines: Assignment[];
 };
 
-export type Dashboard = AdminDashboard | TeacherDashboard | StudentDashboard;
+export type SchoolAdminDashboard = {
+  role: "SCHOOL_ADMIN";
+  profile: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+  };
+  school: School | null;
+  totalTeachers: number;
+  totalStudents: number;
+  totalClasses: number;
+  totalSubjects: number;
+  totalAssignments: number;
+  pendingGrading: number;
+  recentTeachers: Array<{
+    id: string;
+    employeeNumber: string;
+    createdAt: string;
+    user: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+  }>;
+  recentStudents: Array<{
+    id: string;
+    studentNumber: string;
+    createdAt: string;
+    user: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+  }>;
+  upcomingDeadlines: Assignment[];
+};
+
+export type Dashboard =
+  | AdminDashboard
+  | SchoolAdminDashboard
+  | TeacherDashboard
+  | StudentDashboard;
 
 export type ApiError = {
   success: false;

@@ -121,7 +121,7 @@ export default function RegisterTeacherPage() {
       <div className="relative w-full max-w-xl self-start pb-8 pt-2 sm:pt-4">
         <Link
           href="/register"
-          className="text-[13px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+          className="text-[13px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
         >
           ← Back
         </Link>
@@ -263,7 +263,7 @@ export default function RegisterTeacherPage() {
           <Button
             type="submit"
             disabled={pending || schoolsLoading || schools.length === 0}
-            className="h-11 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-11 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             Create account
           </Button>
@@ -273,7 +273,7 @@ export default function RegisterTeacherPage() {
           Prefer student signup?{" "}
           <Link
             href="/register/student"
-            className="font-medium text-[#0C1A2E] hover:underline"
+            className="font-medium text-brand-dark hover:underline"
           >
             Go there
           </Link>

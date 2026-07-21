@@ -117,7 +117,7 @@ export function AttachmentActions({
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <span
             className={cn(
-              "flex shrink-0 items-center justify-center bg-[#0C1A2E]/5 text-[#0C1A2E]",
+              "flex shrink-0 items-center justify-center bg-brand-dark/5 text-brand-dark",
               compact ? "size-8" : "size-10",
             )}
           >
@@ -126,7 +126,7 @@ export function AttachmentActions({
           <div className="min-w-0">
             <p
               className={cn(
-                "truncate font-medium text-[#0C1A2E]",
+                "truncate font-medium text-brand-dark",
                 compact ? "text-[12px]" : "text-[13px]",
               )}
             >
@@ -142,7 +142,7 @@ export function AttachmentActions({
             onClick={() => void onPreview()}
             disabled={busy !== null}
             className={cn(
-              "inline-flex items-center justify-center gap-1.5 border border-zinc-200 bg-white font-semibold text-[#0C1A2E] transition-colors hover:border-[#0C1A2E]/30 hover:bg-zinc-50 disabled:opacity-60",
+              "inline-flex items-center justify-center gap-1.5 border border-zinc-200 bg-white font-semibold text-brand-dark transition-colors hover:border-brand/30 hover:bg-zinc-50 disabled:opacity-60",
               compact ? "h-8 px-2.5 text-[12px]" : "h-9 px-3.5 text-[13px]",
             )}
           >
@@ -158,7 +158,7 @@ export function AttachmentActions({
             onClick={() => void onDownload()}
             disabled={busy !== null}
             className={cn(
-              "inline-flex items-center justify-center gap-1.5 bg-[#0C1A2E] font-semibold text-white transition-colors hover:bg-[#0C1A2E]/90 disabled:opacity-60",
+              "inline-flex items-center justify-center gap-1.5 bg-brand-dark font-semibold text-white transition-colors hover:bg-brand-dark/90 disabled:opacity-60",
               compact ? "h-8 px-2.5 text-[12px]" : "h-9 px-3.5 text-[13px]",
             )}
           >

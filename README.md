@@ -1,4 +1,4 @@
-# Lumen (LMS Frontend)
+# Learning Hub (LMS Frontend)
 
 Next.js + shadcn/ui client for the Learning Management System API.
 
@@ -16,4 +16,4 @@ API default: `http://localhost:4000/api/v1` (start `lms-backend` first).
 
 ## Brand
 
-**Lumen** — calm pine + cool mist UI, Fraunces display + Outfit body.
+**Learning Hub** — calm pine + cool mist UI, Fraunces display + Outfit body.

@@ -53,12 +53,12 @@ export default function NewSubjectPage() {
       <div>
         <Link
           href="/subjects"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Back to subjects
         </Link>
-        <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+        <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight text-brand-dark">
           Add a subject
         </h1>
         <p className="mt-1 text-[13px] text-zinc-500">
@@ -132,13 +132,13 @@ export default function NewSubjectPage() {
           <Button
             type="submit"
             disabled={pending}
-            className="h-9 rounded-md bg-[#0C1A2E] px-5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             {pending ? "Creating…" : "Create subject"}
           </Button>
           <Link
             href="/subjects"
-            className="inline-flex h-9 items-center px-4 text-sm font-medium text-zinc-500 hover:text-[#0C1A2E]"
+            className="inline-flex h-9 items-center px-4 text-sm font-medium text-zinc-500 hover:text-brand-dark"
           >
             Cancel
           </Link>

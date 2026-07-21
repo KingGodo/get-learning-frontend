@@ -12,34 +12,34 @@ export default function RegisterPickerPage() {
           Create your account
         </h1>
         <p className="mt-1 text-[13px] text-zinc-500">
-          Choose how you&apos;ll use Lumen.
+          Choose how you&apos;ll use Learning Hub.
         </p>
 
         <div className="mt-7 space-y-2.5">
           <Link
             href="/register/teacher"
-            className="group flex items-start justify-between gap-3 border border-zinc-200 px-4 py-4 transition-colors hover:border-[#0C1A2E]/25 hover:bg-zinc-50"
+            className="group flex items-start justify-between gap-3 border border-zinc-200 px-4 py-4 transition-colors hover:border-brand-dark/25 hover:bg-zinc-50"
           >
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">Teacher</h2>
+              <h2 className="text-sm font-semibold text-brand-dark">Teacher</h2>
               <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
                 Create a school and manage classes.
               </p>
             </div>
-            <ArrowRight className="mt-0.5 size-4 shrink-0 text-zinc-300 transition-colors group-hover:text-[#0C1A2E]" />
+            <ArrowRight className="mt-0.5 size-4 shrink-0 text-zinc-300 transition-colors group-hover:text-brand-dark" />
           </Link>
 
           <Link
             href="/register/student"
-            className="group flex items-start justify-between gap-3 border border-zinc-200 px-4 py-4 transition-colors hover:border-[#0C1A2E]/25 hover:bg-zinc-50"
+            className="group flex items-start justify-between gap-3 border border-zinc-200 px-4 py-4 transition-colors hover:border-brand-dark/25 hover:bg-zinc-50"
           >
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">Student</h2>
+              <h2 className="text-sm font-semibold text-brand-dark">Student</h2>
               <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
                 Join a class and submit work.
               </p>
             </div>
-            <ArrowRight className="mt-0.5 size-4 shrink-0 text-zinc-300 transition-colors group-hover:text-[#0C1A2E]" />
+            <ArrowRight className="mt-0.5 size-4 shrink-0 text-zinc-300 transition-colors group-hover:text-brand-dark" />
           </Link>
         </div>
 
@@ -47,7 +47,7 @@ export default function RegisterPickerPage() {
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-[#0C1A2E] hover:underline"
+            className="font-medium text-brand-dark hover:underline"
           >
             Sign in
           </Link>

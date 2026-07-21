@@ -79,7 +79,7 @@ export default function SubmissionsPage() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
           Academics
         </p>
-        <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+        <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
           Submissions
         </h1>
         <p className="mt-1 text-[13px] text-zinc-500">
@@ -107,8 +107,8 @@ export default function SubmissionsPage() {
                 className={cn(
                   "h-8 px-3 text-[12px] font-medium transition-colors",
                   statusFilter === status
-                    ? "bg-[#0C1A2E] text-white"
-                    : "text-zinc-500 hover:text-[#0C1A2E]",
+                    ? "bg-brand text-brand-dark"
+                    : "text-zinc-500 hover:text-brand-dark",
                 )}
               >
                 {status === "ALL"
@@ -130,7 +130,7 @@ export default function SubmissionsPage() {
             className="w-[min(70vw,240px)] select-none"
             priority
           />
-          <h2 className="mt-6 text-base font-semibold text-[#0C1A2E]">
+          <h2 className="mt-6 text-base font-semibold text-brand-dark">
             No submissions yet
           </h2>
           <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
@@ -138,14 +138,14 @@ export default function SubmissionsPage() {
           </p>
           <Link
             href="/assignments"
-            className="mt-5 inline-flex h-9 items-center bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="mt-5 inline-flex h-9 items-center bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             Go to assignments
           </Link>
         </div>
       ) : filtered.length === 0 ? (
         <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-[#0C1A2E]">No matches</p>
+          <p className="text-sm font-medium text-brand-dark">No matches</p>
           <p className="mt-1 text-[13px] text-zinc-500">
             Try another search or status filter.
           </p>
@@ -173,12 +173,12 @@ export default function SubmissionsPage() {
                       {s.assignment?.id ? (
                         <Link
                           href={`/assignments/${s.assignment.id}`}
-                          className="font-medium text-[#0C1A2E] hover:underline"
+                          className="font-medium text-brand-dark hover:underline"
                         >
                           {s.assignment.title}
                         </Link>
                       ) : (
-                        <span className="font-medium text-[#0C1A2E]">
+                        <span className="font-medium text-brand-dark">
                           Submission
                         </span>
                       )}

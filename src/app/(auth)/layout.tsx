@@ -10,13 +10,13 @@ export default function AuthLayout({
       <header className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
         <Link
           href="/"
-          className="font-display text-[15px] font-semibold tracking-tight text-black transition-opacity hover:opacity-70"
+          className="font-display text-[15px] font-semibold tracking-tight text-brand-dark transition-opacity hover:opacity-70"
         >
-          Lumen
+          Learning Hub
         </Link>
         <Link
           href="/"
-          className="text-sm text-zinc-500 transition-colors hover:text-black"
+          className="text-sm text-zinc-500 transition-colors hover:text-brand-dark"
         >
           Back to home
         </Link>

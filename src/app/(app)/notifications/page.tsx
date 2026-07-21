@@ -127,7 +127,7 @@ export default function NotificationsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Inbox
           </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             Notifications
           </h1>
           <p className="mt-1 text-[13px] text-zinc-500">
@@ -144,7 +144,7 @@ export default function NotificationsPage() {
               type="button"
               variant="outline"
               onClick={() => void markAllSeen()}
-              className="h-9 rounded-md border-zinc-200 text-[12px] font-semibold text-[#0C1A2E]"
+              className="h-9 rounded-md border-zinc-200 text-[12px] font-semibold text-brand-dark"
             >
               <CheckCheck className="mr-1.5 size-3.5" />
               Mark all seen
@@ -177,7 +177,7 @@ export default function NotificationsPage() {
       {items.length === 0 ? (
         <div className="flex flex-col items-center border border-dashed border-zinc-200 px-4 py-16 text-center">
           <Bell className="size-8 text-zinc-300" strokeWidth={1.5} />
-          <p className="mt-4 text-sm font-medium text-[#0C1A2E]">
+          <p className="mt-4 text-sm font-medium text-brand-dark">
             No notifications
           </p>
           <p className="mt-1 max-w-xs text-[13px] text-zinc-500">
@@ -193,20 +193,20 @@ export default function NotificationsPage() {
                 key={n.id}
                 className={cn(
                   "group flex items-start gap-3 py-4 transition-colors",
-                  unseen && "bg-[#197de1]/[0.03]",
+                  unseen && "bg-brand/[0.03]",
                 )}
               >
                 <span
                   className={cn(
                     "mt-2 size-1.5 shrink-0 rounded-full",
-                    unseen ? "bg-[#197de1]" : "bg-transparent",
+                    unseen ? "bg-brand" : "bg-transparent",
                   )}
                 />
                 <div className="min-w-0 flex-1">
                   {n.href ? (
                     <Link
                       href={n.href}
-                      className="text-[14px] font-medium text-[#0C1A2E] hover:underline"
+                      className="text-[14px] font-medium text-brand-dark hover:underline"
                       onClick={() => {
                         if (unseen) {
                           void notificationsApi.markOne(n.id).then(() => {
@@ -228,7 +228,7 @@ export default function NotificationsPage() {
                       {n.title}
                     </Link>
                   ) : (
-                    <p className="text-[14px] font-medium text-[#0C1A2E]">
+                    <p className="text-[14px] font-medium text-brand-dark">
                       {n.title}
                     </p>
                   )}

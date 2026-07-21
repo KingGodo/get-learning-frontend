@@ -12,26 +12,26 @@ export default function LegalLayout({
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
           <Link
             href="/"
-            className="font-display text-[15px] font-semibold tracking-tight text-[#0C1A2E]"
+            className="font-display text-[15px] font-semibold tracking-tight text-brand-dark"
           >
-            Lumen
+            Learning Hub
           </Link>
           <nav className="flex items-center gap-5 text-[13px]">
             <Link
               href="/privacy"
-              className="font-medium text-zinc-500 hover:text-[#0C1A2E]"
+              className="font-medium text-zinc-500 hover:text-brand-dark"
             >
               Privacy
             </Link>
             <Link
               href="/terms"
-              className="font-medium text-zinc-500 hover:text-[#0C1A2E]"
+              className="font-medium text-zinc-500 hover:text-brand-dark"
             >
               Terms
             </Link>
             <Link
               href="/login"
-              className="font-semibold text-[#0C1A2E] hover:opacity-70"
+              className="font-semibold text-brand-dark hover:opacity-70"
             >
               Sign in
             </Link>

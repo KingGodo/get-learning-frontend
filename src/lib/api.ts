@@ -35,7 +35,7 @@ export function getApiOrigin(): string {
   return getApiBaseUrl().replace(/\/api\/v1\/?$/, "");
 }
 
-const TOKEN_KEY = "lumen_token";
+const TOKEN_KEY = "learning_hub_token";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -212,7 +212,11 @@ export const schoolsApi = {
     api<import("./types").AdminSchoolDetail>(`/schools/${id}`),
   me: () => api<import("./types").School>("/schools/me"),
   create: (body: Record<string, unknown>) =>
-    api<{ school: import("./types").School; token: string | null }>("/schools", {
+    api<{
+      school: import("./types").School;
+      admin: import("./types").User;
+      credentials: import("./types").IssuedCredentials;
+    }>("/schools", {
       method: "POST",
       body,
     }),
@@ -231,6 +235,28 @@ export const usersApi = {
     );
   },
   get: (id: string) => api<import("./types").AdminUserDetail>(`/users/${id}`),
+  createTeacher: (body: Record<string, unknown>) =>
+    api<{
+      user: import("./types").User;
+      teacher: import("./types").Teacher;
+      credentials: import("./types").IssuedCredentials;
+    }>("/users/teachers", { method: "POST", body }),
+  createStudent: (body: Record<string, unknown>) =>
+    api<{
+      user: import("./types").User;
+      student: import("./types").Student;
+      credentials: import("./types").IssuedCredentials;
+    }>("/users/students", { method: "POST", body }),
+  resetCredentials: (id: string) =>
+    api<{
+      user: import("./types").User;
+      credentials: import("./types").IssuedCredentials;
+    }>(`/users/${id}/reset-credentials`, { method: "POST", body: {} }),
+  updateStatus: (id: string, status: "ACTIVE" | "INACTIVE" | "SUSPENDED") =>
+    api<import("./types").User>(`/users/${id}/status`, {
+      method: "PATCH",
+      body: { status },
+    }),
 };
 
 export const assignmentsApi = {

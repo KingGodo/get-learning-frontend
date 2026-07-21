@@ -49,7 +49,7 @@ export default function ClassDetailPage() {
       <div className="space-y-4">
         <Link
           href="/classes"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Classes
@@ -84,7 +84,7 @@ export default function ClassDetailPage() {
       <div>
         <Link
           href="/classes"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Classes
@@ -96,7 +96,7 @@ export default function ClassDetailPage() {
               {data.subject ? (
                 <Link
                   href={`/subjects/${data.subject.id}`}
-                  className="hover:text-[#0C1A2E]"
+                  className="hover:text-brand-dark"
                 >
                   {data.subject.name}
                 </Link>
@@ -104,7 +104,7 @@ export default function ClassDetailPage() {
                 "Class"
               )}
             </p>
-            <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {data.name}
             </h1>
             {data.description && (
@@ -128,7 +128,7 @@ export default function ClassDetailPage() {
               </span>
               <a
                 href="#students"
-                className="inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#0C1A2E] hover:underline"
+                className="inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-dark hover:underline"
               >
                 {students.length} student{students.length === 1 ? "" : "s"}
               </a>
@@ -138,7 +138,7 @@ export default function ClassDetailPage() {
           <button
             type="button"
             onClick={() => void copyCode()}
-            className="inline-flex items-center gap-2 border border-zinc-200 bg-white px-3.5 py-2.5 font-mono text-[13px] text-[#0C1A2E] transition-colors hover:border-[#0C1A2E]/30"
+            className="inline-flex items-center gap-2 border border-zinc-200 bg-white px-3.5 py-2.5 font-mono text-[13px] text-brand-dark transition-colors hover:border-brand/30"
           >
             {data.classCode}
             {copied ? (
@@ -154,14 +154,14 @@ export default function ClassDetailPage() {
       </div>
 
       <section>
-        <h2 className="text-sm font-semibold text-[#0C1A2E]">Teachers</h2>
+        <h2 className="text-sm font-semibold text-brand-dark">Teachers</h2>
         <ul className="mt-4 space-y-3 border-y border-zinc-200/70 py-4">
           {(data.classTeachers ?? []).length === 0 && (
             <li className="text-[13px] text-zinc-400">No teachers listed.</li>
           )}
           {(data.classTeachers ?? []).map((t, i) => (
             <li key={i} className="text-[13px]">
-              <span className="font-medium text-[#0C1A2E]">
+              <span className="font-medium text-brand-dark">
                 {t.teacher.user.firstName} {t.teacher.user.lastName}
               </span>
               <span className="mt-0.5 block text-[12px] text-zinc-500">
@@ -174,7 +174,7 @@ export default function ClassDetailPage() {
 
       <section id="students" className="scroll-mt-6 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-[#0C1A2E]">
+          <h2 className="text-sm font-semibold text-brand-dark">
             Students ({students.length})
           </h2>
           <p className="mt-0.5 text-[12px] text-zinc-500">
@@ -203,7 +203,7 @@ export default function ClassDetailPage() {
                     key={s.student.id ?? i}
                     className="border-b border-zinc-200/50 text-[13px]"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       {s.student.user.firstName} {s.student.user.lastName}
                     </td>
                     <td className="px-4 py-3.5 font-mono text-[12px] text-zinc-600">
@@ -225,7 +225,7 @@ export default function ClassDetailPage() {
 
       <Link
         href={`/assignments?classId=${data.id}`}
-        className="inline-flex h-9 items-center bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+        className="inline-flex h-9 items-center bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
       >
         View assignments
       </Link>

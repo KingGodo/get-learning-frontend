@@ -85,7 +85,7 @@ export default function RegisterStudentPage() {
       <div className="relative w-full max-w-xl self-start pb-8 pt-2 sm:pt-4">
         <Link
           href="/register"
-          className="text-[13px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+          className="text-[13px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
         >
           ← Back
         </Link>
@@ -114,7 +114,7 @@ export default function RegisterStudentPage() {
         >
           <section className="space-y-3.5">
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">You</h2>
+              <h2 className="text-sm font-semibold text-brand-dark">You</h2>
               <p className="mt-0.5 text-[12px] text-zinc-400">
                 Required for your student account
               </p>
@@ -190,7 +190,7 @@ export default function RegisterStudentPage() {
 
           <section className="space-y-3.5 border-t border-zinc-200 pt-7">
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">Guardian</h2>
+              <h2 className="text-sm font-semibold text-brand-dark">Guardian</h2>
               <p className="mt-0.5 text-[12px] text-zinc-400">
                 So we can reach someone if needed
               </p>
@@ -226,7 +226,7 @@ export default function RegisterStudentPage() {
           <Button
             type="submit"
             disabled={pending}
-            className="h-11 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-11 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             Create account
           </Button>
@@ -236,7 +236,7 @@ export default function RegisterStudentPage() {
           Teaching instead?{" "}
           <Link
             href="/register/teacher"
-            className="font-medium text-[#0C1A2E] hover:underline"
+            className="font-medium text-brand-dark hover:underline"
           >
             Teacher signup
           </Link>

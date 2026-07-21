@@ -113,12 +113,12 @@ export default function NewClassPage() {
       <div>
         <Link
           href="/classes"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Back to classes
         </Link>
-        <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+        <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight text-brand-dark">
           Create a class
         </h1>
         <p className="mt-1 text-[13px] text-zinc-500">
@@ -144,13 +144,13 @@ export default function NewClassPage() {
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <dt className="text-[12px] text-zinc-400">Name</dt>
-              <dd className="mt-0.5 text-sm font-medium text-[#0C1A2E]">
+              <dd className="mt-0.5 text-sm font-medium text-brand-dark">
                 {school.name}
               </dd>
             </div>
             <div>
               <dt className="text-[12px] text-zinc-400">Code</dt>
-              <dd className="mt-0.5 font-mono text-sm text-[#0C1A2E]">
+              <dd className="mt-0.5 font-mono text-sm text-brand-dark">
                 {school.code}
               </dd>
             </div>
@@ -215,7 +215,7 @@ export default function NewClassPage() {
               Register the subjects you teach first.{" "}
               <Link
                 href="/subjects/new"
-                className="font-medium text-[#0C1A2E] hover:underline"
+                className="font-medium text-brand-dark hover:underline"
               >
                 Add a subject
               </Link>
@@ -225,7 +225,7 @@ export default function NewClassPage() {
               Showing subjects you registered.{" "}
               <Link
                 href="/subjects"
-                className="font-medium text-[#0C1A2E] hover:underline"
+                className="font-medium text-brand-dark hover:underline"
               >
                 Manage subjects
               </Link>
@@ -304,13 +304,13 @@ export default function NewClassPage() {
           <Button
             type="submit"
             disabled={pending || subjects.length === 0}
-            className="h-9 rounded-md bg-[#0C1A2E] px-5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             {pending ? "Creating…" : "Create class"}
           </Button>
           <Link
             href="/classes"
-            className="inline-flex h-9 items-center px-4 text-sm font-medium text-zinc-500 hover:text-[#0C1A2E]"
+            className="inline-flex h-9 items-center px-4 text-sm font-medium text-zinc-500 hover:text-brand-dark"
           >
             Cancel
           </Link>

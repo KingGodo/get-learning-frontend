@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 type BrandMarkProps = {
@@ -23,7 +24,7 @@ export function BrandMark({ className, href, size = "md" }: BrandMarkProps) {
         className,
       )}
     >
-      Lumen
+      {APP_NAME}
     </span>
   );
 

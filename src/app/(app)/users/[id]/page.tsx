@@ -17,7 +17,7 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
       <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
         {label}
       </p>
-      <p className="mt-1.5 text-[13px] text-[#0C1A2E]">{value ?? "—"}</p>
+      <p className="mt-1.5 text-[13px] text-brand-dark">{value ?? "—"}</p>
     </div>
   );
 }
@@ -61,7 +61,7 @@ export default function UserDetailPage() {
       <div className="space-y-4">
         <Link
           href="/users"
-          className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Back to users
@@ -85,7 +85,7 @@ export default function UserDetailPage() {
       <div>
         <Link
           href="/users"
-          className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Back to users
@@ -95,7 +95,7 @@ export default function UserDetailPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
               User detail
             </p>
-            <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {fullName}
             </h1>
             <p className="mt-1 text-[13px] text-zinc-500">{user.email}</p>
@@ -230,7 +230,7 @@ export default function UserDetailPage() {
                         key={ct.class.id}
                         className="border-b border-zinc-200/50 text-[13px]"
                       >
-                        <td className="py-3 pr-4 font-medium text-[#0C1A2E]">
+                        <td className="py-3 pr-4 font-medium text-brand-dark">
                           {ct.class.name}
                           <span className="ml-2 font-mono text-[11px] text-zinc-400">
                             {ct.class.classCode}
@@ -302,7 +302,7 @@ export default function UserDetailPage() {
                         key={cs.class.id}
                         className="border-b border-zinc-200/50 text-[13px]"
                       >
-                        <td className="py-3 pr-4 font-medium text-[#0C1A2E]">
+                        <td className="py-3 pr-4 font-medium text-brand-dark">
                           {cs.class.name}
                           <span className="ml-2 font-mono text-[11px] text-zinc-400">
                             {cs.class.classCode}

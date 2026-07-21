@@ -75,7 +75,7 @@ export default function ResetPasswordPage() {
         </p>
         <Link
           href="/forgot-password"
-          className="mt-6 inline-flex h-9 w-full items-center justify-center rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+          className="mt-6 inline-flex h-9 w-full items-center justify-center rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
         >
           Request reset link
         </Link>
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
           Set new password
         </h1>
         <p className="mt-1 text-[13px] text-zinc-500">
-          Choose a new password for your Lumen account.
+          Choose a new password for your Learning Hub account.
         </p>
 
         {done ? (
@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
             <Button
               type="button"
               onClick={() => router.replace("/login")}
-              className="h-9 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+              className="h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
             >
               Go to sign in
             </Button>
@@ -171,7 +171,7 @@ export default function ResetPasswordPage() {
             <Button
               type="submit"
               disabled={pending}
-              className="mt-1 h-9 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+              className="mt-1 h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
             >
               {pending ? "Updating…" : "Update password"}
             </Button>
@@ -181,7 +181,7 @@ export default function ResetPasswordPage() {
         <p className="mt-5 text-center text-[13px] text-zinc-500">
           <Link
             href="/login"
-            className="font-medium text-[#0C1A2E] hover:underline"
+            className="font-medium text-brand-dark hover:underline"
           >
             Back to sign in
           </Link>

@@ -31,7 +31,7 @@ export default function SubjectDetailPage() {
       <div className="space-y-4">
         <Link
           href="/subjects"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Subjects
@@ -55,13 +55,13 @@ export default function SubjectDetailPage() {
       <div>
         <Link
           href="/subjects"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Subjects
         </Link>
         <p className="mt-4 font-mono text-[12px] text-zinc-400">{data.code}</p>
-        <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+        <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
           {data.name}
         </h1>
         {data.description && (
@@ -76,7 +76,7 @@ export default function SubjectDetailPage() {
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
             Classes
           </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             {data.classes.length}
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function SubjectDetailPage() {
           <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
             Students
           </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             {data.students.length}
           </p>
         </div>
@@ -92,7 +92,7 @@ export default function SubjectDetailPage() {
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-[#0C1A2E]">Classes</h2>
+          <h2 className="text-sm font-semibold text-brand-dark">Classes</h2>
           <p className="mt-0.5 text-[12px] text-zinc-500">
             Classes you teach for this subject.
           </p>
@@ -119,7 +119,7 @@ export default function SubjectDetailPage() {
                     key={c.id}
                     className="border-b border-zinc-200/50 text-[13px]"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       <Link
                         href={`/classes/${c.id}#students`}
                         className="hover:underline"
@@ -154,7 +154,7 @@ export default function SubjectDetailPage() {
 
       <section id="students" className="scroll-mt-6 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-[#0C1A2E]">
+          <h2 className="text-sm font-semibold text-brand-dark">
             Students ({data.students.length})
           </h2>
           <p className="mt-0.5 text-[12px] text-zinc-500">
@@ -183,7 +183,7 @@ export default function SubjectDetailPage() {
                     key={s.id}
                     className="border-b border-zinc-200/50 text-[13px]"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       {s.firstName} {s.lastName}
                     </td>
                     <td className="px-4 py-3.5 font-mono text-[12px] text-zinc-600">
@@ -199,7 +199,7 @@ export default function SubjectDetailPage() {
                           {i > 0 ? ", " : ""}
                           <Link
                             href={`/classes/${c.id}#students`}
-                            className="hover:text-[#0C1A2E] hover:underline"
+                            className="hover:text-brand-dark hover:underline"
                           >
                             {c.name}
                           </Link>

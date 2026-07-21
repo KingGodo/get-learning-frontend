@@ -125,14 +125,14 @@ export default function AssignmentDetailPage() {
       <div>
         <Link
           href="/assignments"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-[#0C1A2E]"
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
         >
           <ArrowLeft className="size-3.5" />
           Back to assignments
         </Link>
 
         <div className="mt-4 flex flex-wrap items-start gap-3">
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-brand-dark">
             {data.title}
           </h1>
           <span
@@ -155,7 +155,7 @@ export default function AssignmentDetailPage() {
             <span
               className={cn(
                 "font-medium",
-                isOverdue ? "text-red-600" : "text-[#0C1A2E]",
+                isOverdue ? "text-red-600" : "text-brand-dark",
               )}
             >
               {due.toLocaleString(undefined, {
@@ -166,7 +166,7 @@ export default function AssignmentDetailPage() {
             {isOverdue && " · overdue"}
           </span>
           <span>
-            <span className="font-medium text-[#0C1A2E]">{data.totalMarks}</span>{" "}
+            <span className="font-medium text-brand-dark">{data.totalMarks}</span>{" "}
             marks
           </span>
           {data.class?.name && <span>{data.class.name}</span>}
@@ -174,7 +174,7 @@ export default function AssignmentDetailPage() {
 
         {isStudent && (
           <p className="mt-4 border border-zinc-200 bg-zinc-50 px-3.5 py-3 text-[13px] leading-relaxed text-zinc-600">
-            <span className="font-semibold text-[#0C1A2E]">What to do: </span>
+            <span className="font-semibold text-brand-dark">What to do: </span>
             Read the brief below
             {data.attachment
               ? ", preview or download the teacher’s file"
@@ -185,7 +185,7 @@ export default function AssignmentDetailPage() {
       </div>
 
       <section className="space-y-4 border-y border-zinc-200/70 py-6">
-        <h2 className="text-sm font-semibold text-[#0C1A2E]">Brief</h2>
+        <h2 className="text-sm font-semibold text-brand-dark">Brief</h2>
         <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-zinc-700">
           {data.description}
         </p>
@@ -204,7 +204,7 @@ export default function AssignmentDetailPage() {
       {data.attachment ? (
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-[#0C1A2E]">
+            <h2 className="text-sm font-semibold text-brand-dark">
               Teacher’s file
             </h2>
             <p className="mt-0.5 text-[12px] text-zinc-400">
@@ -229,19 +229,19 @@ export default function AssignmentDetailPage() {
           <div className="flex items-start gap-2.5">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">
+              <h2 className="text-sm font-semibold text-brand-dark">
                 Your submission
               </h2>
               <p className="mt-0.5 text-[13px] text-zinc-600">
                 Status:{" "}
-                <span className="font-medium text-[#0C1A2E]">
+                <span className="font-medium text-brand-dark">
                   {mySubmission.status}
                 </span>
                 {mySubmission.score != null && (
                   <>
                     {" "}
                     · Score{" "}
-                    <span className="font-medium text-[#0C1A2E]">
+                    <span className="font-medium text-brand-dark">
                       {mySubmission.score}/{data.totalMarks}
                     </span>
                   </>
@@ -272,9 +272,9 @@ export default function AssignmentDetailPage() {
       {canSubmit && (
         <section className="space-y-3 border border-zinc-200 px-4 py-5">
           <div className="flex items-start gap-2.5">
-            <Upload className="mt-0.5 size-4 shrink-0 text-[#0C1A2E]" />
+            <Upload className="mt-0.5 size-4 shrink-0 text-brand-dark" />
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">
+              <h2 className="text-sm font-semibold text-brand-dark">
                 {mySubmission ? "Replace your work" : "Submit your work"}
               </h2>
               <p className="mt-0.5 text-[12px] text-zinc-400">
@@ -314,7 +314,7 @@ export default function AssignmentDetailPage() {
             <Button
               type="submit"
               disabled={submitting}
-              className="h-9 rounded-md bg-[#0C1A2E] px-5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+              className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
             >
               {submitting
                 ? "Uploading…"
@@ -334,7 +334,7 @@ export default function AssignmentDetailPage() {
 
       {!isStudent && (
         <section className="space-y-4">
-          <h2 className="text-sm font-semibold text-[#0C1A2E]">
+          <h2 className="text-sm font-semibold text-brand-dark">
             Submissions ({submissions.length})
           </h2>
           {submissions.length === 0 ? (
@@ -378,7 +378,7 @@ function GradeRow({
     <li className="border border-zinc-200 px-4 py-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-[#0C1A2E]">
+          <p className="text-sm font-semibold text-brand-dark">
             {submission.student
               ? `${submission.student.user.firstName} ${submission.student.user.lastName}`
               : "Student"}
@@ -425,7 +425,7 @@ function GradeRow({
         </div>
         <div className="flex items-end">
           <Button
-            className="h-9 rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-9 rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
             disabled={pending || score === ""}
             onClick={async () => {
               setPending(true);

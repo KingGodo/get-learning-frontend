@@ -57,10 +57,10 @@ export default function ForgotPasswordPage() {
             </div>
             {devResetUrl && (
               <div className="border border-zinc-200 bg-zinc-50 px-3.5 py-3 text-[12px] text-zinc-600">
-                <p className="font-medium text-[#0C1A2E]">Dev reset link</p>
+                <p className="font-medium text-brand-dark">Dev reset link</p>
                 <Link
                   href={devResetUrl}
-                  className="mt-1.5 block break-all text-[#0C1A2E] underline-offset-2 hover:underline"
+                  className="mt-1.5 block break-all text-brand-dark underline-offset-2 hover:underline"
                 >
                   {devResetUrl}
                 </Link>
@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
             )}
             <Link
               href="/login"
-              className="inline-flex h-9 w-full items-center justify-center rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+              className="inline-flex h-9 w-full items-center justify-center rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
             >
               Back to sign in
             </Link>
@@ -101,7 +101,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={pending}
-              className="mt-1 h-9 w-full rounded-md bg-[#0C1A2E] text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+              className="mt-1 h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
             >
               {pending ? "Sending…" : "Send reset link"}
             </Button>
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
           Remembered it?{" "}
           <Link
             href="/login"
-            className="font-medium text-[#0C1A2E] hover:underline"
+            className="font-medium text-brand-dark hover:underline"
           >
             Sign in
           </Link>

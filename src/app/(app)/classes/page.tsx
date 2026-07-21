@@ -114,7 +114,7 @@ export default function ClassesPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Academics
           </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             Classes
           </h1>
           <p className="mt-1 text-[13px] text-zinc-500">
@@ -126,7 +126,7 @@ export default function ClassesPage() {
         {canManage && (
           <Link
             href="/classes/new"
-            className="inline-flex h-9 items-center gap-1.5 bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             <Plus className="size-3.5" />
             New class
@@ -155,7 +155,7 @@ export default function ClassesPage() {
               <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
                 {s.label}
               </p>
-              <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+              <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
                 {s.value}
               </p>
             </div>
@@ -195,7 +195,7 @@ export default function ClassesPage() {
           <Button
             type="submit"
             disabled={joining}
-            className="h-9 rounded-md bg-[#0C1A2E] px-5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             {joining ? "Joining…" : "Join class"}
           </Button>
@@ -222,8 +222,8 @@ export default function ClassesPage() {
                 className={cn(
                   "h-8 px-3 text-[12px] font-medium transition-colors",
                   statusFilter === status
-                    ? "bg-[#0C1A2E] text-white"
-                    : "text-zinc-500 hover:text-[#0C1A2E]",
+                    ? "bg-brand text-brand-dark"
+                    : "text-zinc-500 hover:text-brand-dark",
                 )}
               >
                 {status === "ALL"
@@ -249,7 +249,7 @@ export default function ClassesPage() {
             className="w-[min(70vw,240px)] select-none"
             priority
           />
-          <h2 className="mt-6 text-base font-semibold text-[#0C1A2E]">
+          <h2 className="mt-6 text-base font-semibold text-brand-dark">
             No classes yet
           </h2>
           <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
@@ -260,7 +260,7 @@ export default function ClassesPage() {
           {canManage && (
             <Link
               href="/classes/new"
-              className="mt-5 inline-flex h-9 items-center gap-1.5 bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+              className="mt-5 inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
             >
               <Plus className="size-3.5" />
               New class
@@ -269,7 +269,7 @@ export default function ClassesPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-[#0C1A2E]">No matches</p>
+          <p className="text-sm font-medium text-brand-dark">No matches</p>
           <p className="mt-1 text-[13px] text-zinc-500">
             Try another search or status filter.
           </p>
@@ -298,7 +298,7 @@ export default function ClassesPage() {
                     <td className="py-3.5 pr-4">
                       <Link
                         href={`/classes/${c.id}`}
-                        className="font-medium text-[#0C1A2E] hover:underline"
+                        className="font-medium text-brand-dark hover:underline"
                       >
                         {c.name}
                       </Link>
@@ -325,7 +325,7 @@ export default function ClassesPage() {
                       <button
                         type="button"
                         onClick={(e) => void copyCode(c.classCode, e)}
-                        className="inline-flex items-center gap-1.5 font-mono text-[12px] text-zinc-600 hover:text-[#0C1A2E]"
+                        className="inline-flex items-center gap-1.5 font-mono text-[12px] text-zinc-600 hover:text-brand-dark"
                         title="Copy class code"
                       >
                         {c.classCode}
@@ -355,7 +355,7 @@ export default function ClassesPage() {
                     <td className="px-4 py-3.5 text-right tabular-nums text-zinc-600">
                       <Link
                         href={`/classes/${c.id}#students`}
-                        className="font-medium text-[#0C1A2E] hover:underline"
+                        className="font-medium text-brand-dark hover:underline"
                         title="View student names"
                       >
                         {c._count?.classStudents ?? 0}

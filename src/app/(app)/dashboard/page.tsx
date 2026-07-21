@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import {
+  ArrowUpRight,
+} from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, dashboardApi } from "@/lib/api";
 import type {
   AdminDashboard,
   Dashboard,
+  SchoolAdminDashboard,
   StudentDashboard,
   TeacherDashboard,
 } from "@/lib/types";
@@ -17,6 +20,10 @@ import { cn } from "@/lib/utils";
 
 function isAdminDash(d: Dashboard): d is AdminDashboard {
   return d.role === "ADMIN";
+}
+
+function isSchoolAdminDash(d: Dashboard): d is SchoolAdminDashboard {
+  return d.role === "SCHOOL_ADMIN";
 }
 
 function isTeacherDash(d: Dashboard): d is TeacherDashboard {
@@ -34,14 +41,134 @@ function formatDue(date: string) {
 function statusTone(status: string) {
   switch (status) {
     case "GRADED":
-      return "text-emerald-700 bg-emerald-50";
+      return "rounded-full bg-brand-light text-brand-dark";
     case "SUBMITTED":
-      return "text-sky-700 bg-sky-50";
+      return "rounded-full bg-brand-muted text-brand-dark";
     case "LATE":
-      return "text-amber-700 bg-amber-50";
+      return "rounded-full bg-[#fff5f5] text-[#c41e1e]";
     default:
-      return "text-zinc-600 bg-zinc-100";
+      return "rounded-full bg-[#f5f7f8] text-[#5c6b6a]";
   }
+}
+
+const btnPrimary =
+  "inline-flex h-9 items-center rounded-full bg-brand px-5 text-[13px] font-semibold text-brand-dark transition-colors hover:bg-brand-hover";
+const btnSecondary =
+  "inline-flex h-9 items-center rounded-full border border-zinc-200 bg-white px-5 text-[13px] font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-light";
+const btnPrimarySm =
+  "inline-flex h-8 items-center rounded-full bg-brand px-4 text-[12px] font-semibold text-brand-dark transition-colors hover:bg-brand-hover";
+
+function PageHeader({
+  eyebrow,
+  title,
+  description,
+  actions,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <header className="flex flex-wrap items-end justify-between gap-6 pb-2">
+      <div className="max-w-2xl">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-brand-dark/55">
+          {eyebrow}
+        </p>
+        <h1 className="mt-1.5 text-[1.75rem] font-semibold tracking-tight text-ink sm:text-[2rem]">
+          {title}
+        </h1>
+        <p className="mt-2 max-w-lg text-[15px] leading-relaxed text-zinc-500">
+          {description}
+        </p>
+      </div>
+      {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+    </header>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: number;
+  href?: string;
+}) {
+  const content = (
+    <>
+      <p className="text-[13px] text-zinc-500">{label}</p>
+      <p className="mt-3 text-[2rem] font-semibold tracking-tight text-ink">
+        {value.toLocaleString()}
+      </p>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="group rounded-2xl bg-white p-5 transition-colors hover:bg-[#fafafa]"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">{content}</div>
+          <ArrowUpRight className="mt-1 size-4 text-zinc-300 transition-colors group-hover:text-brand-dark" />
+        </div>
+      </Link>
+    );
+  }
+
+  return <div className="rounded-2xl bg-white p-5">{content}</div>;
+}
+
+function MetricStrip({
+  items,
+}: {
+  items: Array<{ label: string; value: number; href?: string }>;
+}) {
+  return (
+    <div
+      className={cn(
+        "grid gap-3",
+        items.length <= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4",
+      )}
+    >
+      {items.map((m) => (
+        <Metric key={m.label} {...m} />
+      ))}
+    </div>
+  );
+}
+
+function Panel({
+  title,
+  action,
+  children,
+  className,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("rounded-2xl bg-white", className)}>
+      <div className="flex items-center justify-between gap-3 px-5 pt-5">
+        <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-ink">
+          {title}
+        </h2>
+        {action}
+      </div>
+      <div className="px-5 pb-2 pt-3">{children}</div>
+    </section>
+  );
+}
+
+function EmptyRow({ message }: { message: string }) {
+  return (
+    <p className="py-12 text-center text-[14px] text-zinc-400">{message}</p>
+  );
 }
 
 export default function DashboardPage() {
@@ -63,7 +190,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div
-        className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
+        className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
         role="alert"
       >
         {error}
@@ -79,85 +206,15 @@ export default function DashboardPage() {
     return <AdminDashboardView name={user.firstName} data={data} />;
   }
 
+  if (isSchoolAdminDash(data)) {
+    return <SchoolAdminDashboardView name={user.firstName} data={data} />;
+  }
+
   if (isTeacherDash(data)) {
     return <TeacherDashboardView data={data} />;
   }
 
-  return (
-    <StudentDashboardView userName={user.firstName} data={data} />
-  );
-}
-
-function Metric({
-  label,
-  value,
-  href,
-}: {
-  label: string;
-  value: number;
-  href?: string;
-}) {
-  const body = (
-    <>
-      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-        {label}
-      </p>
-      <p className="mt-3 font-display text-[1.75rem] font-semibold tracking-tight text-[#0C1A2E]">
-        {value.toLocaleString()}
-      </p>
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="group border border-zinc-200/80 bg-white px-4 py-4 transition-colors hover:border-zinc-300"
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">{body}</div>
-          <ArrowUpRight className="size-3.5 text-zinc-300 transition-colors group-hover:text-[#0C1A2E]" />
-        </div>
-      </Link>
-    );
-  }
-
-  return (
-    <div className="border border-zinc-200/80 bg-white px-4 py-4">{body}</div>
-  );
-}
-
-function Panel({
-  title,
-  action,
-  children,
-  className,
-}: {
-  title: string;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <section
-      className={cn(
-        "border border-zinc-200/80 bg-white",
-        className,
-      )}
-    >
-      <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3">
-        <h2 className="text-[13px] font-semibold text-[#0C1A2E]">{title}</h2>
-        {action}
-      </div>
-      <div className="px-4 py-1">{children}</div>
-    </section>
-  );
-}
-
-function EmptyRow({ message }: { message: string }) {
-  return (
-    <p className="py-8 text-center text-[13px] text-zinc-400">{message}</p>
-  );
+  return <StudentDashboardView userName={user.firstName} data={data} />;
 }
 
 function AdminDashboardView({
@@ -175,74 +232,36 @@ function AdminDashboardView({
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            System owner
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
-            Good to see you, {name}
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            Schools and people across the Lumen platform.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/school/new"
-            className="inline-flex h-9 items-center bg-[#0C1A2E] px-3.5 text-[12px] font-semibold text-white hover:bg-[#0C1A2E]/90"
-          >
-            Create school
-          </Link>
-          <Link
-            href="/users"
-            className="inline-flex h-9 items-center border border-zinc-200 px-3.5 text-[12px] font-semibold text-[#0C1A2E] hover:bg-zinc-200/40"
-          >
-            View users
-          </Link>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-x-10 gap-y-4 border-y border-zinc-200/70 py-5">
-        {metrics.map((m) =>
-          m.href ? (
-            <Link key={m.label} href={m.href} className="hover:opacity-80">
-              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-                {m.label}
-              </p>
-              <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
-                {m.value.toLocaleString()}
-              </p>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="System owner"
+        title={`Good to see you, ${name}`}
+        description="Schools and people across Learning Hub."
+        actions={
+          <>
+            <Link href="/school/new" className={btnPrimary}>
+              Create school
             </Link>
-          ) : (
-            <div key={m.label}>
-              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-                {m.label}
-              </p>
-              <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
-                {m.value.toLocaleString()}
-              </p>
-            </div>
-          ),
-        )}
-      </div>
+            <Link href="/users" className={btnSecondary}>
+              View users
+            </Link>
+          </>
+        }
+      />
 
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-semibold text-[#0C1A2E]">Schools</h2>
-            <p className="mt-0.5 text-[12px] text-zinc-500">
-              {data.schools.length} on the platform
-            </p>
-          </div>
+      <MetricStrip items={metrics} />
+
+      <Panel
+        title="Schools"
+        action={
           <Link
             href="/school"
-            className="text-[12px] font-semibold text-[#0C1A2E] hover:underline"
+            className="text-[12px] font-semibold text-brand-dark hover:underline"
           >
             View all →
           </Link>
-        </div>
+        }
+      >
 
         {data.schools.length === 0 ? (
           <div className="flex flex-col items-center px-2 py-12 text-center">
@@ -254,16 +273,13 @@ function AdminDashboardView({
               className="w-[min(60vw,220px)] select-none"
               priority
             />
-            <h3 className="mt-6 text-base font-semibold text-[#0C1A2E]">
+            <h3 className="mt-6 text-base font-semibold text-zinc-900">
               No schools yet
             </h3>
             <p className="mt-1.5 max-w-sm text-[13px] text-zinc-500">
               Create the first school to start onboarding teachers and students.
             </p>
-            <Link
-              href="/school/new"
-              className="mt-5 inline-flex h-9 items-center bg-[#0C1A2E] px-3.5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
-            >
+            <Link href="/school/new" className={cn(btnPrimary, "mt-5")}>
               Create school
             </Link>
           </div>
@@ -286,12 +302,12 @@ function AdminDashboardView({
                 {data.schools.map((school) => (
                   <tr
                     key={school.id}
-                    className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
+                    className="border-b border-zinc-100 text-[13px] transition-colors hover:bg-brand-light/60"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-zinc-900">
                       <Link
                         href={`/school/${school.id}`}
-                        className="hover:underline"
+                        className="hover:text-brand-dark hover:underline"
                       >
                         {school.name}
                       </Link>
@@ -307,8 +323,8 @@ function AdminDashboardView({
                         className={cn(
                           "inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
                           school.status === "ACTIVE"
-                            ? "bg-emerald-50/80 text-emerald-700"
-                            : "bg-zinc-200/60 text-zinc-500",
+                            ? "bg-brand-light text-brand-dark"
+                            : "bg-zinc-100 text-zinc-500",
                         )}
                       >
                         {school.status}
@@ -326,45 +342,157 @@ function AdminDashboardView({
             </table>
           </div>
         )}
-      </section>
+      </Panel>
 
-      <section>
-        <div className="mb-4 flex items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold text-[#0C1A2E]">
-            Recent teachers
-          </h2>
+      <Panel
+        title="Recent teachers"
+        action={
           <Link
             href="/users"
-            className="text-[12px] font-medium text-zinc-400 hover:text-[#0C1A2E]"
+            className="text-[12px] font-semibold text-brand-dark hover:underline"
           >
             All users
           </Link>
-        </div>
+        }
+      >
         {data.recentTeachers.length === 0 ? (
-          <p className="text-[13px] text-zinc-400">No teachers yet.</p>
+          <EmptyRow message="No teachers yet." />
         ) : (
           <ul>
             {data.recentTeachers.map((t) => (
               <li
                 key={t.id}
-                className="flex items-start justify-between gap-3 border-b border-zinc-200/50 py-3 first:pt-0"
+                className="flex items-start justify-between gap-3 border-t border-slate-100 py-3.5 first:border-t-0"
               >
                 <div>
-                  <p className="text-[13px] font-medium text-[#0C1A2E]">
+                  <p className="text-[13px] font-medium text-ink">
                     {t.user.firstName} {t.user.lastName}
                   </p>
-                  <p className="mt-0.5 text-[12px] text-zinc-500">
+                  <p className="mt-0.5 text-[12px] text-slate-500">
                     {t.user.email}
                   </p>
                 </div>
-                <p className="shrink-0 text-[12px] text-zinc-400">
+                <p className="shrink-0 text-[12px] text-slate-400">
                   {t.user.school?.name ?? "—"}
                 </p>
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Panel>
+    </div>
+  );
+}
+
+function SchoolAdminDashboardView({
+  name,
+  data,
+}: {
+  name: string;
+  data: SchoolAdminDashboard;
+}) {
+  const metrics = [
+    { label: "Teachers", value: data.totalTeachers, href: "/users" },
+    { label: "Students", value: data.totalStudents, href: "/users" },
+    { label: "Classes", value: data.totalClasses },
+    { label: "Subjects", value: data.totalSubjects },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={data.school?.name ?? "School admin"}
+        title={`Good to see you, ${name}`}
+        description="Create teacher and student accounts, then share login credentials."
+        actions={
+          <>
+            <Link href="/users/new/teacher" className={btnPrimary}>
+              Add teacher
+            </Link>
+            <Link href="/users/new/student" className={btnSecondary}>
+              Add student
+            </Link>
+          </>
+        }
+      />
+
+      <MetricStrip items={metrics} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel
+          title="Recent teachers"
+          action={
+            <Link
+              href="/users"
+              className="text-[12px] font-semibold text-brand-dark hover:underline"
+            >
+              All people
+            </Link>
+          }
+        >
+          {data.recentTeachers.length === 0 ? (
+            <EmptyRow message="No teachers yet." />
+          ) : (
+            <ul>
+              {data.recentTeachers.map((t) => (
+                <li
+                  key={t.id}
+                  className="flex items-start justify-between gap-3 border-t border-slate-100 py-3.5 first:border-t-0"
+                >
+                  <div>
+                    <p className="text-[13px] font-medium text-ink">
+                      {t.user.firstName} {t.user.lastName}
+                    </p>
+                    <p className="mt-0.5 text-[12px] text-slate-500">
+                      {t.user.email}
+                    </p>
+                  </div>
+                  <p className="shrink-0 font-mono text-[12px] text-slate-400">
+                    {t.employeeNumber}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel
+          title="Recent students"
+          action={
+            <Link
+              href="/users"
+              className="text-[12px] font-semibold text-brand-dark hover:underline"
+            >
+              All people
+            </Link>
+          }
+        >
+          {data.recentStudents.length === 0 ? (
+            <EmptyRow message="No students yet." />
+          ) : (
+            <ul>
+              {data.recentStudents.map((s) => (
+                <li
+                  key={s.id}
+                  className="flex items-start justify-between gap-3 border-t border-slate-100 py-3.5 first:border-t-0"
+                >
+                  <div>
+                    <p className="text-[13px] font-medium text-ink">
+                      {s.user.firstName} {s.user.lastName}
+                    </p>
+                    <p className="mt-0.5 text-[12px] text-slate-500">
+                      {s.user.email}
+                    </p>
+                  </div>
+                  <p className="shrink-0 font-mono text-[12px] text-slate-400">
+                    {s.studentNumber}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
     </div>
   );
 }
@@ -398,101 +526,70 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
   );
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            {data.school?.name ?? "Teaching"}
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
-            Hello, {data.profile.firstName}
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            What needs your attention today.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {needsSubjects || needsClasses ? (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={data.school?.name ?? "Teaching"}
+        title={`Hello, ${data.profile.firstName}`}
+        description="Here’s what needs your attention today."
+        actions={
+          needsSubjects || needsClasses ? (
             <>
-              <Link
-                href="/subjects/new"
-                className="inline-flex h-9 items-center bg-[#0C1A2E] px-3.5 text-[12px] font-semibold text-white hover:bg-[#0C1A2E]/90"
-              >
+              <Link href="/subjects/new" className={btnPrimary}>
                 Add subject
               </Link>
-              <Link
-                href="/classes/new"
-                className="inline-flex h-9 items-center border border-zinc-200 bg-white px-3.5 text-[12px] font-semibold text-[#0C1A2E] hover:bg-zinc-50"
-              >
+              <Link href="/classes/new" className={btnSecondary}>
                 Create class
               </Link>
             </>
           ) : (
-            <Link
-              href="/assignments"
-              className="inline-flex h-9 items-center bg-[#0C1A2E] px-3.5 text-[12px] font-semibold text-white hover:bg-[#0C1A2E]/90"
-            >
+            <Link href="/assignments" className={btnPrimary}>
               Assignments
             </Link>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       {nextStep && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-zinc-200 bg-white px-4 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/25 bg-brand-light px-5 py-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-brand-dark/70">
               Next step
             </p>
-            <p className="mt-1 text-sm text-[#0C1A2E]">{nextStep.hint}</p>
+            <p className="mt-1 text-[15px] text-ink">{nextStep.hint}</p>
           </div>
-          <Link
-            href={nextStep.href}
-            className="inline-flex h-8 items-center bg-[#0C1A2E] px-3 text-[12px] font-semibold text-white hover:bg-[#0C1A2E]/90"
-          >
+          <Link href={nextStep.href} className={btnPrimarySm}>
             {nextStep.label}
           </Link>
         </div>
       )}
 
       {data.pendingGrading > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0C1A2E] px-4 py-3.5 text-white">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-white/50">
-              Needs grading
-            </p>
-            <p className="mt-1 text-sm font-medium">
-              {data.pendingGrading} submission
-              {data.pendingGrading === 1 ? "" : "s"} waiting
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-5 py-4">
+          <div className="flex items-start gap-3">
+            <span className="mt-1.5 size-2 shrink-0 rounded-full bg-brand" aria-hidden />
+            <div>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-brand-dark/70">
+                Needs grading
+              </p>
+              <p className="mt-1 text-[15px] font-medium text-ink">
+                {data.pendingGrading} submission
+                {data.pendingGrading === 1 ? "" : "s"} waiting
+              </p>
+            </div>
           </div>
-          <Link
-            href="/submissions"
-            className="inline-flex h-8 items-center bg-white px-3 text-[12px] font-semibold text-[#0C1A2E] hover:bg-zinc-100"
-          >
+          <Link href="/submissions" className={btnPrimarySm}>
             Grade now
           </Link>
         </div>
       )}
 
-      <div className="flex flex-wrap gap-x-10 gap-y-4 border-y border-zinc-200/70 py-5">
-        {metrics.map((m) => (
-          <Link key={m.label} href={m.href} className="hover:opacity-80">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-              {m.label}
-            </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
-              {m.value.toLocaleString()}
-            </p>
-          </Link>
-        ))}
-      </div>
+      <MetricStrip items={metrics} />
 
       {data.classes.length > 0 && (
         <section className="space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">
+              <h2 className="text-sm font-semibold text-zinc-900">
                 Students by class
               </h2>
               <p className="mt-0.5 text-[12px] text-zinc-500">
@@ -501,12 +598,12 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
             </div>
             <Link
               href="/classes"
-              className="text-[12px] font-semibold text-[#0C1A2E] hover:underline"
+              className="text-[12px] font-semibold text-brand-dark hover:underline"
             >
               All classes →
             </Link>
           </div>
-          <ul className="divide-y divide-zinc-200/70 border-y border-zinc-200/70">
+          <ul className="overflow-hidden rounded-2xl bg-white">
             {data.classes.map((cls) => {
               const names = (cls.classStudents ?? []).map(
                 (row) =>
@@ -518,12 +615,12 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
               return (
                 <li
                   key={cls.id}
-                  className="flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between"
+                  className="flex flex-col gap-2 border-t border-[#f5f5f7] px-5 py-4 first:border-t-0 sm:flex-row sm:items-start sm:justify-between"
                 >
                   <div className="min-w-0">
                     <Link
                       href={`/classes/${cls.id}#students`}
-                      className="text-[13px] font-medium text-[#0C1A2E] hover:underline"
+                      className="text-[13px] font-medium text-zinc-900 hover:text-brand-dark hover:underline"
                     >
                       {cls.name}
                     </Link>
@@ -544,7 +641,7 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
                         {extra > 0 ? (
                           <Link
                             href={`/classes/${cls.id}#students`}
-                            className="ml-1 font-medium text-[#0C1A2E] hover:underline"
+                            className="ml-1 font-medium text-brand-dark hover:underline"
                           >
                             +{extra} more
                           </Link>
@@ -554,7 +651,7 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
                   </div>
                   <Link
                     href={`/classes/${cls.id}#students`}
-                    className="shrink-0 text-[12px] font-semibold text-[#0C1A2E] hover:underline"
+                    className="shrink-0 text-[12px] font-semibold text-brand-dark hover:underline"
                   >
                     View roster →
                   </Link>
@@ -565,32 +662,31 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
         </section>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section>
-          <div className="mb-4 flex items-baseline justify-between gap-3">
-            <h2 className="text-sm font-semibold text-[#0C1A2E]">
-              Upcoming deadlines
-            </h2>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel
+          title="Upcoming deadlines"
+          action={
             <Link
               href="/assignments"
-              className="text-[12px] font-medium text-zinc-400 hover:text-[#0C1A2E]"
+              className="text-[12px] font-semibold text-brand-dark hover:underline"
             >
               See all
             </Link>
-          </div>
+          }
+        >
           {data.upcomingDeadlines.length === 0 ? (
-            <p className="text-[13px] text-zinc-400">Nothing due soon.</p>
+            <EmptyRow message="Nothing due soon." />
           ) : (
             <ul>
               {data.upcomingDeadlines.map((a) => (
                 <li
                   key={a.id}
-                  className="flex items-start justify-between gap-3 border-b border-zinc-200/50 py-3 first:pt-0"
+                  className="flex items-start justify-between gap-3 border-t border-zinc-100 py-3 first:border-t-0"
                 >
                   <div className="min-w-0">
                     <Link
                       href={`/assignments/${a.id}`}
-                      className="text-[13px] font-medium text-[#0C1A2E] hover:underline"
+                      className="text-[13px] font-medium text-zinc-900 hover:text-brand-dark hover:underline"
                     >
                       {a.title}
                     </Link>
@@ -605,33 +701,30 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
 
-        <section>
-          <div className="mb-4 flex items-baseline justify-between gap-3">
-            <h2 className="text-sm font-semibold text-[#0C1A2E]">
-              Recent to grade
-            </h2>
+        <Panel
+          title="Recent to grade"
+          action={
             <Link
               href="/submissions"
-              className="text-[12px] font-medium text-zinc-400 hover:text-[#0C1A2E]"
+              className="text-[12px] font-semibold text-brand-dark hover:underline"
             >
               View all
             </Link>
-          </div>
+          }
+        >
           {pending.length === 0 ? (
-            <p className="text-[13px] text-zinc-400">
-              No submissions waiting.
-            </p>
+            <EmptyRow message="No submissions waiting." />
           ) : (
             <ul>
               {pending.slice(0, 5).map((s) => (
                 <li
                   key={s.id}
-                  className="flex items-start justify-between gap-3 border-b border-zinc-200/50 py-3 first:pt-0"
+                  className="flex items-start justify-between gap-3 border-t border-zinc-100 py-3 first:border-t-0"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[13px] font-medium text-[#0C1A2E]">
+                    <p className="truncate text-[13px] font-medium text-zinc-900">
                       {s.assignment?.title ?? "Submission"}
                     </p>
                     <p className="mt-0.5 text-[12px] text-zinc-500">
@@ -652,7 +745,7 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
       </div>
     </div>
   );
@@ -681,39 +774,23 @@ function StudentDashboardView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Learning overview
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
-            Hello, {userName}
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            What’s left to do, and what you’ve already turned in.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href="/classes"
-            className="inline-flex h-9 items-center bg-[#0C1A2E] px-3.5 text-[12px] font-semibold text-white hover:bg-[#0C1A2E]/90"
-          >
-            My classes
-          </Link>
-          <Link
-            href="/assignments"
-            className="inline-flex h-9 items-center border border-zinc-200 bg-white px-3.5 text-[12px] font-semibold text-[#0C1A2E] hover:bg-zinc-50"
-          >
-            Assignments
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Learning overview"
+        title={`Hello, ${userName}`}
+        description="See what’s still due, and catch up on work you’ve already submitted."
+        actions={
+          <>
+            <Link href="/classes" className={btnPrimary}>
+              My classes
+            </Link>
+            <Link href="/assignments" className={btnSecondary}>
+              Assignments
+            </Link>
+          </>
+        }
+      />
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {metrics.map((m) => (
-          <Metric key={m.label} {...m} />
-        ))}
-      </div>
+      <MetricStrip items={metrics} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel
@@ -721,14 +798,14 @@ function StudentDashboardView({
           action={
             <Link
               href="/assignments"
-              className="text-[12px] font-medium text-zinc-400 hover:text-[#0C1A2E]"
+              className="text-[12px] font-semibold text-brand-dark hover:underline"
             >
               See all
             </Link>
           }
         >
           {data.upcomingDeadlines.length === 0 ? (
-            <EmptyRow message="You’re caught up — nothing waiting." />
+            <EmptyRow message="You're caught up — nothing waiting." />
           ) : (
             <ul>
               {data.upcomingDeadlines.map((a) => (
@@ -739,7 +816,7 @@ function StudentDashboardView({
                   <div className="min-w-0">
                     <Link
                       href={`/assignments/${a.id}`}
-                      className="text-[13px] font-medium text-[#0C1A2E] hover:underline"
+                      className="text-[13px] font-medium text-zinc-900 hover:text-brand-dark hover:underline"
                     >
                       {a.title}
                     </Link>
@@ -761,7 +838,7 @@ function StudentDashboardView({
           action={
             <Link
               href="/submissions"
-              className="text-[12px] font-medium text-zinc-400 hover:text-[#0C1A2E]"
+              className="text-[12px] font-semibold text-brand-dark hover:underline"
             >
               See all
             </Link>
@@ -783,7 +860,7 @@ function StudentDashboardView({
                           ? `/assignments/${s.assignment.id}`
                           : "/submissions"
                       }
-                      className="truncate text-[13px] font-medium text-[#0C1A2E] hover:underline"
+                      className="truncate text-[13px] font-medium text-zinc-900 hover:text-brand-dark hover:underline"
                     >
                       {s.assignment?.title ?? "Submission"}
                     </Link>

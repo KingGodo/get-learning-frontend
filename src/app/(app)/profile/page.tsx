@@ -138,7 +138,7 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div className="flex flex-wrap items-start gap-4">
-        <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#0C1A2E] text-lg font-semibold tracking-wide text-white">
+        <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-brand-dark text-lg font-semibold tracking-wide text-white">
           {user.firstName[0]}
           {user.lastName[0]}
         </div>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Account
           </p>
-          <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+          <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight text-brand-dark">
             Profile
           </h1>
           <p className="mt-1 text-[13px] text-zinc-500">
@@ -174,7 +174,7 @@ export default function ProfilePage() {
 
         <section className="space-y-3.5 border-y border-zinc-200/70 py-6">
           <div>
-            <h2 className="text-sm font-semibold text-[#0C1A2E]">
+            <h2 className="text-sm font-semibold text-brand-dark">
               Personal details
             </h2>
             <p className="mt-0.5 text-[12px] text-zinc-400">
@@ -250,7 +250,7 @@ export default function ProfilePage() {
         {user.teacher && (
           <section className="space-y-3.5 border-b border-zinc-200/70 pb-6">
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">
+              <h2 className="text-sm font-semibold text-brand-dark">
                 Teaching profile
               </h2>
               <p className="mt-0.5 text-[12px] text-zinc-400">
@@ -291,7 +291,7 @@ export default function ProfilePage() {
         {user.student && (
           <section className="space-y-3.5 border-b border-zinc-200/70 pb-6">
             <div>
-              <h2 className="text-sm font-semibold text-[#0C1A2E]">Guardian</h2>
+              <h2 className="text-sm font-semibold text-brand-dark">Guardian</h2>
               <p className="mt-0.5 text-[12px] text-zinc-400">
                 Student no. {user.student.studentNumber}
               </p>
@@ -330,17 +330,17 @@ export default function ProfilePage() {
 
         {user.school && (
           <section className="space-y-2 border-b border-zinc-200/70 pb-6">
-            <h2 className="text-sm font-semibold text-[#0C1A2E]">School</h2>
+            <h2 className="text-sm font-semibold text-brand-dark">School</h2>
             <dl className="grid gap-3 sm:grid-cols-2">
               <div>
                 <dt className="text-[12px] text-zinc-400">Name</dt>
-                <dd className="mt-0.5 text-sm font-medium text-[#0C1A2E]">
+                <dd className="mt-0.5 text-sm font-medium text-brand-dark">
                   {user.school.name}
                 </dd>
               </div>
               <div>
                 <dt className="text-[12px] text-zinc-400">Code</dt>
-                <dd className="mt-0.5 font-mono text-sm text-[#0C1A2E]">
+                <dd className="mt-0.5 font-mono text-sm text-brand-dark">
                   {user.school.code}
                 </dd>
               </div>
@@ -350,7 +350,7 @@ export default function ProfilePage() {
 
         <section className="space-y-3.5">
           <div>
-            <h2 className="text-sm font-semibold text-[#0C1A2E]">Password</h2>
+            <h2 className="text-sm font-semibold text-brand-dark">Password</h2>
             <p className="mt-0.5 text-[12px] text-zinc-400">
               Leave blank to keep your current password.
             </p>
@@ -380,7 +380,7 @@ export default function ProfilePage() {
           <Button
             type="submit"
             disabled={pending}
-            className="h-9 rounded-md bg-[#0C1A2E] px-5 text-sm font-semibold text-white hover:bg-[#0C1A2E]/90"
+            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
           >
             {pending ? "Saving…" : "Save changes"}
           </Button>

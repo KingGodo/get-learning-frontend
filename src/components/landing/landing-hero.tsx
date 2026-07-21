@@ -1,9 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Menu } from "lucide-react";
+import {
+  LandingIllustration,
+  landingIllustrations,
+} from "@/components/landing/landing-illustration";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -25,37 +28,37 @@ const navLinks = [
 
 export function LandingHero() {
   return (
-    <section className="relative isolate min-h-svh overflow-hidden bg-[#0C1A2E]">
-      <header className="relative z-20 border-b border-white/10">
+    <section className="relative isolate min-h-svh overflow-hidden bg-white">
+      <header className="relative z-20 border-b border-zinc-200">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
           <Link
             href="/"
-            className="font-display text-[15px] font-semibold tracking-tight text-white transition-opacity hover:opacity-70"
+            className="font-display text-[15px] font-semibold tracking-tight text-brand-dark transition-opacity hover:opacity-70"
           >
-            Lumen
+            Learning Hub
           </Link>
           <nav className="hidden items-center gap-7 text-sm sm:flex">
             <a
               href="#product"
-              className="font-medium text-white/55 transition-colors hover:text-white"
+              className="font-medium text-zinc-500 transition-colors hover:text-brand-dark"
             >
               Product
             </a>
             <a
               href="#how-it-works"
-              className="font-medium text-white/55 transition-colors hover:text-white"
+              className="font-medium text-zinc-500 transition-colors hover:text-brand-dark"
             >
               How it works
             </a>
             <Link
               href="/login"
-              className="font-medium text-white/55 transition-colors hover:text-white"
+              className="font-medium text-zinc-500 transition-colors hover:text-brand-dark"
             >
               Sign in
             </Link>
             <Link
               href="/register"
-              className="font-semibold text-white transition-opacity hover:opacity-70"
+              className="font-semibold text-brand-dark transition-opacity hover:opacity-70"
             >
               Get started
             </Link>
@@ -68,7 +71,7 @@ export function LandingHero() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-white hover:bg-white/10"
+                    className="text-brand-dark hover:bg-brand-light"
                     aria-label="Open menu"
                   />
                 }
@@ -77,10 +80,10 @@ export function LandingHero() {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className="w-[min(100vw-2rem,20rem)] border-0 bg-[#0C1A2E] p-0 text-white"
+                className="w-[min(100vw-2rem,20rem)] border border-zinc-200 bg-white p-0 text-brand-dark"
               >
-                <SheetHeader className="border-b border-white/10 px-5 py-4">
-                  <SheetTitle className="font-display text-left text-white">
+                <SheetHeader className="border-b border-zinc-200 px-5 py-4">
+                  <SheetTitle className="font-display text-left text-brand-dark">
                     Menu
                   </SheetTitle>
                 </SheetHeader>
@@ -95,8 +98,8 @@ export function LandingHero() {
                             href={link.href}
                             className={
                               link.primary
-                                ? "rounded-md px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-                                : "rounded-md px-3 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                                ? "rounded-md px-3 py-2.5 text-sm font-semibold text-brand-dark transition-colors hover:bg-brand-light"
+                                : "rounded-md px-3 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-brand-light hover:text-brand-dark"
                             }
                           />
                         }
@@ -110,7 +113,7 @@ export function LandingHero() {
                         render={
                           <a
                             href={link.href}
-                            className="rounded-md px-3 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                            className="rounded-md px-3 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-brand-light hover:text-brand-dark"
                           />
                         }
                       >
@@ -126,20 +129,10 @@ export function LandingHero() {
       </header>
 
       <div className="relative z-10 grid min-h-[calc(100svh-3.5rem)] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        {/* Solid copy plane — no glow overlay */}
-        <div className="relative flex flex-col justify-center bg-[#0C1A2E] px-6 py-16 sm:px-10 lg:px-14 xl:px-16">
+        <div className="relative flex flex-col justify-center bg-white px-6 py-16 sm:px-10 lg:px-14 xl:px-16">
           <div className="relative max-w-lg">
-            <motion.p
-              className="font-display text-[clamp(3.25rem,8vw,5.5rem)] font-semibold leading-[0.92] tracking-[-0.04em] text-white"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease }}
-            >
-              Lumen
-            </motion.p>
-
             <motion.h1
-              className="mt-6 max-w-[18ch] text-[1.5rem] font-medium leading-[1.2] tracking-[-0.02em] text-white sm:text-[1.85rem]"
+              className="max-w-[18ch] text-[1.5rem] font-medium leading-[1.2] tracking-[-0.02em] text-brand-dark sm:text-[1.85rem]"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1, ease }}
@@ -148,12 +141,12 @@ export function LandingHero() {
             </motion.h1>
 
             <motion.p
-              className="mt-5 max-w-md text-[15px] leading-relaxed text-white/60 sm:text-base"
+              className="mt-5 max-w-md text-[15px] leading-relaxed text-zinc-600 sm:text-base"
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2, ease }}
             >
-              Lumen is an LMS for teachers and students — create classes, assign
+              Learning Hub is an LMS for teachers and students — create classes, assign
               work, collect submissions, and return feedback in one place.
             </motion.p>
 
@@ -165,13 +158,13 @@ export function LandingHero() {
             >
               <Link
                 href="/register/teacher"
-                className="inline-flex h-12 items-center justify-center bg-[#197de1] px-6 text-sm font-semibold text-white transition-[background-color,transform] hover:bg-[#1566b8] active:scale-[0.98]"
+                className="inline-flex h-12 items-center justify-center bg-brand px-6 text-sm font-semibold text-brand-dark transition-[background-color,transform] hover:bg-brand-hover active:scale-[0.98]"
               >
                 Start as a teacher
               </Link>
               <Link
                 href="/register/student"
-                className="inline-flex h-12 items-center justify-center border border-white/25 px-6 text-sm font-semibold text-white transition-colors hover:border-white/45 hover:bg-white/5"
+                className="inline-flex h-12 items-center justify-center border border-zinc-200 px-6 text-sm font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-light"
               >
                 Join as a student
               </Link>
@@ -180,19 +173,16 @@ export function LandingHero() {
         </div>
 
         <motion.div
-          className="relative min-h-[38vh] lg:min-h-full"
+          className="relative flex min-h-[38vh] items-center justify-center bg-white px-6 py-12 sm:px-10 lg:min-h-full lg:py-16"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.15, ease }}
         >
-          <Image
-            src="/hero-classroom.jpg"
-            alt="Students studying together at a chalkboard"
-            fill
+          <LandingIllustration
+            src={landingIllustrations.hero}
+            alt="Online learning with Learning Hub"
             priority
-            unoptimized
-            className="object-cover object-[center_25%]"
-            sizes="(max-width: 1024px) 100vw, 55vw"
+            imageClassName="max-w-lg"
           />
         </motion.div>
       </div>

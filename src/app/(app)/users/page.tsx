@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, usersApi } from "@/lib/api";
 import type { AdminUserSummary, UserRole } from "@/lib/types";
@@ -11,16 +11,20 @@ import { Input } from "@/components/ui/input";
 import { PageLoading } from "@/components/ui/page-loading";
 import { cn } from "@/lib/utils";
 
-const ROLE_FILTERS: Array<"ALL" | UserRole> = [
-  "ALL",
-  "ADMIN",
-  "TEACHER",
-  "STUDENT",
-];
+function canManageUsers(role: string | undefined) {
+  return role === "ADMIN" || role === "SCHOOL_ADMIN";
+}
 
 export default function UsersPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const isPlatformAdmin = user?.role === "ADMIN";
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+
+  const roleFilters: Array<"ALL" | UserRole> = isPlatformAdmin
+    ? ["ALL", "ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT"]
+    : ["ALL", "SCHOOL_ADMIN", "TEACHER", "STUDENT"];
+
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -29,7 +33,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!user) return;
-    if (user.role !== "ADMIN") {
+    if (!canManageUsers(user.role)) {
       router.replace("/dashboard");
       return;
     }
@@ -64,12 +68,19 @@ export default function UsersPage() {
     );
   }, [users, query]);
 
-  if (!user || user.role !== "ADMIN") {
+  if (!user || !canManageUsers(user.role)) {
     return <PageLoading label="Loading…" />;
   }
 
   if (loading) {
     return <PageLoading label="Loading users…" />;
+  }
+
+  function roleLabel(role: UserRole | "ALL") {
+    if (role === "ALL") return "All";
+    if (role === "SCHOOL_ADMIN") return "School admin";
+    if (role === "ADMIN") return "Admin";
+    return role.charAt(0) + role.slice(1).toLowerCase();
   }
 
   return (
@@ -83,16 +94,38 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-          Administration
-        </p>
-        <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
-          Users
-        </h1>
-        <p className="mt-1 text-[13px] text-zinc-500">
-          Every account on the Lumen platform — admins, teachers, and students.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+            {isSchoolAdmin ? "Your school" : "Administration"}
+          </p>
+          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
+            {isSchoolAdmin ? "People" : "Users"}
+          </h1>
+          <p className="mt-1 text-[13px] text-zinc-500">
+            {isSchoolAdmin
+              ? "Create teachers and students, then share their login credentials."
+              : "Every account on Learning Hub."}
+          </p>
+        </div>
+        {isSchoolAdmin && (
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/users/new/teacher"
+              className="inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-[12px] font-semibold text-white hover:bg-brand-dark/90"
+            >
+              <Plus className="size-3.5" />
+              Add teacher
+            </Link>
+            <Link
+              href="/users/new/student"
+              className="inline-flex h-9 items-center gap-1.5 border border-zinc-200 px-3.5 text-[12px] font-semibold text-brand-dark hover:bg-zinc-50"
+            >
+              <Plus className="size-3.5" />
+              Add student
+            </Link>
+          </div>
+        )}
       </div>
 
       {users.length > 0 && (
@@ -101,7 +134,7 @@ export default function UsersPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Total
             </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {users.length}
             </p>
           </div>
@@ -109,7 +142,7 @@ export default function UsersPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Teachers
             </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {users.filter((u) => u.role === "TEACHER").length}
             </p>
           </div>
@@ -117,18 +150,20 @@ export default function UsersPage() {
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Students
             </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
+            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {users.filter((u) => u.role === "STUDENT").length}
             </p>
           </div>
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-              Admins
-            </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-[#0C1A2E]">
-              {users.filter((u) => u.role === "ADMIN").length}
-            </p>
-          </div>
+          {isPlatformAdmin && (
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
+                School admins
+              </p>
+              <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
+                {users.filter((u) => u.role === "SCHOOL_ADMIN").length}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -143,7 +178,7 @@ export default function UsersPage() {
           />
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {ROLE_FILTERS.map((role) => (
+          {roleFilters.map((role) => (
             <button
               key={role}
               type="button"
@@ -151,11 +186,11 @@ export default function UsersPage() {
               className={cn(
                 "h-8 px-3 text-[12px] font-semibold uppercase tracking-wide transition-colors",
                 roleFilter === role
-                  ? "bg-[#0C1A2E] text-white"
+                  ? "bg-brand text-brand-dark"
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200/80",
               )}
             >
-              {role === "ALL" ? "All" : role.charAt(0) + role.slice(1).toLowerCase()}
+              {roleLabel(role)}
             </button>
           ))}
         </div>
@@ -163,14 +198,16 @@ export default function UsersPage() {
 
       {users.length === 0 ? (
         <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-[#0C1A2E]">No users yet</p>
+          <p className="text-sm font-medium text-brand-dark">No users yet</p>
           <p className="mt-1 text-[13px] text-zinc-500">
-            Accounts will appear here once people register.
+            {isSchoolAdmin
+              ? "Add a teacher or student to get started."
+              : "Accounts will appear here once schools and people are created."}
           </p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-[#0C1A2E]">No matches</p>
+          <p className="text-sm font-medium text-brand-dark">No matches</p>
           <p className="mt-1 text-[13px] text-zinc-500">
             Try another search or role filter.
           </p>
@@ -184,9 +221,11 @@ export default function UsersPage() {
                   <th className="py-3 pr-4 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Email</th>
                   <th className="px-4 py-3 font-medium">Role</th>
-                  <th className="hidden px-4 py-3 font-medium sm:table-cell">
-                    School
-                  </th>
+                  {isPlatformAdmin && (
+                    <th className="hidden px-4 py-3 font-medium sm:table-cell">
+                      School
+                    </th>
+                  )}
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="py-3 pl-4 text-right font-medium">Joined</th>
                 </tr>
@@ -197,7 +236,7 @@ export default function UsersPage() {
                     key={u.id}
                     className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-[#0C1A2E]">
+                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       <Link
                         href={`/users/${u.id}`}
                         className="hover:underline"
@@ -208,21 +247,23 @@ export default function UsersPage() {
                     <td className="px-4 py-3.5 text-zinc-600">{u.email}</td>
                     <td className="px-4 py-3.5">
                       <span className="inline-flex bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
-                        {u.role}
+                        {u.role === "SCHOOL_ADMIN" ? "SCHOOL ADMIN" : u.role}
                       </span>
                     </td>
-                    <td className="hidden px-4 py-3.5 text-zinc-500 sm:table-cell">
-                      {u.school ? (
-                        <Link
-                          href={`/school/${u.school.id}`}
-                          className="hover:text-[#0C1A2E] hover:underline"
-                        >
-                          {u.school.name}
-                        </Link>
-                      ) : (
-                        <span className="text-zinc-400">—</span>
-                      )}
-                    </td>
+                    {isPlatformAdmin && (
+                      <td className="hidden px-4 py-3.5 text-zinc-500 sm:table-cell">
+                        {u.school ? (
+                          <Link
+                            href={`/school/${u.school.id}`}
+                            className="hover:text-brand-dark hover:underline"
+                          >
+                            {u.school.name}
+                          </Link>
+                        ) : (
+                          <span className="text-zinc-400">—</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-4 py-3.5">
                       <span
                         className={cn(

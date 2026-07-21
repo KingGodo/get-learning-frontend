@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Terms & Conditions",
   description:
-    "Terms and conditions for using the Lumen learning management platform.",
+    "Terms and conditions for using the Learning Hub learning management platform.",
 };
 
 export default function TermsPage() {
@@ -13,7 +13,7 @@ export default function TermsPage() {
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
         Legal
       </p>
-      <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[#0C1A2E]">
+      <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-brand-dark">
         Terms &amp; Conditions
       </h1>
       <p className="mt-3 text-[13px] text-zinc-500">
@@ -22,35 +22,35 @@ export default function TermsPage() {
 
       <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-zinc-600">
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             1. Agreement to these Terms
           </h2>
           <p>
             These Terms &amp; Conditions (“Terms”) govern your access to and
-            use of Lumen, including our websites, applications, and related
-            services (the “Service”). By registering for or using Lumen, you
+            use of Learning Hub, including our websites, applications, and related
+            services (the “Service”). By registering for or using Learning Hub, you
             agree to these Terms and our{" "}
             <Link
               href="/privacy"
-              className="font-medium text-[#0C1A2E] underline-offset-2 hover:underline"
+              className="font-medium text-brand-dark underline-offset-2 hover:underline"
             >
               Privacy Policy
             </Link>
             .
           </p>
           <p>
-            If you use Lumen on behalf of a school or organisation, you
+            If you use Learning Hub on behalf of a school or organisation, you
             confirm that you have authority to bind that organisation to these
             Terms.
           </p>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             2. The Service
           </h2>
           <p>
-            Lumen is a learning management platform that enables teachers and
+            Learning Hub is a learning management platform that enables teachers and
             students to manage classes, assignments, submissions, grades, and
             related academic workflows. Features may change as we improve the
             product. We may add, modify, or discontinue features with
@@ -59,7 +59,7 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">3. Accounts</h2>
+          <h2 className="text-lg font-semibold text-brand-dark">3. Accounts</h2>
           <ul className="list-disc space-y-2 pl-5">
             <li>
               You must provide accurate registration information and keep it
@@ -80,7 +80,7 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             4. Acceptable use
           </h2>
           <p>You agree not to:</p>
@@ -106,12 +106,12 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             5. User content
           </h2>
           <p>
             You retain ownership of content you submit (such as assignment
-            files, descriptions, and feedback). You grant Lumen a limited
+            files, descriptions, and feedback). You grant Learning Hub a limited
             licence to host, process, display, and transmit that content solely
             to operate and improve the Service.
           </p>
@@ -123,22 +123,22 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             6. Intellectual property
           </h2>
           <p>
-            Lumen, including its name, branding, software, and design, is owned
+            Learning Hub, including its name, branding, software, and design, is owned
             by us or our licensors. Except for the limited rights needed to use
             the Service, no licence to our intellectual property is granted.
           </p>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             7. Availability and support
           </h2>
           <p>
-            We aim to keep Lumen reliable, but we do not guarantee
+            We aim to keep Learning Hub reliable, but we do not guarantee
             uninterrupted or error-free service. Scheduled maintenance,
             outages, or third-party failures may occur. We will work in good
             faith to restore service when issues arise.
@@ -146,7 +146,7 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             8. Disclaimers
           </h2>
           <p>
@@ -156,18 +156,18 @@ export default function TermsPage() {
             where such disclaimers are not allowed.
           </p>
           <p>
-            Lumen is a tool to support teaching and learning. It does not
+            Learning Hub is a tool to support teaching and learning. It does not
             replace professional educational judgment or institutional
             policies.
           </p>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             9. Limitation of liability
           </h2>
           <p>
-            To the maximum extent permitted by law, Lumen and its operators
+            To the maximum extent permitted by law, Learning Hub and its operators
             will not be liable for indirect, incidental, special,
             consequential, or punitive damages, or for loss of data, grades,
             profits, or goodwill, arising from your use of the Service.
@@ -181,11 +181,11 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             10. Termination
           </h2>
           <p>
-            You may stop using Lumen at any time. We may suspend or end access
+            You may stop using Learning Hub at any time. We may suspend or end access
             if you breach these Terms, if required by law, or if we discontinue
             the Service. Provisions that should survive termination (including
             intellectual property, disclaimers, and liability limits) will
@@ -194,7 +194,7 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             11. Changes to the Terms
           </h2>
           <p>
@@ -205,7 +205,7 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">
+          <h2 className="text-lg font-semibold text-brand-dark">
             12. Governing law
           </h2>
           <p>
@@ -216,14 +216,14 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-[#0C1A2E]">13. Contact</h2>
+          <h2 className="text-lg font-semibold text-brand-dark">13. Contact</h2>
           <p>
             Questions about these Terms:{" "}
             <a
-              href="mailto:legal@lumen.app"
-              className="font-medium text-[#0C1A2E] underline-offset-2 hover:underline"
+              href="mailto:legal@Learning Hub.app"
+              className="font-medium text-brand-dark underline-offset-2 hover:underline"
             >
-              legal@lumen.app
+              legal@Learning Hub.app
             </a>
             .
           </p>
