@@ -1,42 +1,69 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import {
+  BookOpen,
+  ChevronRight,
+  Plus,
+  Search,
+} from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, subjectsApi } from "@/lib/api";
+import { toastFromError } from "@/lib/toast";
 import type { Subject } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { ListPagination } from "@/components/ui/list-pagination";
+import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+
+type SortMode = "name" | "code";
+
+const PAGE_SIZE = 20;
+
+function subjectInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
 
 export default function SubjectsPage() {
   const { user } = useAuth();
   const isTeacher = user?.role === "TEACHER";
-  const canManage = user?.role === "ADMIN" || isTeacher;
+  const canManage = user?.role === "SCHOOL_ADMIN" || user?.role === "ADMIN";
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [catalog, setCatalog] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("name");
+  const [page, setPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [confirmSubject, setConfirmSubject] = useState<Subject | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   async function load() {
     try {
       setError(null);
-      if (isTeacher) {
-        const [mine, school] = await Promise.all([
-          subjectsApi.list(),
-          subjectsApi.schoolCatalog(),
-        ]);
-        setSubjects(mine);
-        setCatalog(school);
-      } else {
-        setSubjects(await subjectsApi.list());
-        setCatalog([]);
-      }
+      setSubjects(await subjectsApi.list());
     } catch (err) {
       setError(
         err instanceof ApiRequestError
@@ -50,78 +77,61 @@ export default function SubjectsPage() {
 
   useEffect(() => {
     void load();
-  }, [isTeacher]);
+  }, []);
 
-  const filtered = useMemo(() => {
+  const filteredSorted = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return subjects;
-    return subjects.filter(
-      (s) =>
+    const filtered = subjects.filter((s) => {
+      if (!q) return true;
+      return (
         s.name.toLowerCase().includes(q) ||
         s.code.toLowerCase().includes(q) ||
-        (s.description?.toLowerCase().includes(q) ?? false),
-    );
-  }, [subjects, query]);
-
-  const availableToJoin = useMemo(
-    () => catalog.filter((s) => !s.isAssigned),
-    [catalog],
-  );
-
-  async function onDelete(id: string, name: string) {
-    if (
-      !window.confirm(
-        `Remove “${name}”? Classes using it cannot keep this subject.`,
-      )
-    ) {
-      return;
-    }
-    setDeletingId(id);
-    setActionError(null);
-    try {
-      await subjectsApi.remove(id);
-      await load();
-    } catch (err) {
-      setActionError(
-        err instanceof ApiRequestError ? err.message : "Could not delete",
+        (s.description?.toLowerCase().includes(q) ?? false)
       );
-    } finally {
-      setDeletingId(null);
-    }
+    });
+
+    const sorted = [...filtered];
+    sorted.sort((a, b) => {
+      if (sortMode === "code") {
+        const byCode = a.code.localeCompare(b.code);
+        if (byCode !== 0) return byCode;
+        return a.name.localeCompare(b.name);
+      }
+      const byName = a.name.localeCompare(b.name);
+      if (byName !== 0) return byName;
+      return a.code.localeCompare(b.code);
+    });
+    return sorted;
+  }, [subjects, query, sortMode]);
+
+  const totalFiltered = filteredSorted.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+
+  const pageItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredSorted.slice(start, start + PAGE_SIZE);
+  }, [filteredSorted, currentPage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, sortMode]);
+
+  function clearFilters() {
+    setQuery("");
+    setSortMode("name");
+    setPage(1);
   }
 
-  async function onAssign(id: string) {
-    setAssigningId(id);
-    setActionError(null);
+  async function onDeleteConfirm() {
+    if (!confirmSubject) return;
+    setDeletingId(confirmSubject.id);
     try {
-      await subjectsApi.assign(id);
+      await subjectsApi.remove(confirmSubject.id);
+      setConfirmSubject(null);
       await load();
     } catch (err) {
-      setActionError(
-        err instanceof ApiRequestError ? err.message : "Could not add subject",
-      );
-    } finally {
-      setAssigningId(null);
-    }
-  }
-
-  async function onUnassign(id: string, name: string) {
-    if (
-      !window.confirm(
-        `Stop teaching “${name}”? You can add it again later from the school catalog.`,
-      )
-    ) {
-      return;
-    }
-    setDeletingId(id);
-    setActionError(null);
-    try {
-      await subjectsApi.unassign(id);
-      await load();
-    } catch (err) {
-      setActionError(
-        err instanceof ApiRequestError ? err.message : "Could not remove",
-      );
+      toastFromError(err, "Could not delete");
     } finally {
       setDeletingId(null);
     }
@@ -131,223 +141,317 @@ export default function SubjectsPage() {
     return <PageLoading label="Loading subjects…" />;
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Academics
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            Subjects
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            {isTeacher
-              ? "Register the subjects you teach — you can add as many as you need."
-              : "Catalog used when creating classes across the platform."}
-          </p>
-        </div>
+  const rangeStart =
+    totalFiltered === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, totalFiltered);
+  const confirming = deletingId !== null;
 
-        {canManage && (
-          <Link
-            href="/subjects/new"
-            className="inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
-          >
-            <Plus className="size-3.5" />
-            Add subject
-          </Link>
-        )}
-      </div>
+  const description =
+    subjects.length === 0
+      ? isTeacher
+        ? "Subjects allocated to you by your school admin."
+        : "Create subjects for your school, then assign them when adding teachers."
+      : `${subjects.length} subject${subjects.length === 1 ? "" : "s"} in your catalog.`;
+
+  return (
+    <div className="flex min-h-[calc(100svh-8.5rem)] flex-col gap-6">
+      <PageHeader
+        eyebrow="Academics"
+        title="Subjects"
+        description={description}
+        actions={
+          canManage ? (
+            <ButtonLink href="/subjects/new" size="sm">
+              <Plus className="size-3.5" />
+              Add subject
+            </ButtonLink>
+          ) : undefined
+        }
+      />
 
       {error && (
         <div
-          className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
           role="alert"
         >
           {error}
         </div>
       )}
 
-      {actionError && (
-        <div
-          className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-          role="alert"
-        >
-          {actionError}
-        </div>
-      )}
-
       {subjects.length > 0 && (
-        <div className="flex flex-wrap gap-x-10 gap-y-4 border-y border-zinc-200/70 py-5">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-              {isTeacher ? "Your subjects" : "Total"}
-            </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-              {subjects.length}
-            </p>
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 sm:flex-row sm:items-center sm:p-3.5">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, code, or description…"
+              className="h-9 rounded-md border-border bg-background pl-9 text-sm shadow-none"
+            />
           </div>
-        </div>
-      )}
-
-      {subjects.length > 0 && (
-        <div className="relative max-w-md">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, code, or description…"
-            className="h-9 rounded-md border-zinc-200 bg-transparent pl-9 text-sm"
-          />
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-medium text-muted-foreground">
+              Sort
+            </span>
+            <Select
+              value={sortMode}
+              onValueChange={(value) => {
+                if (value === "name" || value === "code") setSortMode(value);
+              }}
+            >
+              <SelectTrigger className="h-9 w-[140px] rounded-md border-border bg-background text-[13px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Name A–Z</SelectItem>
+                <SelectItem value="code">Code A–Z</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
 
       {subjects.length === 0 ? (
-        <div className="flex flex-col items-center px-2 py-10 text-center sm:py-14">
-          <Image
-            src="/subjects.svg"
-            alt=""
-            width={280}
-            height={220}
-            className="w-[min(70vw,240px)] select-none"
-            priority
+        <div className="rounded-lg border border-dashed border-border bg-card">
+          <EmptyState
+            title={isTeacher ? "No subjects allocated" : "No subjects yet"}
+            description={
+              isTeacher
+                ? "Your school admin will assign subjects and classes to your account."
+                : "Add subjects like Mathematics or Science before creating classes."
+            }
+            action={
+              canManage ? (
+                <ButtonLink href="/subjects/new" size="sm">
+                  <Plus className="size-3.5" />
+                  Add subject
+                </ButtonLink>
+              ) : undefined
+            }
           />
-          <h2 className="mt-6 text-base font-semibold text-brand-dark">
-            {isTeacher ? "Register your subjects" : "No subjects yet"}
-          </h2>
-          <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
-            {isTeacher
-              ? "Add subjects like Mathematics or Science, or join ones already at your school."
-              : "Add subjects like Mathematics or Science before creating classes."}
-          </p>
-          {canManage && (
-            <Link
-              href="/subjects/new"
-              className="mt-5 inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
-            >
-              <Plus className="size-3.5" />
-              Add subject
-            </Link>
-          )}
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-brand-dark">No matches</p>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            Try another search term.
-          </p>
+      ) : totalFiltered === 0 ? (
+        <div className="rounded-lg border border-border bg-card">
+          <EmptyState
+            title="No matches"
+            description="Try a different search, or clear filters to see all subjects."
+            action={
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={clearFilters}
+              >
+                Clear filters
+              </Button>
+            }
+          />
         </div>
       ) : (
-        <div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left">
-              <thead>
-                <tr className="border-b border-zinc-200/70 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
-                  <th className="py-3 pr-4 font-medium">Subject</th>
-                  <th className="px-4 py-3 font-medium">Code</th>
-                  <th className="px-4 py-3 font-medium">Description</th>
-                  {canManage && (
-                    <th className="py-3 pl-4 text-right font-medium">Actions</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((s) => (
-                  <tr
-                    key={s.id}
-                    className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
+        <div className="flex flex-1 flex-col gap-4">
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            {/* Mobile cards */}
+            <ul className="divide-y divide-border sm:hidden">
+              {pageItems.map((s) => (
+                <li key={s.id} className="px-4 py-4">
+                  <Link
+                    href={`/subjects/${s.id}`}
+                    className="flex items-start gap-3"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
-                      <Link
-                        href={`/subjects/${s.id}`}
-                        className="hover:underline"
-                      >
-                        {s.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="font-mono text-[12px] text-zinc-600">
+                    <span
+                      className="flex size-10 shrink-0 items-center justify-center rounded-md bg-brand-light text-[12px] font-semibold text-brand"
+                      aria-hidden
+                    >
+                      {subjectInitials(s.name)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-1.5">
+                        <span className="truncate text-[15px] font-semibold tracking-tight text-ink">
+                          {s.name}
+                        </span>
+                        <ChevronRight className="size-3.5 shrink-0 text-slate-300" />
+                      </span>
+                      <span className="mt-1 inline-flex items-center gap-1.5 font-mono text-[12px] text-muted-foreground">
+                        <BookOpen className="size-3" strokeWidth={1.75} />
                         {s.code}
                       </span>
-                    </td>
-                    <td className="max-w-xs px-4 py-3.5 text-zinc-500">
-                      <span className="line-clamp-2">
-                        {s.description || "—"}
-                      </span>
-                    </td>
-                    {canManage && (
-                      <td className="py-3.5 pl-4 text-right">
-                        {isTeacher ? (
-                          <button
-                            type="button"
-                            disabled={deletingId === s.id}
-                            onClick={() => void onUnassign(s.id, s.name)}
-                            className="text-[12px] font-medium text-zinc-400 transition-colors hover:text-red-600 disabled:opacity-50"
-                          >
-                            {deletingId === s.id ? "Removing…" : "Remove"}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={deletingId === s.id}
-                            onClick={() => void onDelete(s.id, s.name)}
-                            className="text-[12px] font-medium text-zinc-400 transition-colors hover:text-red-600 disabled:opacity-50"
-                          >
-                            {deletingId === s.id ? "Removing…" : "Remove"}
-                          </button>
+                      <p
+                        className={cn(
+                          "mt-2 line-clamp-2 text-[13px] leading-snug",
+                          s.description
+                            ? "text-slate-600"
+                            : "text-muted-foreground",
                         )}
-                      </td>
+                      >
+                        {s.description || "No description"}
+                      </p>
+                    </span>
+                  </Link>
+                  <div className="mt-3 flex gap-2 pl-[3.25rem]">
+                    <ButtonLink
+                      href={`/subjects/${s.id}`}
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Open
+                    </ButtonLink>
+                    {canManage && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={deletingId === s.id}
+                        onClick={() => setConfirmSubject(s)}
+                        className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      >
+                        Remove
+                      </Button>
                     )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* Desktop table — shared column widths for header + body */}
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[640px] table-fixed border-collapse text-left">
+                <colgroup>
+                  <col className="w-[38%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[30%]" />
+                  <col className="w-[18%]" />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase">
+                    <th className="px-5 py-2.5 font-medium">Subject</th>
+                    <th className="px-5 py-2.5 font-medium">Code</th>
+                    <th className="px-5 py-2.5 font-medium">Description</th>
+                    <th className="px-5 py-2.5 text-right font-medium">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pageItems.map((s) => (
+                    <tr
+                      key={s.id}
+                      className="border-b border-border last:border-b-0 transition-colors duration-150 ease-craft hover:bg-muted/40"
+                    >
+                      <td className="px-5 py-3.5 align-middle">
+                        <Link
+                          href={`/subjects/${s.id}`}
+                          className="flex min-w-0 items-center gap-3"
+                        >
+                          <span
+                            className="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-light text-[11px] font-semibold text-brand"
+                            aria-hidden
+                          >
+                            {subjectInitials(s.name)}
+                          </span>
+                          <span className="truncate text-[14px] font-semibold tracking-tight text-ink hover:text-brand">
+                            {s.name}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3.5 align-middle">
+                        <span className="inline-flex max-w-full truncate rounded-md border border-border bg-background px-2 py-1 font-mono text-[12px] font-medium text-ink tabular-nums">
+                          {s.code}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 align-middle">
+                        <p
+                          className={cn(
+                            "truncate text-[13px] leading-snug",
+                            s.description
+                              ? "text-slate-600"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {s.description || "No description"}
+                        </p>
+                      </td>
+                      <td className="px-5 py-3.5 align-middle">
+                        <div className="flex items-center justify-end gap-2">
+                          <ButtonLink
+                            href={`/subjects/${s.id}`}
+                            size="sm"
+                            variant="outline"
+                          >
+                            Open
+                          </ButtonLink>
+                          {canManage && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              disabled={deletingId === s.id}
+                              onClick={() => setConfirmSubject(s)}
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="pt-3 text-[12px] text-zinc-400">
-            Showing {filtered.length} of {subjects.length} subject
-            {subjects.length === 1 ? "" : "s"}
-          </div>
+
+          <ListPagination
+            rangeStart={rangeStart}
+            rangeEnd={rangeEnd}
+            total={totalFiltered}
+            page={currentPage}
+            totalPages={totalPages}
+            onPrevious={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
         </div>
       )}
 
-      {isTeacher && availableToJoin.length > 0 && (
-        <section className="space-y-3 border-t border-zinc-200 pt-7">
-          <div>
-            <h2 className="text-sm font-semibold text-brand-dark">
-              At your school
-            </h2>
-            <p className="mt-0.5 text-[12px] text-zinc-400">
-              Join existing subjects without creating duplicates
-            </p>
-          </div>
-          <ul className="divide-y divide-zinc-200 border-y border-zinc-200">
-            {availableToJoin.map((s) => (
-              <li
-                key={s.id}
-                className="flex flex-wrap items-center justify-between gap-3 py-3.5"
-              >
-                <div>
-                  <p className="text-[13px] font-medium text-brand-dark">
-                    {s.name}
-                  </p>
-                  <p className="mt-0.5 font-mono text-[12px] text-zinc-500">
-                    {s.code}
-                    {s.description ? ` · ${s.description}` : ""}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  disabled={assigningId === s.id}
-                  onClick={() => void onAssign(s.id)}
-                  className="text-[12px] font-semibold text-brand-dark transition-opacity hover:opacity-70 disabled:opacity-50"
-                >
-                  {assigningId === s.id ? "Adding…" : "Teach this"}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <Dialog
+        open={confirmSubject !== null}
+        onOpenChange={(open) => {
+          if (!open && !confirming) setConfirmSubject(null);
+        }}
+      >
+        <DialogContent showCloseButton={!confirming}>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-ink">
+              Remove subject?
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-ink">
+                {confirmSubject?.name}
+              </span>
+              ? Classes using it cannot keep this subject.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmSubject(null)}
+              disabled={confirming}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => void onDeleteConfirm()}
+              disabled={confirming}
+            >
+              {confirming ? "Removing…" : "Proceed"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

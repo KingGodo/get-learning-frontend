@@ -2,11 +2,22 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, CheckCheck, Trash2 } from "lucide-react";
-import { ApiRequestError, notificationsApi } from "@/lib/api";
+import { CheckCheck, Trash2 } from "lucide-react";
+import { notificationsApi } from "@/lib/api";
 import type { AppNotification } from "@/lib/types";
+import { toastFromError } from "@/lib/toast";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 function formatWhen(iso: string) {
@@ -26,26 +37,34 @@ function formatWhen(iso: string) {
   });
 }
 
+type ConfirmState =
+  | { type: "one"; id: string; title: string }
+  | { type: "all" }
+  | null;
+
 export default function NotificationsPage() {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
+  const [confirm, setConfirm] = useState<ConfirmState>(null);
+
+  const confirmOpen = confirm !== null;
+  const confirming =
+    confirm?.type === "all"
+      ? clearing
+      : confirm?.type === "one"
+        ? busyId === confirm.id
+        : false;
 
   const load = useCallback(async () => {
     try {
-      setError(null);
       const data = await notificationsApi.list();
       setItems(data.items);
       setUnreadCount(data.unreadCount);
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "Could not load notifications",
-      );
+      toastFromError(err, "Could not load notifications");
     } finally {
       setLoading(false);
     }
@@ -65,9 +84,7 @@ export default function NotificationsPage() {
         ),
       );
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError ? err.message : "Could not mark as seen",
-      );
+      toastFromError(err, "Could not mark as seen");
     }
   }
 
@@ -81,39 +98,35 @@ export default function NotificationsPage() {
         if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
         return next;
       });
+      setConfirm(null);
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "Could not delete notification",
-      );
+      toastFromError(err, "Could not delete notification");
     } finally {
       setBusyId(null);
     }
   }
 
   async function clearAll() {
-    if (
-      !window.confirm(
-        "Delete all notifications? This cannot be undone.",
-      )
-    ) {
-      return;
-    }
     setClearing(true);
     try {
       await notificationsApi.clear();
       setItems([]);
       setUnreadCount(0);
+      setConfirm(null);
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "Could not clear notifications",
-      );
+      toastFromError(err, "Could not clear notifications");
     } finally {
       setClearing(false);
     }
+  }
+
+  function onConfirmProceed() {
+    if (!confirm) return;
+    if (confirm.type === "all") {
+      void clearAll();
+      return;
+    }
+    void removeOne(confirm.id);
   }
 
   if (loading) {
@@ -122,70 +135,52 @@ export default function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Inbox
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            Notifications
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            {unreadCount > 0
-              ? `${unreadCount} unseen · ${items.length} total`
-              : items.length === 0
-                ? "You’re all caught up."
-                : `${items.length} notification${items.length === 1 ? "" : "s"}`}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {unreadCount > 0 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void markAllSeen()}
-              className="h-9 rounded-md border-zinc-200 text-[12px] font-semibold text-brand-dark"
-            >
-              <CheckCheck className="mr-1.5 size-3.5" />
-              Mark all seen
-            </Button>
-          )}
-          {items.length > 0 && (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={clearing}
-              onClick={() => void clearAll()}
-              className="h-9 rounded-md border-zinc-200 text-[12px] font-semibold text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <Trash2 className="mr-1.5 size-3.5" />
-              {clearing ? "Clearing…" : "Clear all"}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {error && (
-        <div
-          className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-          role="alert"
-        >
-          {error}
-        </div>
-      )}
+      <PageHeader
+        eyebrow="Inbox"
+        title="Notifications"
+        description={
+          unreadCount > 0
+            ? `${unreadCount} unseen · ${items.length} total`
+            : items.length === 0
+              ? "You're all caught up."
+              : `${items.length} notification${items.length === 1 ? "" : "s"}`
+        }
+        actions={
+          <>
+            {unreadCount > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void markAllSeen()}
+              >
+                <CheckCheck className="size-3.5" />
+                Mark all seen
+              </Button>
+            )}
+            {items.length > 0 && (
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                disabled={clearing}
+                onClick={() => setConfirm({ type: "all" })}
+              >
+                <Trash2 className="size-3.5" />
+                Clear all
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {items.length === 0 ? (
-        <div className="flex flex-col items-center border border-dashed border-zinc-200 px-4 py-16 text-center">
-          <Bell className="size-8 text-zinc-300" strokeWidth={1.5} />
-          <p className="mt-4 text-sm font-medium text-brand-dark">
-            No notifications
-          </p>
-          <p className="mt-1 max-w-xs text-[13px] text-zinc-500">
-            New assignments, submissions, and grades will show up here.
-          </p>
-        </div>
+        <EmptyState
+          title="No notifications"
+          description="New assignments, submissions, and grades will show up here."
+        />
       ) : (
-        <ul className="divide-y divide-zinc-100 border-y border-zinc-200">
+        <ul className="divide-y divide-border border-y border-border">
           {items.map((n) => {
             const unseen = !n.readAt;
             return (
@@ -244,7 +239,9 @@ export default function NotificationsPage() {
                   type="button"
                   title="Delete notification"
                   disabled={busyId === n.id}
-                  onClick={() => void removeOne(n.id)}
+                  onClick={() =>
+                    setConfirm({ type: "one", id: n.id, title: n.title })
+                  }
                   className="mt-0.5 flex size-8 shrink-0 items-center justify-center text-zinc-400 opacity-100 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-40 sm:opacity-0 sm:group-hover:opacity-100"
                 >
                   <Trash2 className="size-3.5" />
@@ -254,6 +251,57 @@ export default function NotificationsPage() {
           })}
         </ul>
       )}
+
+      <Dialog
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open && !confirming) setConfirm(null);
+        }}
+      >
+        <DialogContent showCloseButton={!confirming}>
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg font-semibold text-brand-dark">
+              {confirm?.type === "all"
+                ? "Clear all notifications?"
+                : "Delete notification?"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirm?.type === "all" ? (
+                <>
+                  Are you sure you want to proceed? This will permanently delete
+                  all notifications and cannot be undone.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to proceed with deleting{" "}
+                  <span className="font-semibold text-brand-dark">
+                    {confirm?.title}
+                  </span>
+                  ? This cannot be undone.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirm(null)}
+              disabled={confirming}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => onConfirmProceed()}
+              disabled={confirming}
+            >
+              {confirming ? "Deleting…" : "Proceed"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -6,21 +6,22 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, schoolsApi } from "@/lib/api";
+import { toastFromError } from "@/lib/toast";
 import type { School } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
 
 export default function EditSchoolPage() {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
-  const canManage = user?.role === "ADMIN" || user?.role === "TEACHER";
+  const canManage = user?.role === "ADMIN" || user?.role === "SCHOOL_ADMIN";
   const [school, setSchool] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -30,6 +31,8 @@ export default function EditSchoolPage() {
     city: "",
     province: "",
     country: "",
+    termSystem: "TERM" as "TERM" | "SEMESTER" | "QUARTER",
+    termsPerYear: 3,
   });
 
   useEffect(() => {
@@ -51,6 +54,8 @@ export default function EditSchoolPage() {
           city: data.city,
           province: data.province,
           country: data.country ?? "",
+          termSystem: (data.termSystem as "TERM" | "SEMESTER" | "QUARTER") ?? "TERM",
+          termsPerYear: data.termsPerYear ?? 3,
         });
       })
       .catch((err) => {
@@ -69,7 +74,6 @@ export default function EditSchoolPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setFormError(null);
     setPending(true);
     try {
       const updated = await schoolsApi.update({
@@ -81,14 +85,14 @@ export default function EditSchoolPage() {
         city: form.city,
         province: form.province,
         country: form.country || undefined,
+        termSystem: form.termSystem,
+        termsPerYear: form.termsPerYear,
       });
       setSchool(updated);
       await refreshUser();
       router.push("/school");
     } catch (err) {
-      setFormError(
-        err instanceof ApiRequestError ? err.message : "Could not save",
-      );
+      toastFromError(err, "Could not save");
       setPending(false);
     }
   }
@@ -108,16 +112,11 @@ export default function EditSchoolPage() {
           <ArrowLeft className="size-3.5" />
           Back to school
         </Link>
-        <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-          Edit school
-        </h1>
-        <p className="mt-1 text-[13px] text-zinc-500">
-          Code{" "}
-          <span className="font-mono font-medium text-zinc-700">
-            {school.code}
-          </span>{" "}
-          cannot be changed.
-        </p>
+        <PageHeader
+          title="Edit school"
+          description={`Code ${school.code} cannot be changed.`}
+          className="mt-4 pb-0"
+        />
       </div>
 
       {error && (
@@ -130,14 +129,6 @@ export default function EditSchoolPage() {
       )}
 
       <form onSubmit={onSubmit} className="space-y-4">
-        {formError && (
-          <div
-            className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-            role="alert"
-          >
-            {formError}
-          </div>
-        )}
         <div className="space-y-1.5">
           <Label htmlFor="name" className="text-[13px] text-zinc-600">
             School name
@@ -248,11 +239,62 @@ export default function EditSchoolPage() {
           </div>
         </div>
 
+        <div className="space-y-1.5 border-t border-border pt-6">
+          <Label className="text-[13px] font-semibold text-brand-dark">
+            Academic calendar
+          </Label>
+          <p className="text-[12px] text-zinc-500">
+            How is the academic year divided at this school?
+          </p>
+          <div className="grid gap-4 pt-2 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="termSystem" className="text-[13px] text-zinc-600">
+                System
+              </Label>
+              <select
+                id="termSystem"
+                value={form.termSystem}
+                onChange={(e) => {
+                  const system = e.target.value as "TERM" | "SEMESTER" | "QUARTER";
+                  const defaults = { TERM: 3, SEMESTER: 2, QUARTER: 4 };
+                  setForm((f) => ({
+                    ...f,
+                    termSystem: system,
+                    termsPerYear: defaults[system],
+                  }));
+                }}
+                className="h-9 w-full rounded-md border border-border bg-white px-2.5 text-sm"
+              >
+                <option value="TERM">Terms</option>
+                <option value="SEMESTER">Semesters</option>
+                <option value="QUARTER">Quarters</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="termsPerYear" className="text-[13px] text-zinc-600">
+                Per year
+              </Label>
+              <select
+                id="termsPerYear"
+                value={form.termsPerYear}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, termsPerYear: Number(e.target.value) }))
+                }
+                className="h-9 w-full rounded-md border border-border bg-white px-2.5 text-sm"
+              >
+                {[1, 2, 3, 4].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-wrap gap-2 pt-2">
           <Button
             type="submit"
             disabled={pending}
-            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
+            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
           >
             {pending ? "Saving…" : "Save changes"}
           </Button>

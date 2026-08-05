@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import type { IssuedCredentials } from "@/lib/types";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 
 export function CredentialsPanel({
@@ -26,19 +27,19 @@ export function CredentialsPanel({
       setCopied(key);
       window.setTimeout(() => setCopied(null), 2000);
     } catch {
-      // ignore clipboard failures
+      toast.error("Could not copy to clipboard");
     }
   }
 
   return (
-    <section className="border border-amber-200/80 bg-amber-50/60 px-4 py-4 sm:px-5">
-      <h2 className="text-[13px] font-semibold text-brand-dark">{title}</h2>
+    <section className="rounded-md bg-amber-50 px-4 py-4 sm:px-5">
+      <h2 className="text-[13px] font-medium text-brand-dark">{title}</h2>
       <p className="mt-1 text-[12px] text-zinc-600">{description}</p>
 
       <div className="mt-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 border border-zinc-200/80 bg-white px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-white px-3 py-2.5">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
+            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Email
             </p>
             <p className="mt-0.5 truncate text-[13px] font-medium text-brand-dark">
@@ -49,7 +50,7 @@ export function CredentialsPanel({
             type="button"
             variant="outline"
             size="sm"
-            className="h-8 rounded-md border-zinc-200 px-2.5 text-[12px]"
+            className="h-8 px-2.5 text-[12px]"
             onClick={() => copy(credentials.email, "email")}
           >
             {copied === "email" ? (
@@ -61,9 +62,9 @@ export function CredentialsPanel({
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border border-zinc-200/80 bg-white px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-white px-3 py-2.5">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
+            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-zinc-400">
               Temporary password
             </p>
             <p className="mt-0.5 break-all font-mono text-[13px] font-medium text-brand-dark">
@@ -74,7 +75,7 @@ export function CredentialsPanel({
             type="button"
             variant="outline"
             size="sm"
-            className="h-8 rounded-md border-zinc-200 px-2.5 text-[12px]"
+            className="h-8 px-2.5 text-[12px]"
             onClick={() => copy(credentials.temporaryPassword, "password")}
           >
             {copied === "password" ? (
@@ -92,7 +93,7 @@ export function CredentialsPanel({
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 rounded-md border-zinc-200 px-2.5 text-[12px]"
+          className="h-8 px-2.5 text-[12px]"
           onClick={() =>
             copy(
               `Email: ${credentials.email}\nPassword: ${credentials.temporaryPassword}`,

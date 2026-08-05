@@ -4,9 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type ButtonLinkProps = React.ComponentProps<typeof Link> &
-  VariantProps<typeof buttonVariants> & {
-    className?: string;
-  };
+  VariantProps<typeof buttonVariants>;
 
 export function ButtonLink({
   className,
@@ -16,7 +14,7 @@ export function ButtonLink({
 }: ButtonLinkProps) {
   return (
     <Link
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />
   );

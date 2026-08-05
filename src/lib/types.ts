@@ -41,6 +41,8 @@ export type Student = {
   emergencyContact?: string | null;
 };
 
+export type TermSystem = "TERM" | "SEMESTER" | "QUARTER";
+
 export type School = {
   id: string;
   name: string;
@@ -52,6 +54,8 @@ export type School = {
   city: string;
   province: string;
   country?: string;
+  termSystem?: TermSystem;
+  termsPerYear?: number;
   status?: "ACTIVE" | "INACTIVE";
 };
 
@@ -97,8 +101,18 @@ export type AdminUserDetail = AdminUserSummary & {
             name: string;
             classCode: string;
             status: string;
-            subject?: { name: string; code: string };
+            subjectId?: string;
+            subject?: { id?: string; name: string; code: string };
             _count?: { classStudents: number; assignments: number };
+          };
+        }>;
+        teacherSubjects?: Array<{
+          id: string;
+          subject: {
+            id: string;
+            name: string;
+            code: string;
+            description?: string | null;
           };
         }>;
       })
@@ -163,6 +177,7 @@ export type ClassRoom = {
   academicYear: number;
   semester: number;
   status: "ACTIVE" | "ARCHIVED";
+  subjectId?: string;
   subject?: Subject;
   _count?: { classStudents: number; assignments: number };
   classTeachers?: Array<{
@@ -182,6 +197,20 @@ export type ClassRoom = {
       };
     };
   }>;
+};
+
+export type ClassMaterial = {
+  id: string;
+  classId: string;
+  teacherId: string;
+  title: string;
+  description?: string | null;
+  attachment: string;
+  createdAt: string;
+  updatedAt: string;
+  teacher?: {
+    user: { firstName: string; lastName: string };
+  };
 };
 
 export type SubjectDetail = Subject & {
@@ -240,6 +269,7 @@ export type Submission = {
     dueDate: string;
     totalMarks?: number;
     status?: string;
+    class?: { id: string; name: string } | null;
   };
   student?: {
     id: string;

@@ -6,6 +6,7 @@ import { Bell } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { notificationsApi } from "@/lib/api";
 import type { AppNotification } from "@/lib/types";
+import { toastFromError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 function formatWhen(iso: string) {
@@ -113,8 +114,8 @@ export function HeaderNotifications() {
             : n,
         ),
       );
-    } catch {
-      // Badge stays if mark fails
+    } catch (err) {
+      toastFromError(err, "Could not mark notifications as seen");
     }
   }
 
@@ -128,8 +129,8 @@ export function HeaderNotifications() {
           n.readAt ? n : { ...n, readAt: new Date().toISOString() },
         ),
       );
-    } catch {
-      // ignore
+    } catch (err) {
+      toastFromError(err, "Could not mark as seen");
     }
   }
 
@@ -142,8 +143,8 @@ export function HeaderNotifications() {
         type="button"
         onClick={() => void openPanel()}
         className={cn(
-          "relative flex size-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-600 transition-colors hover:border-zinc-300 hover:text-brand-dark",
-          open && "border-brand text-brand-dark",
+          "relative flex size-8 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-ink",
+          open && "border-brand/20 bg-brand-light text-brand",
         )}
         aria-label={
           unreadCount > 0
@@ -154,20 +155,20 @@ export function HeaderNotifications() {
       >
         <Bell className="size-4" strokeWidth={1.75} />
         {badge && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-dark px-1 text-[9px] font-semibold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-semibold text-white">
             {badge}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[min(92vw,360px)] border border-zinc-200 bg-white shadow-[0_8px_30px_rgba(12,26,46,0.08)]">
-          <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3">
+        <div className="absolute right-0 z-50 mt-2 w-[min(92vw,360px)] overflow-hidden rounded-lg border border-border bg-card shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <div>
-              <p className="text-[13px] font-semibold text-brand-dark">
+              <p className="text-[13px] font-semibold text-ink">
                 Notifications
               </p>
-              <p className="text-[11px] text-zinc-400">
+              <p className="text-[11px] text-muted-foreground">
                 {highlightIds.size > 0
                   ? `${highlightIds.size} just seen`
                   : "All caught up"}
@@ -177,7 +178,7 @@ export function HeaderNotifications() {
               <button
                 type="button"
                 onClick={() => void markAllRead()}
-                className="text-[11px] font-medium text-zinc-500 transition-colors hover:text-brand-dark"
+                className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-brand"
               >
                 Mark all seen
               </button>

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { AuthLoading } from "@/components/auth/auth-loading";
-import { ApiRequestError, authApi } from "@/lib/api";
+import { authApi } from "@/lib/api";
+import { toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +19,6 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
@@ -29,18 +29,17 @@ export default function ResetPasswordPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
 
     if (!token) {
-      setError("This reset link is missing a token. Request a new one.");
+      toast.error("This reset link is missing a token. Request a new one.");
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      toast.error("Password must be at least 8 characters.");
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -49,11 +48,7 @@ export default function ResetPasswordPage() {
       await authApi.resetPassword({ token, password, confirmPassword });
       setDone(true);
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "Unable to reset password",
-      );
+      toastFromError(err, "Unable to reset password");
     } finally {
       setPending(false);
     }
@@ -65,17 +60,17 @@ export default function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className="w-full max-w-[340px] rounded-lg bg-white px-6 py-7 shadow-[0_1px_3px_rgba(12,26,46,0.06),0_8px_24px_rgba(12,26,46,0.06)] ring-1 ring-zinc-950/5">
-        <h1 className="text-xl font-semibold tracking-tight text-black">
+      <div className="w-full max-w-[360px]">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-brand-dark">
           Invalid link
         </h1>
-        <p className="mt-2 text-[13px] text-zinc-500">
+        <p className="mt-2 text-[14px] text-zinc-500">
           This password reset link is incomplete. Request a new one from the
           sign-in page.
         </p>
         <Link
           href="/forgot-password"
-          className="mt-6 inline-flex h-9 w-full items-center justify-center rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
+          className="mt-8 inline-flex h-10 w-full items-center justify-center rounded-md bg-brand-dark text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
         >
           Request reset link
         </Link>
@@ -86,18 +81,18 @@ export default function ResetPasswordPage() {
   return (
     <>
       {pending && <AuthLoading label="Updating password…" />}
-      <div className="w-full max-w-[340px] rounded-lg bg-white px-6 py-7 shadow-[0_1px_3px_rgba(12,26,46,0.06),0_8px_24px_rgba(12,26,46,0.06)] ring-1 ring-zinc-950/5">
-        <h1 className="text-xl font-semibold tracking-tight text-black">
+      <div className="w-full max-w-[360px]">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-brand-dark">
           Set new password
         </h1>
-        <p className="mt-1 text-[13px] text-zinc-500">
+        <p className="mt-1.5 text-[14px] text-zinc-500">
           Choose a new password for your Learning Hub account.
         </p>
 
         {done ? (
-          <div className="mt-7 space-y-4">
+          <div className="mt-8 space-y-4">
             <div
-              className="border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-[13px] text-emerald-800"
+              className="rounded-md bg-emerald-50 px-3.5 py-3 text-[13px] text-emerald-800"
               role="status"
             >
               Password updated. You can sign in with your new password.
@@ -105,23 +100,18 @@ export default function ResetPasswordPage() {
             <Button
               type="button"
               onClick={() => router.replace("/login")}
-              className="h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
+              className="w-full"
             >
               Go to sign in
             </Button>
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="mt-7 space-y-3.5">
-            {error && (
-              <div
-                className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
+          <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-[13px] text-zinc-600">
+              <Label
+                htmlFor="password"
+                className="text-[13px] font-medium text-zinc-700"
+              >
                 New password
               </Label>
               <div className="relative">
@@ -133,12 +123,12 @@ export default function ResetPasswordPage() {
                   minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-9 rounded-md border-zinc-200 bg-white pr-9 pl-2.5 text-sm"
+                  className="h-10 rounded-md border-zinc-200 bg-white pr-10 pl-3 text-sm shadow-none focus-visible:border-brand-dark/30 focus-visible:ring-brand-dark/15"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute top-1/2 right-2.5 -translate-y-1/2 text-zinc-400 transition-colors hover:text-zinc-600"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 transition-colors hover:text-zinc-600"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
@@ -148,12 +138,12 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
               </div>
-              <p className="text-[11px] text-zinc-400">At least 8 characters</p>
+              <p className="text-[12px] text-zinc-400">At least 8 characters</p>
             </div>
             <div className="space-y-1.5">
               <Label
                 htmlFor="confirmPassword"
-                className="text-[13px] text-zinc-600"
+                className="text-[13px] font-medium text-zinc-700"
               >
                 Confirm password
               </Label>
@@ -165,20 +155,16 @@ export default function ResetPasswordPage() {
                 minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="h-9 rounded-md border-zinc-200 bg-white px-2.5 text-sm"
+                className="h-10 rounded-md border-zinc-200 bg-white px-3 text-sm shadow-none focus-visible:border-brand-dark/30 focus-visible:ring-brand-dark/15"
               />
             </div>
-            <Button
-              type="submit"
-              disabled={pending}
-              className="mt-1 h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
-            >
+            <Button type="submit" disabled={pending} className="mt-2 w-full">
               {pending ? "Updating…" : "Update password"}
             </Button>
           </form>
         )}
 
-        <p className="mt-5 text-center text-[13px] text-zinc-500">
+        <p className="mt-6 text-center text-[13px] text-zinc-500">
           <Link
             href="/login"
             className="font-medium text-brand-dark hover:underline"

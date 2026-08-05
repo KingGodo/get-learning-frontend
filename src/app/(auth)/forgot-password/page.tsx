@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AuthLoading } from "@/components/auth/auth-loading";
-import { ApiRequestError, authApi } from "@/lib/api";
+import { authApi } from "@/lib/api";
+import { toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,26 +12,20 @@ import { Label } from "@/components/ui/label";
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [devResetUrl, setDevResetUrl] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setMessage(null);
     setDevResetUrl(null);
     setPending(true);
     try {
-      const data = await authApi.forgotPassword(email);
+      const data = await authApi.forgotPassword(email.trim());
       setMessage(data.message);
       if (data.resetUrl) setDevResetUrl(data.resetUrl);
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "Unable to start password reset",
-      );
+      toastFromError(err, "Unable to start password reset");
     } finally {
       setPending(false);
     }
@@ -39,24 +34,24 @@ export default function ForgotPasswordPage() {
   return (
     <>
       {pending && <AuthLoading label="Sending reset link…" />}
-      <div className="w-full max-w-[340px] rounded-lg bg-white px-6 py-7 shadow-[0_1px_3px_rgba(12,26,46,0.06),0_8px_24px_rgba(12,26,46,0.06)] ring-1 ring-zinc-950/5">
-        <h1 className="text-xl font-semibold tracking-tight text-black">
+      <div className="w-full max-w-[360px]">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-brand-dark">
           Forgot password
         </h1>
-        <p className="mt-1 text-[13px] text-zinc-500">
+        <p className="mt-1.5 text-[14px] text-zinc-500">
           Enter your account email and we&apos;ll send a reset link.
         </p>
 
         {message ? (
-          <div className="mt-7 space-y-4">
+          <div className="mt-8 space-y-4">
             <div
-              className="border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-[13px] text-emerald-800"
+              className="rounded-md bg-emerald-50 px-3.5 py-3 text-[13px] text-emerald-800"
               role="status"
             >
               {message}
             </div>
             {devResetUrl && (
-              <div className="border border-zinc-200 bg-zinc-50 px-3.5 py-3 text-[12px] text-zinc-600">
+              <div className="rounded-md bg-zinc-50 px-3.5 py-3 text-[12px] text-zinc-600">
                 <p className="font-medium text-brand-dark">Dev reset link</p>
                 <Link
                   href={devResetUrl}
@@ -68,47 +63,36 @@ export default function ForgotPasswordPage() {
             )}
             <Link
               href="/login"
-              className="inline-flex h-9 w-full items-center justify-center rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
+              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-brand-dark text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
             >
               Back to sign in
             </Link>
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="mt-7 space-y-3.5">
-            {error && (
-              <div
-                className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
+          <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-[13px] text-zinc-600">
+              <Label htmlFor="email" className="text-[13px] font-medium text-zinc-700">
                 Email
               </Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
+                inputMode="email"
                 autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-9 rounded-md border-zinc-200 bg-white px-2.5 text-sm"
+                className="h-10 rounded-md border-zinc-200 bg-white px-3 text-sm shadow-none focus-visible:border-brand-dark/30 focus-visible:ring-brand-dark/15"
                 placeholder="you@school.edu"
               />
             </div>
-            <Button
-              type="submit"
-              disabled={pending}
-              className="mt-1 h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
-            >
+            <Button type="submit" disabled={pending} className="mt-2 w-full">
               {pending ? "Sending…" : "Send reset link"}
             </Button>
           </form>
         )}
 
-        <p className="mt-5 text-center text-[13px] text-zinc-500">
+        <p className="mt-6 text-center text-[13px] text-zinc-500">
           Remembered it?{" "}
           <Link
             href="/login"

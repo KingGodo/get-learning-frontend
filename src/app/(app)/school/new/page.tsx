@@ -7,9 +7,12 @@ import { ArrowLeft } from "lucide-react";
 import { GenderSelect } from "@/components/auth/registration-fields";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CredentialsPanel } from "@/components/users/credentials-panel";
-import { ApiRequestError, schoolsApi } from "@/lib/api";
+import { schoolsApi } from "@/lib/api";
+import { toastFromError } from "@/lib/toast";
 import type { IssuedCredentials, School } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
+import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoading } from "@/components/ui/page-loading";
@@ -26,7 +29,6 @@ export default function NewSchoolPage() {
   const isAdmin = user?.role === "ADMIN";
   const [checking, setChecking] = useState(true);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedResult | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -37,6 +39,8 @@ export default function NewSchoolPage() {
     city: "",
     province: "",
     country: "Zimbabwe",
+    termSystem: "TERM" as "TERM" | "SEMESTER" | "QUARTER",
+    termsPerYear: 3,
     adminFirstName: "",
     adminLastName: "",
     adminEmail: "",
@@ -55,7 +59,6 @@ export default function NewSchoolPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setPending(true);
     try {
       const data = await schoolsApi.create({
@@ -67,6 +70,8 @@ export default function NewSchoolPage() {
         city: form.city,
         province: form.province,
         country: form.country || undefined,
+        termSystem: form.termSystem,
+        termsPerYear: form.termsPerYear,
         admin: {
           firstName: form.adminFirstName,
           lastName: form.adminLastName,
@@ -82,9 +87,7 @@ export default function NewSchoolPage() {
       });
       setPending(false);
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError ? err.message : "Could not create school",
-      );
+      toastFromError(err, "Could not create school");
       setPending(false);
     }
   }
@@ -96,19 +99,11 @@ export default function NewSchoolPage() {
   if (created) {
     return (
       <div className="relative mx-auto max-w-xl space-y-8">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            School created
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            {created.school.name}
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            Code <span className="font-medium text-brand-dark">{created.school.code}</span>
-            {" · "}
-            School admin account ready for {created.adminName}.
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="School created"
+          title={created.school.name}
+          description={`Code ${created.school.code} · School admin account ready for ${created.adminName}.`}
+        />
 
         <CredentialsPanel
           title="School admin credentials"
@@ -116,19 +111,17 @@ export default function NewSchoolPage() {
           credentials={created.credentials}
           footer={
             <div className="flex flex-wrap gap-2">
-              <Link
-                href={`/school/${created.school.id}`}
-                className="inline-flex h-9 items-center bg-brand-dark px-4 text-sm font-semibold text-white hover:bg-brand-dark/90"
-              >
+              <ButtonLink href={`/school/${created.school.id}`} size="sm">
                 View school
-              </Link>
-              <button
+              </ButtonLink>
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => setCreated(null)}
-                className="inline-flex h-9 items-center border border-zinc-200 px-4 text-sm font-medium text-brand-dark hover:bg-zinc-50"
               >
                 Create another
-              </button>
+              </Button>
               <Link
                 href="/dashboard"
                 className="inline-flex h-9 items-center px-4 text-sm font-medium text-zinc-500 hover:text-brand-dark"
@@ -153,25 +146,14 @@ export default function NewSchoolPage() {
           <ArrowLeft className="size-3.5" />
           Back to dashboard
         </Link>
-        <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-          Create a school
-        </h1>
-        <p className="mt-1 text-[13px] text-zinc-500">
-          Add the school and its school admin account. A temporary password is
-          generated automatically.
-        </p>
+        <PageHeader
+          title="Create a school"
+          description="Add the school and its school admin account. A temporary password is generated automatically."
+          className="mt-4 pb-0"
+        />
       </div>
 
       <form onSubmit={onSubmit} className="space-y-8">
-        {error && (
-          <div
-            className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-            role="alert"
-          >
-            {error}
-          </div>
-        )}
-
         <section className="space-y-4">
           <div>
             <h2 className="text-[13px] font-semibold text-brand-dark">
@@ -297,7 +279,67 @@ export default function NewSchoolPage() {
           </div>
         </section>
 
-        <section className="space-y-4 border-t border-zinc-200/80 pt-8">
+        <section className="space-y-4 border-t border-border pt-8">
+          <div>
+            <h2 className="text-[13px] font-semibold text-brand-dark">
+              Academic calendar
+            </h2>
+            <p className="mt-0.5 text-[12px] text-zinc-500">
+              How is the academic year divided? This determines the term/semester options when creating classes.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="termSystem" className="text-[13px] text-zinc-600">
+                System
+              </Label>
+              <select
+                id="termSystem"
+                value={form.termSystem}
+                onChange={(e) => {
+                  const system = e.target.value as "TERM" | "SEMESTER" | "QUARTER";
+                  const defaults = { TERM: 3, SEMESTER: 2, QUARTER: 4 };
+                  setForm((f) => ({
+                    ...f,
+                    termSystem: system,
+                    termsPerYear: defaults[system],
+                  }));
+                }}
+                className="h-9 w-full rounded-md border border-border bg-white px-2.5 text-sm"
+              >
+                <option value="TERM">Terms (e.g. Zimbabwe, UK)</option>
+                <option value="SEMESTER">Semesters (e.g. USA, universities)</option>
+                <option value="QUARTER">Quarters (e.g. Japan, some US)</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="termsPerYear" className="text-[13px] text-zinc-600">
+                {form.termSystem === "SEMESTER" ? "Semesters" : form.termSystem === "QUARTER" ? "Quarters" : "Terms"} per year
+              </Label>
+              <select
+                id="termsPerYear"
+                value={form.termsPerYear}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, termsPerYear: Number(e.target.value) }))
+                }
+                className="h-9 w-full rounded-md border border-border bg-white px-2.5 text-sm"
+              >
+                {[1, 2, 3, 4].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <p className="text-[12px] text-zinc-400">
+            {form.termSystem === "TERM" && form.termsPerYear === 3 && "Most common in Zimbabwe, South Africa, and the UK."}
+            {form.termSystem === "SEMESTER" && form.termsPerYear === 2 && "Standard for most universities and US high schools."}
+            {form.termSystem === "QUARTER" && form.termsPerYear === 4 && "Used in Japan and some US school districts."}
+          </p>
+        </section>
+
+        <section className="space-y-4 border-t border-border pt-8">
           <div>
             <h2 className="text-[13px] font-semibold text-brand-dark">
               School admin account
@@ -379,19 +421,12 @@ export default function NewSchoolPage() {
         </section>
 
         <div className="flex flex-wrap gap-2 pt-2">
-          <Button
-            type="submit"
-            disabled={pending}
-            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
-          >
+          <Button type="submit" disabled={pending} size="sm">
             {pending ? "Creating…" : "Create school & admin"}
           </Button>
-          <Link
-            href="/dashboard"
-            className="inline-flex h-9 items-center px-4 text-sm font-medium text-zinc-500 hover:text-brand-dark"
-          >
+          <ButtonLink href="/dashboard" variant="outline" size="sm">
             Cancel
-          </Link>
+          </ButtonLink>
         </div>
       </form>
     </div>

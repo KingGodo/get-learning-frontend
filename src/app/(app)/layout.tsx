@@ -16,6 +16,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { HeaderNotifications } from "@/components/layout/header-notifications";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
@@ -27,9 +28,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { roleThemeAttribute, themeForRole } from "@/lib/theme";
+import type { UserRole } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-type UserRole = "ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT";
 
 type NavItem = {
   href: string;
@@ -71,7 +72,9 @@ const schoolAdminNavGroups: NavGroup[] = [
   {
     label: "School",
     items: [
-      { href: "/users", label: "People", icon: Users },
+      { href: "/users", label: "Users", icon: Users },
+      { href: "/subjects", label: "Subjects", icon: Library },
+      { href: "/classes", label: "Classes", icon: BookOpen },
       { href: "/school", label: "School", icon: Building2 },
     ],
   },
@@ -121,6 +124,7 @@ const studentNavGroups: NavGroup[] = [
     items: [
       { href: "/classes", label: "Classes", icon: BookOpen },
       { href: "/assignments", label: "Assignments", icon: ClipboardList },
+      { href: "/submissions", label: "Submissions", icon: ClipboardCheck },
     ],
   },
   {
@@ -156,14 +160,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const roleLabel =
-    user.role === "STUDENT"
-      ? "Student"
-      : user.role === "ADMIN"
-        ? "System admin"
-        : user.role === "SCHOOL_ADMIN"
-          ? "School admin"
-          : "Teacher";
+  const roleTheme = themeForRole(user.role);
+  const roleLabel = roleTheme.label;
+  const roleThemeAttr = roleThemeAttribute(user.role);
 
   const groups = navForRole(user.role);
   const flatLinks = groups.flatMap((g) => g.items);
@@ -177,7 +176,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="space-y-6">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="mb-2 px-3 text-[11px] font-medium tracking-wide text-zinc-400">
+            <p className="mb-2 px-3 text-[11px] font-medium tracking-[0.06em] text-slate-400 uppercase">
               {group.label}
             </p>
             <nav className="flex flex-col gap-0.5">
@@ -192,18 +191,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     href={link.href}
                     onClick={onNavigate}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
+                      "group relative flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium ease-craft transition-colors duration-150",
                       active
-                        ? "bg-brand-light text-brand-dark"
-                        : "text-zinc-500 hover:bg-zinc-50 hover:text-brand-dark",
+                        ? "bg-brand-light text-brand"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-ink",
                     )}
                   >
+                    {active ? (
+                      <span
+                        className="absolute top-1.5 bottom-1.5 left-0 w-[2px] rounded-full bg-brand"
+                        aria-hidden
+                      />
+                    ) : null}
                     <Icon
                       className={cn(
-                        "size-[18px] shrink-0",
-                        active ? "text-brand-dark" : "text-zinc-400",
+                        "size-[17px] shrink-0",
+                        active
+                          ? "text-brand"
+                          : "text-slate-400 group-hover:text-slate-600",
                       )}
-                      strokeWidth={1.5}
+                      strokeWidth={1.75}
                     />
                     {link.label}
                   </Link>
@@ -217,44 +224,53 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-[100svh] bg-page">
-      <aside className="sticky top-0 hidden h-[100svh] w-[220px] shrink-0 flex-col border-r border-[#e8e8ed] bg-white md:flex">
-        <div className="flex h-14 items-center px-5">
-          <Link
-            href="/dashboard"
-            className="text-[15px] font-semibold tracking-[-0.02em] text-ink"
-          >
-            Learning Hub
-          </Link>
+    <div
+      className="flex min-h-[100svh] bg-page"
+      data-role-theme={roleThemeAttr}
+    >
+      <aside className="sticky top-0 hidden h-[100svh] w-[240px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+        <div className="flex h-14 items-center border-b border-sidebar-border px-4">
+          <BrandMark href="/dashboard" size="sm" />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 pb-4 pt-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex-1 overflow-y-auto px-2 py-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <NavLinks />
         </div>
 
-        <div className="border-t border-[#e8e8ed] px-4 py-4">
-          <Link href="/profile" className="block">
-            <p className="truncate text-[13px] font-medium text-ink">
-              {user.firstName} {user.lastName}
-            </p>
-            <p className="mt-0.5 text-[12px] text-[#86868b]">{roleLabel}</p>
+        <div className="border-t border-sidebar-border p-3">
+          <Link
+            href="/profile"
+            className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-slate-50"
+          >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-light text-[11px] font-semibold text-brand">
+              {user.firstName[0]}
+              {user.lastName[0]}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-medium text-ink">
+                {user.firstName} {user.lastName}
+              </span>
+              <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+                {roleLabel}
+              </span>
+            </span>
           </Link>
           <button
             type="button"
-            className="mt-3 flex items-center gap-2 text-[12px] text-[#86868b] transition-colors hover:text-ink"
+            className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-[12px] text-muted-foreground transition-colors hover:bg-slate-50 hover:text-ink"
             onClick={() => {
               logout();
               router.replace("/");
             }}
           >
-            <LogOut className="size-3.5" strokeWidth={1.5} />
+            <LogOut className="size-3.5" strokeWidth={1.75} />
             Sign out
           </button>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#e8e8ed] bg-white/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-background/85 px-4 backdrop-blur-md sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="md:hidden">
               <Sheet>
@@ -262,8 +278,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   render={
                     <Button
                       variant="outline"
-                      size="icon"
-                      className="rounded-lg border-[#d2d2d7]"
+                      size="icon-sm"
+                      aria-label="Open menu"
                     />
                   }
                 >
@@ -271,11 +287,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </SheetTrigger>
                 <SheetContent
                   side="left"
-                  className="w-72 border-0 bg-white p-0 text-ink"
+                  className="w-72 border-r border-border bg-background p-0"
                 >
-                  <SheetHeader className="border-b border-[#e8e8ed] px-5 py-4">
-                    <SheetTitle className="text-left text-[15px] font-semibold tracking-[-0.02em] text-ink">
-                      Learning Hub
+                  <SheetHeader className="border-b border-border px-4 py-4">
+                    <SheetTitle className="text-left">
+                      <BrandMark href={null} size="sm" />
                     </SheetTitle>
                   </SheetHeader>
                   <div className="px-2 py-4">
@@ -285,20 +301,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Sheet>
             </div>
             <div>
-              <p className="text-[14px] font-semibold tracking-[-0.01em] text-ink">
+              <p className="text-[14px] font-semibold tracking-tight text-ink">
                 {activeLink?.label ?? "Learning Hub"}
               </p>
-              <p className="hidden text-[12px] text-[#86868b] sm:block">
-                {user.school?.name ?? "Learning Hub"}
+              <p className="hidden text-[12px] text-muted-foreground sm:block">
+                {user.school?.name ?? roleLabel}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-muted-foreground sm:inline-flex">
+              <span className="size-1.5 rounded-full bg-brand" aria-hidden />
+              {roleLabel}
+            </span>
             <HeaderNotifications />
             <Link
               href="/profile"
-              className="flex size-8 items-center justify-center rounded-full bg-[#f5f5f7] text-[11px] font-semibold text-ink"
+              className="flex size-8 items-center justify-center rounded-md border border-border bg-background text-[11px] font-semibold text-ink transition-colors hover:bg-muted"
               aria-label={`${user.firstName} ${user.lastName}`}
             >
               {user.firstName[0]}

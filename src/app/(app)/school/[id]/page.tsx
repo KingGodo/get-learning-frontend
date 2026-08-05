@@ -8,18 +8,24 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, schoolsApi } from "@/lib/api";
 import type { AdminSchoolDetail } from "@/lib/types";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
-import { cn } from "@/lib/utils";
+import { StatStrip } from "@/components/ui/stat-strip";
+import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-        {label}
-      </p>
-      <p className="mt-1.5 text-[13px] text-brand-dark">{value ?? "—"}</p>
+      <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1.5 text-[13px] text-ink">{value ?? "—"}</p>
     </div>
   );
+}
+
+function roleLabel(role: string) {
+  if (role === "SCHOOL_ADMIN") return "School admin";
+  return role.charAt(0) + role.slice(1).toLowerCase();
 }
 
 export default function SchoolDetailPage() {
@@ -89,71 +95,33 @@ export default function SchoolDetailPage() {
           <ArrowLeft className="size-3.5" />
           Back to schools
         </Link>
-        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-              School detail
-            </p>
-            <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-              {school.name}
-            </h1>
-            <p className="mt-1 font-mono text-[13px] text-zinc-500">
-              {school.code}
-            </p>
-          </div>
-          <span
-            className={cn(
-              "inline-flex px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
-              school.status === "ACTIVE"
-                ? "bg-emerald-50/80 text-emerald-700"
-                : "bg-zinc-200/60 text-zinc-500",
-            )}
-          >
-            {school.status}
-          </span>
-        </div>
+        <PageHeader
+          eyebrow="School detail"
+          title={school.name}
+          description={school.code}
+          className="mt-4 pb-0"
+          actions={
+            <StatusBadge tone={statusToneFor(school.status ?? "")}>
+              {school.status
+                ? school.status.charAt(0) + school.status.slice(1).toLowerCase()
+                : "—"}
+            </StatusBadge>
+          }
+        />
       </div>
 
-      <div className="flex flex-wrap gap-x-10 gap-y-4 border-y border-zinc-200/70 py-5">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-            Users
-          </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            {school._count.users}
-          </p>
-        </div>
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-            Teachers
-          </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            {teachers.length}
-          </p>
-        </div>
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-            Students
-          </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            {students.length}
-          </p>
-        </div>
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-            Classes
-          </p>
-          <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            {school._count.classes}
-          </p>
-        </div>
-      </div>
+      <StatStrip
+        items={[
+          { label: "Users", value: school._count.users },
+          { label: "Teachers", value: teachers.length },
+          { label: "Students", value: students.length },
+          { label: "Classes", value: school._count.classes },
+        ]}
+      />
 
       <section className="space-y-4">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-          Details
-        </h2>
-        <div className="grid gap-5 border-y border-zinc-200/70 py-5 sm:grid-cols-2 lg:grid-cols-3">
+        <h2 className="text-[12px] font-medium text-muted-foreground">Details</h2>
+        <div className="grid gap-5 border-y border-border py-5 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Email" value={school.email} />
           <Field label="Phone" value={school.phoneNumber} />
           <Field
@@ -187,18 +155,19 @@ export default function SchoolDetailPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+        <h2 className="text-[12px] font-medium text-muted-foreground">
           People ({school.users.length})
         </h2>
         {school.users.length === 0 ? (
-          <p className="border-y border-zinc-200/70 py-5 text-[13px] text-zinc-500">
-            No users linked to this school yet.
-          </p>
+          <EmptyState
+            title="No people yet"
+            description="No users linked to this school yet."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left">
               <thead>
-                <tr className="border-b border-zinc-200/70 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
+                <tr className="border-b border-border text-[12px] text-muted-foreground">
                   <th className="py-3 pr-4 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Email</th>
                   <th className="px-4 py-3 font-medium">Role</th>
@@ -210,9 +179,9 @@ export default function SchoolDetailPage() {
                 {school.users.map((u) => (
                   <tr
                     key={u.id}
-                    className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
+                    className="border-b border-border/70 text-[13px] transition-colors hover:bg-muted/70"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
+                    <td className="py-3.5 pr-4 font-medium text-ink">
                       <Link
                         href={`/users/${u.id}`}
                         className="hover:underline"
@@ -220,13 +189,11 @@ export default function SchoolDetailPage() {
                         {u.firstName} {u.lastName}
                       </Link>
                     </td>
-                    <td className="px-4 py-3.5 text-zinc-600">{u.email}</td>
+                    <td className="px-4 py-3.5 text-muted-foreground">{u.email}</td>
                     <td className="px-4 py-3.5">
-                      <span className="inline-flex bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
-                        {u.role}
-                      </span>
+                      <StatusBadge>{roleLabel(u.role)}</StatusBadge>
                     </td>
-                    <td className="px-4 py-3.5 text-zinc-500">
+                    <td className="px-4 py-3.5 text-muted-foreground">
                       {u.teacher?.employeeNumber ??
                         u.student?.studentNumber ??
                         "—"}
@@ -235,16 +202,9 @@ export default function SchoolDetailPage() {
                         : ""}
                     </td>
                     <td className="py-3.5 pl-4">
-                      <span
-                        className={cn(
-                          "inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                          u.status === "ACTIVE"
-                            ? "bg-emerald-50/80 text-emerald-700"
-                            : "bg-zinc-200/60 text-zinc-500",
-                        )}
-                      >
-                        {u.status}
-                      </span>
+                      <StatusBadge tone={statusToneFor(u.status)}>
+                        {u.status.charAt(0) + u.status.slice(1).toLowerCase()}
+                      </StatusBadge>
                     </td>
                   </tr>
                 ))}
@@ -255,18 +215,19 @@ export default function SchoolDetailPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+        <h2 className="text-[12px] font-medium text-muted-foreground">
           Classes ({school.classes.length})
         </h2>
         {school.classes.length === 0 ? (
-          <p className="border-y border-zinc-200/70 py-5 text-[13px] text-zinc-500">
-            No classes at this school yet.
-          </p>
+          <EmptyState
+            title="No classes yet"
+            description="No classes at this school yet."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left">
               <thead>
-                <tr className="border-b border-zinc-200/70 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
+                <tr className="border-b border-border text-[12px] text-muted-foreground">
                   <th className="py-3 pr-4 font-medium">Class</th>
                   <th className="px-4 py-3 font-medium">Subject</th>
                   <th className="px-4 py-3 font-medium">Year / Sem</th>
@@ -281,32 +242,36 @@ export default function SchoolDetailPage() {
                 {school.classes.map((c) => (
                   <tr
                     key={c.id}
-                    className="border-b border-zinc-200/50 text-[13px]"
+                    className="border-b border-border/70 text-[13px]"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-brand-dark">
+                    <td className="py-3.5 pr-4 font-medium text-ink">
                       <Link
                         href={`/classes/${c.id}`}
                         className="hover:underline"
                       >
                         {c.name}
                       </Link>
-                      <span className="ml-2 font-mono text-[11px] text-zinc-400">
+                      <span className="ml-2 font-mono text-[11px] text-muted-foreground">
                         {c.classCode}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-zinc-600">
+                    <td className="px-4 py-3.5 text-muted-foreground">
                       {c.subject
                         ? `${c.subject.name} (${c.subject.code})`
                         : "—"}
                     </td>
-                    <td className="px-4 py-3.5 tabular-nums text-zinc-500">
+                    <td className="px-4 py-3.5 tabular-nums text-muted-foreground">
                       {c.academicYear} / {c.semester}
                     </td>
-                    <td className="px-4 py-3.5 text-zinc-500">{c.status}</td>
-                    <td className="px-4 py-3.5 text-right tabular-nums text-zinc-600">
+                    <td className="px-4 py-3.5">
+                      <StatusBadge tone={statusToneFor(c.status)}>
+                        {c.status.charAt(0) + c.status.slice(1).toLowerCase()}
+                      </StatusBadge>
+                    </td>
+                    <td className="px-4 py-3.5 text-right tabular-nums text-muted-foreground">
                       {c._count.classStudents}
                     </td>
-                    <td className="py-3.5 pl-4 text-right tabular-nums text-zinc-600">
+                    <td className="py-3.5 pl-4 text-right tabular-nums text-muted-foreground">
                       {c._count.assignments}
                     </td>
                   </tr>

@@ -1,15 +1,32 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Pencil, Plus, Search } from "lucide-react";
+import { Calendar, Globe, Mail, MapPin, Pencil, Phone, Plus, Search } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, schoolsApi } from "@/lib/api";
-import type { School } from "@/lib/types";
+import type { School, TermSystem } from "@/lib/types";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
+import { ButtonLink } from "@/components/ui/button-link";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatStrip } from "@/components/ui/stat-strip";
+import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
+
+function termLabel(system?: TermSystem, count?: number) {
+  const s = system ?? "TERM";
+  const n = count ?? 3;
+  const word = s === "SEMESTER" ? "Semester" : s === "QUARTER" ? "Quarter" : "Term";
+  return `${n} ${word}${n !== 1 ? "s" : ""} per year`;
+}
+
+function termSystemName(system?: TermSystem) {
+  if (system === "SEMESTER") return "Semesters";
+  if (system === "QUARTER") return "Quarters";
+  return "Terms";
+}
 
 type AdminSchool = School & {
   _count: { users: number; classes: number };
@@ -77,113 +94,75 @@ function AdminSchoolsPage() {
           {error}
         </div>
       )}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Administration
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            Schools
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            Every school registered on Learning Hub.
-          </p>
-        </div>
-        <Link
-          href="/school/new"
-          className="inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
-        >
-          <Plus className="size-3.5" />
-          Create school
-        </Link>
-      </div>
+      <PageHeader
+        eyebrow="Administration"
+        title="Schools"
+        description="Every school registered on Learning Hub."
+        actions={
+          <ButtonLink href="/school/new" size="sm">
+            <Plus className="size-3.5" />
+            Create school
+          </ButtonLink>
+        }
+      />
 
       {schools.length > 0 && (
-        <div className="flex flex-wrap gap-x-10 gap-y-4 border-y border-zinc-200/70 py-5">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-              Total
-            </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-              {schools.length}
-            </p>
-          </div>
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-              Active
-            </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-              {schools.filter((s) => s.status === "ACTIVE").length}
-            </p>
-          </div>
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-              Users
-            </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-              {schools.reduce((sum, s) => sum + (s._count?.users ?? 0), 0)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-zinc-400">
-              Classes
-            </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-              {schools.reduce((sum, s) => sum + (s._count?.classes ?? 0), 0)}
-            </p>
-          </div>
-        </div>
+        <StatStrip
+          items={[
+            { label: "Total", value: schools.length },
+            {
+              label: "Active",
+              value: schools.filter((s) => s.status === "ACTIVE").length,
+            },
+            {
+              label: "Users",
+              value: schools.reduce((sum, s) => sum + (s._count?.users ?? 0), 0),
+            },
+            {
+              label: "Classes",
+              value: schools.reduce(
+                (sum, s) => sum + (s._count?.classes ?? 0),
+                0,
+              ),
+            },
+          ]}
+        />
       )}
 
       {schools.length > 0 && (
         <div className="relative max-w-md">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, code, email, or city…"
-            className="h-9 rounded-md border-zinc-200 bg-transparent pl-9 text-sm"
+            className="h-9 rounded-md border-border bg-transparent pl-9 text-sm"
           />
         </div>
       )}
 
       {schools.length === 0 ? (
-        <div className="flex flex-col items-center px-2 py-10 text-center sm:py-14">
-          <Image
-            src="/schools.svg"
-            alt=""
-            width={280}
-            height={220}
-            className="w-[min(70vw,240px)] select-none"
-            priority
-          />
-          <h2 className="mt-6 text-base font-semibold text-brand-dark">
-            No schools yet
-          </h2>
-          <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
-            Create the first school to start onboarding teachers and classes.
-          </p>
-          <Link
-            href="/school/new"
-            className="mt-5 inline-flex h-9 items-center gap-1.5 bg-brand-dark px-3.5 text-sm font-semibold text-white hover:bg-brand-dark/90"
-          >
-            <Plus className="size-3.5" />
-            Create school
-          </Link>
-        </div>
+        <EmptyState
+          title="No schools yet"
+          description="Create the first school to start onboarding teachers and classes."
+          action={
+            <ButtonLink href="/school/new" size="sm">
+              <Plus className="size-3.5" />
+              Create school
+            </ButtonLink>
+          }
+        />
       ) : filtered.length === 0 ? (
-        <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-brand-dark">No matches</p>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            Try another search term.
-          </p>
-        </div>
+        <EmptyState
+          title="No matches"
+          description="Try another search term."
+        />
       ) : (
         <div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead>
-                <tr className="border-b border-zinc-200/70 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
+                <tr className="border-b border-border text-[11px] uppercase tracking-[0.08em] text-zinc-400">
                   <th className="py-3 pr-4 font-medium">School</th>
                   <th className="px-4 py-3 font-medium">Code</th>
                   <th className="px-4 py-3 font-medium">Email</th>
@@ -199,7 +178,7 @@ function AdminSchoolsPage() {
                 {filtered.map((school) => (
                   <tr
                     key={school.id}
-                    className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
+                    className="border-b border-border text-[13px] transition-colors hover:bg-muted/50"
                   >
                     <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       <Link
@@ -217,16 +196,12 @@ function AdminSchoolsPage() {
                       {school.city}, {school.province}
                     </td>
                     <td className="px-4 py-3.5">
-                      <span
-                        className={cn(
-                          "inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                          school.status === "ACTIVE"
-                            ? "bg-emerald-50/80 text-emerald-700"
-                            : "bg-zinc-200/60 text-zinc-500",
-                        )}
-                      >
-                        {school.status}
-                      </span>
+                      <StatusBadge tone={statusToneFor(school.status ?? "")}>
+                        {school.status
+                          ? school.status.charAt(0) +
+                            school.status.slice(1).toLowerCase()
+                          : "—"}
+                      </StatusBadge>
                     </td>
                     <td className="px-4 py-3.5 text-right tabular-nums text-zinc-600">
                       {school._count?.users ?? 0}
@@ -249,7 +224,26 @@ function AdminSchoolsPage() {
   );
 }
 
+function ProfileField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="mt-1 text-[13px] text-ink">{children ?? "—"}</dd>
+    </div>
+  );
+}
+
 function TeacherSchoolPage() {
+  const { user } = useAuth();
+  const canEdit = user?.role === "SCHOOL_ADMIN" || user?.role === "ADMIN";
   const [school, setSchool] = useState<School | null>(null);
   const [loading, setLoading] = useState(true);
   const [missing, setMissing] = useState(false);
@@ -288,35 +282,15 @@ function TeacherSchoolPage() {
             {error}
           </div>
         )}
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Administration
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            School
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            Your school profile for classes and teachers.
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center px-2 py-10 text-center sm:py-14">
-          <Image
-            src="/schools.svg"
-            alt=""
-            width={280}
-            height={220}
-            className="w-[min(70vw,240px)] select-none"
-            priority
-          />
-          <h2 className="mt-6 text-base font-semibold text-brand-dark">
-            No school yet
-          </h2>
-          <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
-            Your account is not linked to a school yet. Contact your platform
-            administrator to be assigned to a school.
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="Administration"
+          title="School"
+          description="Your school profile for classes and teachers."
+        />
+        <EmptyState
+          title="No school yet"
+          description="Your account is not linked to a school yet. Contact your platform administrator to be assigned to a school."
+        />
       </div>
     );
   }
@@ -325,8 +299,22 @@ function TeacherSchoolPage() {
     .filter(Boolean)
     .join(", ");
 
+  const initials = school.name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+
+  const termWord =
+    school.termSystem === "SEMESTER"
+      ? "semester"
+      : school.termSystem === "QUARTER"
+        ? "quarter"
+        : "term";
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {error && (
         <div
           className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
@@ -335,88 +323,69 @@ function TeacherSchoolPage() {
           {error}
         </div>
       )}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Administration
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
+          <p className="text-[12px] font-medium text-muted-foreground">School profile</p>
+          <h1 className="mt-1 text-[1.75rem] font-semibold tracking-tight text-ink sm:text-[2rem]">
             {school.name}
           </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            School code{" "}
-            <span className="font-mono font-medium text-zinc-700">
-              {school.code}
-            </span>
-          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+            {school.status && (
+              <StatusBadge tone={statusToneFor(school.status)}>
+                {school.status.charAt(0) + school.status.slice(1).toLowerCase()}
+              </StatusBadge>
+            )}
+            <span>{school.city}, {school.province}</span>
+            <span>·</span>
+            <span className="font-mono text-[12px]">{school.code}</span>
+          </div>
         </div>
-        <Link
-          href="/school/edit"
-          className="inline-flex h-9 items-center gap-1.5 border border-zinc-200 bg-transparent px-3.5 text-sm font-semibold text-brand-dark hover:bg-zinc-200/40"
-        >
-          <Pencil className="size-3.5" />
-          Edit school
-        </Link>
+        {canEdit && (
+          <ButtonLink href="/school/edit" variant="outline" size="sm" className="shrink-0">
+            <Pencil className="size-3.5" />
+            Edit school
+          </ButtonLink>
+        )}
       </div>
 
-      <section className="border-y border-zinc-200/70 py-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-          Overview
-        </p>
-        <dl className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <dt className="text-[12px] text-zinc-400">Email</dt>
-            <dd className="mt-1 text-sm font-medium text-brand-dark">
-              {school.email}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[12px] text-zinc-400">Phone</dt>
-            <dd className="mt-1 text-sm font-medium text-brand-dark">
-              {school.phoneNumber || "—"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[12px] text-zinc-400">Website</dt>
-            <dd className="mt-1 text-sm font-medium text-brand-dark">
+      {/* ── Stat cards ── */}
+      <StatStrip
+        items={[
+          { label: "Academic system", value: termSystemName(school.termSystem) },
+          { label: `${termSystemName(school.termSystem)} / year`, value: school.termsPerYear ?? 3 },
+          { label: "Country", value: school.country || "—" },
+        ]}
+      />
+
+      {/* ── Contact & address ── */}
+      <div className="grid gap-8 lg:grid-cols-2">
+        <section>
+          <h2 className="text-[12px] font-medium text-muted-foreground">Contact</h2>
+          <dl className="mt-4 space-y-5">
+            <ProfileField label="Email">{school.email}</ProfileField>
+            <ProfileField label="Phone">{school.phoneNumber || "—"}</ProfileField>
+            <ProfileField label="Website">
               {school.website ? (
-                <a
-                  href={school.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:underline"
-                >
+                <a href={school.website} target="_blank" rel="noreferrer" className="text-brand-dark hover:underline">
                   {school.website.replace(/^https?:\/\//, "")}
                 </a>
-              ) : (
-                "—"
-              )}
-            </dd>
-          </div>
-          <div className="sm:col-span-2 lg:col-span-3">
-            <dt className="text-[12px] text-zinc-400">Address</dt>
-            <dd className="mt-1 text-sm font-medium text-brand-dark">
-              {location || "—"}
-            </dd>
-          </div>
-          {school.status && (
-            <div>
-              <dt className="text-[12px] text-zinc-400">Status</dt>
-              <dd className="mt-1">
-                <span
-                  className={
-                    school.status === "ACTIVE"
-                      ? "inline-flex bg-emerald-50/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700"
-                      : "inline-flex bg-zinc-200/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500"
-                  }
-                >
-                  {school.status}
-                </span>
-              </dd>
-            </div>
-          )}
-        </dl>
-      </section>
+              ) : "—"}
+            </ProfileField>
+          </dl>
+        </section>
+
+        <section>
+          <h2 className="text-[12px] font-medium text-muted-foreground">Location</h2>
+          <dl className="mt-4 space-y-5">
+            <ProfileField label="Address">{school.address || "—"}</ProfileField>
+            <ProfileField label="City">{school.city}</ProfileField>
+            <ProfileField label="Province">{school.province}</ProfileField>
+            <ProfileField label="Country">{school.country || "—"}</ProfileField>
+          </dl>
+        </section>
+      </div>
     </div>
   );
 }

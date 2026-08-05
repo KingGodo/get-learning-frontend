@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { UserRound } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { ApiRequestError, authApi } from "@/lib/api";
+import { authApi } from "@/lib/api";
+import { toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
 import {
   Select,
@@ -16,8 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { themeForRole } from "@/lib/theme";
 
-const fieldInput = "h-9 rounded-md border-zinc-200 bg-white px-2.5 text-sm";
+const fieldInput = "h-9 rounded-md border-border bg-white px-2.5 text-sm";
 
 function toDateInput(value?: string | null) {
   if (!value) return "";
@@ -29,8 +32,9 @@ function toDateInput(value?: string | null) {
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [passwordPending, setPasswordPending] = useState(false);
+  const [verifyPending, setVerifyPending] = useState(false);
+  const [passwordVerified, setPasswordVerified] = useState(false);
   const [gender, setGender] = useState("PREFER_NOT_TO_SAY");
   const [form, setForm] = useState({
     firstName: "",
@@ -45,8 +49,11 @@ export default function ProfilePage() {
     guardianPhone: "",
     guardianEmail: "",
     emergencyContact: "",
+  });
+  const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
+    confirmPassword: "",
   });
 
   useEffect(() => {
@@ -65,9 +72,13 @@ export default function ProfilePage() {
       guardianPhone: user.student?.guardianPhone ?? "",
       guardianEmail: user.student?.guardianEmail ?? "",
       emergencyContact: user.student?.emergencyContact ?? "",
+    });
+    setPasswordForm({
       currentPassword: "",
       newPassword: "",
+      confirmPassword: "",
     });
+    setPasswordVerified(false);
   }, [user]);
 
   if (!user) {
@@ -80,8 +91,6 @@ export default function ProfilePage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
     setPending(true);
     try {
       const payload: Record<string, unknown> = {
@@ -108,32 +117,59 @@ export default function ProfilePage() {
         payload.emergencyContact = form.emergencyContact || null;
       }
 
-      if (form.newPassword) {
-        payload.currentPassword = form.currentPassword;
-        payload.newPassword = form.newPassword;
-      }
-
       await authApi.updateProfile(payload);
       await refreshUser();
-      setForm((f) => ({ ...f, currentPassword: "", newPassword: "" }));
-      setSuccess("Profile saved.");
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "Could not save profile",
-      );
+      toastFromError(err, "Could not save profile");
     } finally {
       setPending(false);
     }
   }
 
-  const roleLabel =
-    user.role === "STUDENT"
-      ? "Student"
-      : user.role === "ADMIN"
-        ? "Administrator"
-        : "Teacher";
+  async function onChangePassword() {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
+      toast.error("Enter your current password and new password.");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+
+    setPasswordPending(true);
+    try {
+      await authApi.changePassword(passwordForm);
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setPasswordVerified(false);
+    } catch (err) {
+      toastFromError(err, "Could not update password");
+    } finally {
+      setPasswordPending(false);
+    }
+  }
+
+  async function onVerifyCurrentPassword() {
+    if (!passwordForm.currentPassword) {
+      toast.error("Enter your current password first.");
+      return;
+    }
+    setVerifyPending(true);
+    try {
+      await authApi.verifyCurrentPassword(passwordForm.currentPassword);
+      setPasswordVerified(true);
+    } catch (err) {
+      setPasswordVerified(false);
+      toastFromError(err, "Could not verify current password");
+    } finally {
+      setVerifyPending(false);
+    }
+  }
+
+  const roleLabel = themeForRole(user.role).label;
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -142,37 +178,18 @@ export default function ProfilePage() {
           {user.firstName[0]}
           {user.lastName[0]}
         </div>
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Account
-          </p>
-          <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            Profile
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            {roleLabel}
-            {user.school?.name ? ` · ${user.school.name}` : ""}
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="Account"
+          title="Profile"
+          description={`${roleLabel}${user.school?.name ? ` · ${user.school.name}` : ""}`}
+          className="pb-0"
+        />
       </div>
-
-      {(error || success) && (
-        <div
-          className={
-            error
-              ? "border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-              : "border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-[13px] text-emerald-800"
-          }
-          role="status"
-        >
-          {error ?? success}
-        </div>
-      )}
 
       <form onSubmit={onSubmit} className="relative space-y-8">
         {pending && <PageLoading overlay label="Saving profile…" />}
 
-        <section className="space-y-3.5 border-y border-zinc-200/70 py-6">
+        <section className="space-y-3.5 border-y border-border py-6">
           <div>
             <h2 className="text-sm font-semibold text-brand-dark">
               Personal details
@@ -248,7 +265,7 @@ export default function ProfilePage() {
         </section>
 
         {user.teacher && (
-          <section className="space-y-3.5 border-b border-zinc-200/70 pb-6">
+          <section className="space-y-3.5 border-b border-border pb-6">
             <div>
               <h2 className="text-sm font-semibold text-brand-dark">
                 Teaching profile
@@ -280,7 +297,7 @@ export default function ProfilePage() {
                   id="bio"
                   value={form.bio}
                   onChange={(e) => update("bio", e.target.value)}
-                  className="min-h-[80px] rounded-md border-zinc-200 bg-white text-sm"
+                  className="min-h-[80px] rounded-md border-border bg-white text-sm"
                   rows={3}
                 />
               </div>
@@ -289,7 +306,7 @@ export default function ProfilePage() {
         )}
 
         {user.student && (
-          <section className="space-y-3.5 border-b border-zinc-200/70 pb-6">
+          <section className="space-y-3.5 border-b border-border pb-6">
             <div>
               <h2 className="text-sm font-semibold text-brand-dark">Guardian</h2>
               <p className="mt-0.5 text-[12px] text-zinc-400">
@@ -329,7 +346,7 @@ export default function ProfilePage() {
         )}
 
         {user.school && (
-          <section className="space-y-2 border-b border-zinc-200/70 pb-6">
+          <section className="space-y-2 border-b border-border pb-6">
             <h2 className="text-sm font-semibold text-brand-dark">School</h2>
             <dl className="grid gap-3 sm:grid-cols-2">
               <div>
@@ -352,36 +369,89 @@ export default function ProfilePage() {
           <div>
             <h2 className="text-sm font-semibold text-brand-dark">Password</h2>
             <p className="mt-0.5 text-[12px] text-zinc-400">
-              Leave blank to keep your current password.
+              Enter your current password first, then set a new one.
             </p>
           </div>
-          <div className="grid gap-3.5 sm:grid-cols-2">
-            <Field
-              label="Current password"
-              id="currentPassword"
-              type="password"
-              value={form.currentPassword}
-              onChange={update}
-              autoComplete="current-password"
-            />
-            <Field
-              label="New password"
-              id="newPassword"
-              type="password"
-              value={form.newPassword}
-              onChange={update}
-              autoComplete="new-password"
-              hint="At least 8 characters"
-            />
+          <div className="space-y-3.5 rounded-xl border border-border bg-white p-4">
+            <div className="grid gap-3.5 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="currentPassword" className="text-[13px] text-zinc-600">
+                  Current password
+                </Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  autoComplete="current-password"
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))
+                  }
+                  className={fieldInput}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-zinc-600">Verify</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void onVerifyCurrentPassword()}
+                  disabled={verifyPending || passwordPending}
+                  className="h-9 w-full justify-center"
+                >
+                  {verifyPending ? "Verifying…" : "Verify current password"}
+                </Button>
+              </div>
+            </div>
+
+            {passwordVerified && (
+              <div className="grid gap-3.5 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                <Label htmlFor="newPassword" className="text-[13px] text-zinc-600">
+                  New password
+                </Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={passwordForm.newPassword}
+                  autoComplete="new-password"
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))
+                  }
+                  className={fieldInput}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmPassword" className="text-[13px] text-zinc-600">
+                  Confirm new password
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  autoComplete="new-password"
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))
+                  }
+                  className={fieldInput}
+                />
+              </div>
+              </div>
+            )}
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={() => void onChangePassword()}
+                disabled={passwordPending || !passwordVerified}
+                size="sm"
+              >
+                {passwordPending ? "Updating…" : "Change password"}
+              </Button>
+            </div>
           </div>
         </section>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          <Button
-            type="submit"
-            disabled={pending}
-            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
-          >
+          <Button type="submit" disabled={pending} size="sm">
             {pending ? "Saving…" : "Save changes"}
           </Button>
         </div>

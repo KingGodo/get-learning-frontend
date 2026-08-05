@@ -2,56 +2,48 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
-export default function RegisterPickerPage() {
+export default function RegisterInfoPage() {
   return (
     <>
-      <div className="w-full max-w-[340px]">
-        <h1 className="text-xl font-semibold tracking-tight text-black">
-          Create your account
+      <div className="w-full max-w-[380px]">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+          Account access
+        </p>
+        <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight text-brand-dark">
+          Accounts are created by your school
         </h1>
-        <p className="mt-1 text-[13px] text-zinc-500">
-          Choose how you&apos;ll use Learning Hub.
+        <p className="mt-3 text-[14px] leading-relaxed text-zinc-500">
+          Teachers and students can no longer self-register. Ask your school
+          admin to create your account, then use the credentials they share with
+          you to sign in.
         </p>
 
-        <div className="mt-7 space-y-2.5">
-          <Link
-            href="/register/teacher"
-            className="group flex items-start justify-between gap-3 border border-zinc-200 px-4 py-4 transition-colors hover:border-brand-dark/25 hover:bg-zinc-50"
-          >
-            <div>
-              <h2 className="text-sm font-semibold text-brand-dark">Teacher</h2>
-              <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
-                Create a school and manage classes.
-              </p>
-            </div>
-            <ArrowRight className="mt-0.5 size-4 shrink-0 text-zinc-300 transition-colors group-hover:text-brand-dark" />
-          </Link>
-
-          <Link
-            href="/register/student"
-            className="group flex items-start justify-between gap-3 border border-zinc-200 px-4 py-4 transition-colors hover:border-brand-dark/25 hover:bg-zinc-50"
-          >
-            <div>
-              <h2 className="text-sm font-semibold text-brand-dark">Student</h2>
-              <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
-                Join a class and submit work.
-              </p>
-            </div>
-            <ArrowRight className="mt-0.5 size-4 shrink-0 text-zinc-300 transition-colors group-hover:text-brand-dark" />
-          </Link>
+        <div className="mt-6 space-y-3 border-y border-zinc-200/80 py-5 text-[13px] text-zinc-600">
+          <p>
+            <span className="font-medium text-brand-dark">Teachers:</span>{" "}
+            contact your school admin for a one-time login password.
+          </p>
+          <p>
+            <span className="font-medium text-brand-dark">Students:</span>{" "}
+            contact your school admin for a one-time login password.
+          </p>
         </div>
 
-        <p className="mt-5 text-center text-[13px] text-zinc-500">
-          Already have an account?{" "}
+        <div className="mt-6 flex flex-col gap-2.5">
           <Link
             href="/login"
-            className="font-medium text-brand-dark hover:underline"
+            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-brand-dark px-4 text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
           >
             Sign in
           </Link>
-        </p>
+          <Link
+            href="/"
+            className="inline-flex h-10 w-full items-center justify-center rounded-md px-4 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-brand-dark"
+          >
+            Back to home
+          </Link>
+        </div>
       </div>
 
       <Image

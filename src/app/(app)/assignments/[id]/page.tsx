@@ -11,12 +11,16 @@ import {
   assignmentsApi,
   submissionsApi,
 } from "@/lib/api";
+import { toast, toastFromError } from "@/lib/toast";
 import type { Assignment, Submission } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { CenterSuccessToast } from "@/components/ui/center-success-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
+import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 export default function AssignmentDetailPage() {
@@ -28,7 +32,7 @@ export default function AssignmentDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [gradedToast, setGradedToast] = useState(false);
 
   async function load() {
     try {
@@ -51,13 +55,24 @@ export default function AssignmentDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, isStudent]);
 
+  useEffect(() => {
+    if (!submissions.length) return;
+    const hash = window.location.hash.replace("#", "");
+    if (!hash.startsWith("submission-")) return;
+    const el = document.getElementById(hash);
+    if (el) {
+      window.requestAnimationFrame(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+  }, [submissions]);
+
   async function submitWork(e: React.FormEvent) {
     e.preventDefault();
     if (!file) {
-      setSubmitError("Choose a PDF or Word file to upload");
+      toast.error("Choose a PDF or Word file to upload");
       return;
     }
-    setSubmitError(null);
     setSubmitting(true);
     try {
       const fd = new FormData();
@@ -67,25 +82,28 @@ export default function AssignmentDetailPage() {
       setFile(null);
       await load();
     } catch (err) {
-      setSubmitError(
-        err instanceof ApiRequestError ? err.message : "Submit failed",
-      );
+      toastFromError(err, "Submit failed");
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function grade(submissionId: string, score: number, feedback: string) {
+  async function grade(
+    submissionId: string,
+    score: number,
+    feedback: string,
+  ): Promise<boolean> {
     try {
       await submissionsApi.grade(submissionId, {
         score,
         feedback: feedback || undefined,
       });
+      setGradedToast(true);
       await load();
+      return true;
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError ? err.message : "Grade failed",
-      );
+      toastFromError(err, "Grade failed");
+      return false;
     }
   }
 
@@ -113,15 +131,11 @@ export default function AssignmentDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      {error && (
-        <div
-          className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-          role="alert"
-        >
-          {error}
-        </div>
-      )}
-
+      <CenterSuccessToast
+        message="Graded"
+        open={gradedToast}
+        onClose={() => setGradedToast(false)}
+      />
       <div>
         <Link
           href="/assignments"
@@ -131,25 +145,18 @@ export default function AssignmentDetailPage() {
           Back to assignments
         </Link>
 
-        <div className="mt-4 flex flex-wrap items-start gap-3">
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            {data.title}
-          </h1>
-          <span
-            className={cn(
-              "mt-1 inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-              data.status === "PUBLISHED"
-                ? "bg-emerald-50 text-emerald-700"
-                : data.status === "DRAFT"
-                  ? "bg-amber-50 text-amber-700"
-                  : "bg-zinc-100 text-zinc-500",
-            )}
-          >
-            {data.status}
-          </span>
-        </div>
+        <PageHeader
+          eyebrow="Assignment"
+          title={data.title}
+          className="mt-4 pb-0"
+          actions={
+            <StatusBadge tone={statusToneFor(data.status)}>
+              {data.status.charAt(0) + data.status.slice(1).toLowerCase()}
+            </StatusBadge>
+          }
+        />
 
-        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-zinc-500">
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-muted-foreground">
           <span>
             Due{" "}
             <span
@@ -173,7 +180,7 @@ export default function AssignmentDetailPage() {
         </div>
 
         {isStudent && (
-          <p className="mt-4 border border-zinc-200 bg-zinc-50 px-3.5 py-3 text-[13px] leading-relaxed text-zinc-600">
+          <p className="mt-4 border border-border bg-zinc-50 px-3.5 py-3 text-[13px] leading-relaxed text-zinc-600">
             <span className="font-semibold text-brand-dark">What to do: </span>
             Read the brief below
             {data.attachment
@@ -184,8 +191,8 @@ export default function AssignmentDetailPage() {
         )}
       </div>
 
-      <section className="space-y-4 border-y border-zinc-200/70 py-6">
-        <h2 className="text-sm font-semibold text-brand-dark">Brief</h2>
+      <section className="space-y-4 border-y border-border py-6">
+        <h2 className="text-[12px] font-medium text-muted-foreground">Brief</h2>
         <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-zinc-700">
           {data.description}
         </p>
@@ -234,9 +241,10 @@ export default function AssignmentDetailPage() {
               </h2>
               <p className="mt-0.5 text-[13px] text-zinc-600">
                 Status:{" "}
-                <span className="font-medium text-brand-dark">
-                  {mySubmission.status}
-                </span>
+                <StatusBadge tone={statusToneFor(mySubmission.status)}>
+                  {mySubmission.status.charAt(0) +
+                    mySubmission.status.slice(1).toLowerCase()}
+                </StatusBadge>
                 {mySubmission.score != null && (
                   <>
                     {" "}
@@ -270,7 +278,7 @@ export default function AssignmentDetailPage() {
       )}
 
       {canSubmit && (
-        <section className="space-y-3 border border-zinc-200 px-4 py-5">
+        <section className="space-y-3 border border-border px-4 py-5">
           <div className="flex items-start gap-2.5">
             <Upload className="mt-0.5 size-4 shrink-0 text-brand-dark" />
             <div>
@@ -285,14 +293,6 @@ export default function AssignmentDetailPage() {
 
           <form onSubmit={submitWork} className="relative space-y-3.5 pt-1">
             {submitting && <PageLoading overlay label="Uploading…" />}
-            {submitError && (
-              <div
-                className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-                role="alert"
-              >
-                {submitError}
-              </div>
-            )}
             <div className="space-y-1.5">
               <Label htmlFor="submission" className="text-[13px] text-zinc-600">
                 Choose file
@@ -303,7 +303,7 @@ export default function AssignmentDetailPage() {
                 accept=".pdf,.doc,.docx"
                 required
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="h-10 rounded-md border-zinc-200 bg-white"
+                className="h-10 rounded-md border-border bg-white"
               />
               {file && (
                 <p className="text-[12px] text-zinc-500">
@@ -311,11 +311,7 @@ export default function AssignmentDetailPage() {
                 </p>
               )}
             </div>
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
-            >
+            <Button type="submit" disabled={submitting} size="sm">
               {submitting
                 ? "Uploading…"
                 : mySubmission
@@ -338,7 +334,7 @@ export default function AssignmentDetailPage() {
             Submissions ({submissions.length})
           </h2>
           {submissions.length === 0 ? (
-            <p className="border border-dashed border-zinc-200 px-4 py-10 text-center text-[13px] text-zinc-500">
+            <p className="border border-dashed border-border px-4 py-10 text-center text-[13px] text-zinc-500">
               No submissions yet.
             </p>
           ) : (
@@ -366,7 +362,11 @@ function GradeRow({
 }: {
   submission: Submission;
   totalMarks: number;
-  onGrade: (id: string, score: number, feedback: string) => Promise<void>;
+  onGrade: (
+    id: string,
+    score: number,
+    feedback: string,
+  ) => Promise<boolean>;
 }) {
   const [score, setScore] = useState(
     submission.score != null ? String(submission.score) : "",
@@ -375,7 +375,10 @@ function GradeRow({
   const [pending, setPending] = useState(false);
 
   return (
-    <li className="border border-zinc-200 px-4 py-4">
+    <li
+      id={`submission-${submission.id}`}
+      className="scroll-mt-24 border border-border px-4 py-4"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-brand-dark">
@@ -384,7 +387,11 @@ function GradeRow({
               : "Student"}
           </p>
           <p className="mt-0.5 text-[12px] text-zinc-500">
-            {submission.status} ·{" "}
+            <StatusBadge tone={statusToneFor(submission.status)}>
+              {submission.status.charAt(0) +
+                submission.status.slice(1).toLowerCase()}
+            </StatusBadge>
+            {" · "}
             {new Date(submission.submittedAt).toLocaleString()}
           </p>
         </div>
@@ -425,11 +432,19 @@ function GradeRow({
         </div>
         <div className="flex items-end">
           <Button
-            className="h-9 rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
+            size="sm"
             disabled={pending || score === ""}
             onClick={async () => {
               setPending(true);
-              await onGrade(submission.id, Number(score), feedback);
+              const ok = await onGrade(
+                submission.id,
+                Number(score),
+                feedback,
+              );
+              if (ok) {
+                setScore("");
+                setFeedback("");
+              }
               setPending(false);
             }}
           >

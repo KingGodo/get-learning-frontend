@@ -134,29 +134,20 @@ export const authApi = {
       method: "PATCH",
       body,
     }),
-  listRegistrationSchools: () =>
-    api<
-      Array<{
-        id: string;
-        name: string;
-        code: string;
-        city: string;
-        province: string;
-      }>
-    >("/auth/register/schools", { token: null }),
-  registerTeacher: (body: Record<string, unknown>) =>
-    api<{
-      token: string;
-      user: import("./types").User;
-      teacher: import("./types").Teacher;
-      school: import("./types").School;
-    }>("/auth/register/teacher", { method: "POST", body, token: null }),
-  registerStudent: (body: Record<string, unknown>) =>
-    api<{
-      token: string;
-      user: import("./types").User;
-      student: import("./types").Student;
-    }>("/auth/register/student", { method: "POST", body, token: null }),
+  changePassword: (body: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) =>
+    api<{ message: string }>("/auth/change-password", {
+      method: "PATCH",
+      body,
+    }),
+  verifyCurrentPassword: (currentPassword: string) =>
+    api<{ valid: true }>("/auth/verify-password", {
+      method: "POST",
+      body: { currentPassword },
+    }),
 };
 
 export const dashboardApi = {
@@ -172,6 +163,20 @@ export const classesApi = {
     api<{ enrollment: unknown; token: string }>("/classes/join", {
       method: "POST",
       body: { classCode },
+    }),
+};
+
+export const materialsApi = {
+  list: (classId: string) =>
+    api<import("./types").ClassMaterial[]>(`/classes/${classId}/materials`),
+  create: (classId: string, formData: FormData) =>
+    api<import("./types").ClassMaterial[]>(`/classes/${classId}/materials`, {
+      method: "POST",
+      formData,
+    }),
+  remove: (classId: string, id: string) =>
+    api<{ id: string }>(`/classes/${classId}/materials/${id}`, {
+      method: "DELETE",
     }),
 };
 
@@ -252,11 +257,17 @@ export const usersApi = {
       user: import("./types").User;
       credentials: import("./types").IssuedCredentials;
     }>(`/users/${id}/reset-credentials`, { method: "POST", body: {} }),
+  update: (id: string, body: Record<string, unknown>) =>
+    api<import("./types").User>(`/users/${id}`, {
+      method: "PATCH",
+      body,
+    }),
   updateStatus: (id: string, status: "ACTIVE" | "INACTIVE" | "SUSPENDED") =>
     api<import("./types").User>(`/users/${id}/status`, {
       method: "PATCH",
       body: { status },
     }),
+  remove: (id: string) => api<import("./types").User>(`/users/${id}`, { method: "DELETE" }),
 };
 
 export const assignmentsApi = {
@@ -293,10 +304,10 @@ export const submissionsApi = {
 
 export const filesApi = {
   /** Short-lived URL that works even when the Supabase bucket is private. */
-  signedUrl: (url: string) =>
+  signedUrl: (url: string, mode: "preview" | "download" = "preview") =>
     api<{ url: string }>("/files/signed", {
       method: "POST",
-      body: { url },
+      body: { url, mode },
     }),
 };
 

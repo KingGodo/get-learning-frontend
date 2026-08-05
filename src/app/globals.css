@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "sonner/dist/styles.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,8 +10,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-geist-sans);
-  --font-heading: var(--font-geist-sans);
+  --font-display: var(--font-fraunces);
+  --font-heading: var(--font-fraunces);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -58,16 +59,20 @@
 }
 
 :root {
-  /* Soft Robin Egg — accent on neutral surfaces */
-  --brand: #4ec9c5;
-  --brand-hover: #3bb8b4;
-  --brand-pressed: #2fa5a1;
-  --brand-dark: #1a5c5a;
-  --brand-dark-hover: #154948;
-  --brand-light: #eaf8f7;
-  --brand-muted: #d4f0ee;
-  --page-bg: #f5f7f8;
-  --ink: #1c2b2a;
+  /*
+    Learning Hub — Sophistication & Trust
+    Cool slate foundation, borders-only depth, one accent for meaning.
+  */
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-pressed: #1e40af;
+  --brand-dark: #1e40af;
+  --brand-dark-hover: #1e3a8a;
+  --brand-light: #eff6ff;
+  --brand-muted: #dbeafe;
+
+  --page-bg: #f8fafc;
+  --ink: #111827;
 
   --background: #ffffff;
   --foreground: var(--ink);
@@ -75,31 +80,112 @@
   --card-foreground: var(--ink);
   --popover: #ffffff;
   --popover-foreground: var(--ink);
-  --primary: var(--brand-dark);
+  --primary: var(--brand);
   --primary-foreground: #ffffff;
-  --secondary: #f5f7f8;
+  --secondary: #f1f5f9;
   --secondary-foreground: var(--ink);
-  --muted: #f5f7f8;
-  --muted-foreground: #5c6b6a;
-  --accent: var(--brand-light);
-  --accent-foreground: var(--brand-dark);
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: var(--ink);
   --destructive: #dc2626;
-  --border: #e2e8e7;
-  --input: #d7e0df;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
   --ring: var(--brand);
   --chart-1: var(--brand);
-  --chart-2: var(--brand-dark);
-  --chart-3: #5c6b6a;
-  --chart-4: #8a9a99;
-  --chart-5: #d4f0ee;
-  --radius: 0.75rem;
+  --chart-2: #1d4ed8;
+  --chart-3: #64748b;
+  --chart-4: #94a3b8;
+  --chart-5: #dbeafe;
+  --radius: 0.5rem;
+
+  /* Light chrome sidebar (Linear-like); role themes tint accent only */
   --sidebar: #ffffff;
-  --sidebar-foreground: var(--ink);
+  --sidebar-foreground: #334155;
   --sidebar-primary: var(--brand);
-  --sidebar-primary-foreground: var(--brand-dark);
-  --sidebar-accent: var(--brand-light);
-  --sidebar-accent-foreground: var(--brand-dark);
-  --sidebar-border: #e8eeee;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: var(--brand);
+
+  --surface-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+/* Role dashboards — accent only; chrome stays light */
+[data-role-theme="admin"] {
+  --brand: #1f2937;
+  --brand-hover: #111827;
+  --brand-pressed: #030712;
+  --brand-dark: #111827;
+  --brand-dark-hover: #030712;
+  --brand-light: #f3f4f6;
+  --brand-muted: #e5e7eb;
+  --page-bg: #f8fafc;
+  --ink: #111827;
+  --primary: var(--brand);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: #4b5563;
+  --chart-5: #e5e7eb;
+  --sidebar-primary: var(--brand);
+  --sidebar-ring: var(--brand);
+}
+
+[data-role-theme="school-admin"] {
+  --brand: #1e40af;
+  --brand-hover: #1d4ed8;
+  --brand-pressed: #1e3a8a;
+  --brand-dark: #1e3a8a;
+  --brand-dark-hover: #172554;
+  --brand-light: #eff6ff;
+  --brand-muted: #dbeafe;
+  --page-bg: #f8fafc;
+  --ink: #111827;
+  --primary: var(--brand);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: #1d4ed8;
+  --chart-5: #dbeafe;
+  --sidebar-primary: var(--brand);
+  --sidebar-ring: var(--brand);
+}
+
+[data-role-theme="teacher"] {
+  --brand: #0f766e;
+  --brand-hover: #0d9488;
+  --brand-pressed: #115e59;
+  --brand-dark: #134e4a;
+  --brand-dark-hover: #115e59;
+  --brand-light: #f0fdfa;
+  --brand-muted: #ccfbf1;
+  --page-bg: #f8fafc;
+  --ink: #111827;
+  --primary: var(--brand);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: #0d9488;
+  --chart-5: #ccfbf1;
+  --sidebar-primary: var(--brand);
+  --sidebar-ring: var(--brand);
+}
+
+[data-role-theme="student"] {
+  --brand: #0369a1;
+  --brand-hover: #0284c8;
+  --brand-pressed: #075985;
+  --brand-dark: #0c4a6e;
+  --brand-dark-hover: #075985;
+  --brand-light: #f0f9ff;
+  --brand-muted: #e0f2fe;
+  --page-bg: #f8fafc;
+  --ink: #111827;
+  --primary: var(--brand);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: #0284c8;
+  --chart-5: #e0f2fe;
+  --sidebar-primary: var(--brand);
   --sidebar-ring: var(--brand);
 }
 
@@ -119,4 +205,119 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  .illustration-quiet {
+    filter: grayscale(0.35) saturate(0.55) brightness(1.02);
+  }
+
+  .surface {
+    @apply rounded-lg border border-border bg-card;
+  }
+
+  .ease-craft {
+    transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
+/* Branded Sonner toasts — keep highly visible over app chrome */
+[data-sonner-toaster] {
+  z-index: 999999 !important;
+  pointer-events: none;
+}
+
+[data-sonner-toast] {
+  pointer-events: auto;
+}
+
+.cn-toast {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 12px 32px rgba(12, 26, 46, 0.12) !important;
+  padding: 12px 14px !important;
+  opacity: 1 !important;
+}
+
+.cn-toast-success {
+  background: var(--brand-light) !important;
+  color: var(--brand-dark) !important;
+  border-color: var(--brand-muted) !important;
+}
+
+.cn-toast-error {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+}
+
+.cn-toast-title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+  color: inherit !important;
+}
+
+.cn-toast-description {
+  font-size: 12px !important;
+  color: #71717a !important;
+}
+
+.cn-toast-close {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #71717a !important;
+}
+
+@keyframes center-toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes center-toast-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.94);
+  }
+}
+
+@keyframes center-toast-icon {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.center-toast-in {
+  animation: center-toast-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.center-toast-out {
+  animation: center-toast-out 280ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.center-toast-icon {
+  animation: center-toast-icon 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

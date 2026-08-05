@@ -1,26 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Plus, Search, ArrowRight, Paperclip } from "lucide-react";
+import { Paperclip, Plus, Search } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { ApiRequestError, assignmentsApi, classesApi } from "@/lib/api";
-import type { Assignment, ClassRoom } from "@/lib/types";
+import { ApiRequestError, assignmentsApi } from "@/lib/api";
+import type { Assignment } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { ListPagination } from "@/components/ui/list-pagination";
+import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -28,9 +21,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 type StatusFilter = "ALL" | "DRAFT" | "PUBLISHED" | "CLOSED";
+type SortMode = "due_soon" | "due_late" | "title";
+
+const PAGE_SIZE = 20;
+
+function formatDue(iso: string) {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function isOverdueForStudent(a: Assignment) {
+  return (
+    a.status === "PUBLISHED" &&
+    new Date(a.dueDate).getTime() < Date.now() &&
+    !a.submissions?.[0]
+  );
+}
+
+function assignmentInitials(title: string) {
+  const parts = title.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
 
 export default function AssignmentsPageClient() {
   const { user } = useAuth();
@@ -43,6 +63,8 @@ export default function AssignmentsPageClient() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [sortMode, setSortMode] = useState<SortMode>("due_soon");
+  const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -64,9 +86,18 @@ export default function AssignmentsPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classIdFilter]);
 
-  const filtered = useMemo(() => {
+  const publishedCount = useMemo(
+    () => items.filter((a) => a.status === "PUBLISHED").length,
+    [items],
+  );
+  const draftCount = useMemo(
+    () => items.filter((a) => a.status === "DRAFT").length,
+    [items],
+  );
+
+  const filteredSorted = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return items.filter((a) => {
+    const filtered = items.filter((a) => {
       if (statusFilter !== "ALL" && a.status !== statusFilter) return false;
       if (!q) return true;
       return (
@@ -74,446 +105,433 @@ export default function AssignmentsPageClient() {
         (a.class?.name?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [items, query, statusFilter]);
+
+    const sorted = [...filtered];
+    sorted.sort((a, b) => {
+      if (sortMode === "title") {
+        const byTitle = a.title.localeCompare(b.title);
+        if (byTitle !== 0) return byTitle;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      const diff =
+        new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      return sortMode === "due_late" ? -diff : diff;
+    });
+    return sorted;
+  }, [items, query, statusFilter, sortMode]);
+
+  const totalFiltered = filteredSorted.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+
+  const pageItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredSorted.slice(start, start + PAGE_SIZE);
+  }, [filteredSorted, currentPage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, statusFilter, sortMode, classIdFilter]);
+
+  function clearFilters() {
+    setQuery("");
+    setStatusFilter("ALL");
+    setSortMode("due_soon");
+    setPage(1);
+  }
+
+  if (loading) {
+    return <PageLoading label="Loading assignments…" />;
+  }
+
+  const newHref = classIdFilter
+    ? `/assignments/new?classId=${classIdFilter}`
+    : "/assignments/new";
+
+  const statusChips = (
+    isStudent
+      ? (["ALL", "PUBLISHED", "CLOSED"] as const)
+      : (["ALL", "PUBLISHED", "DRAFT", "CLOSED"] as const)
+  ).map((status) => ({
+    id: status as StatusFilter,
+    label:
+      status === "ALL"
+        ? "All"
+        : status.charAt(0) + status.slice(1).toLowerCase(),
+  }));
+
+  const rangeStart =
+    totalFiltered === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, totalFiltered);
+
+  const description =
+    items.length === 0
+      ? isStudent
+        ? "Open an assignment to preview files and submit your work."
+        : "Publish work, set due dates, and collect submissions."
+      : isStudent
+        ? `${publishedCount} open · ${items.length} total`
+        : `${publishedCount} published${draftCount ? ` · ${draftCount} draft` : ""} · ${items.length} total`;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Academics
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            Assignments
-          </h1>
-          <p className="mt-1 max-w-lg text-[13px] text-zinc-500">
-            {isStudent
-              ? "Open an assignment to preview or download the teacher’s file, then submit your work."
-              : "Publish work, set due dates, and collect submissions."}
-          </p>
-        </div>
-        {canManage && <CreateAssignmentDialog onCreated={load} />}
-      </div>
+    <div className="flex min-h-[calc(100svh-8.5rem)] flex-col gap-6">
+      <PageHeader
+        eyebrow="Academics"
+        title="Assignments"
+        description={description}
+        actions={
+          canManage ? (
+            <ButtonLink href={newHref} size="sm">
+              <Plus className="size-3.5" />
+              New assignment
+            </ButtonLink>
+          ) : undefined
+        }
+      />
 
       {error && (
         <div
-          className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
           role="alert"
         >
           {error}
         </div>
       )}
 
-      {!loading && items.length > 0 && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+      {items.length > 0 && (
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 sm:flex-row sm:items-center sm:p-3.5">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by title or class…"
-              className="h-9 rounded-md border-zinc-200 bg-transparent pl-9 text-sm"
+              className="h-9 rounded-md border-border bg-background pl-9 text-sm shadow-none"
             />
           </div>
-          <div className="flex flex-wrap gap-1">
-            {(
-              (isStudent
-                ? (["ALL", "PUBLISHED", "CLOSED"] as const)
-                : (["ALL", "PUBLISHED", "DRAFT", "CLOSED"] as const)
-              )
-            ).map((status) => (
+          <div className="flex flex-wrap items-center gap-1 rounded-md border border-border bg-background p-0.5">
+            {statusChips.map((chip) => (
               <button
-                key={status}
+                key={chip.id}
                 type="button"
-                onClick={() => setStatusFilter(status)}
+                onClick={() => setStatusFilter(chip.id)}
                 className={cn(
-                  "h-8 px-3 text-[12px] font-medium transition-colors",
-                  statusFilter === status
-                    ? "bg-brand text-brand-dark"
-                    : "text-zinc-500 hover:text-brand-dark",
+                  "h-8 rounded-[5px] px-3 text-[12px] font-medium transition-colors duration-150 ease-craft",
+                  statusFilter === chip.id
+                    ? "bg-brand text-white"
+                    : "text-muted-foreground hover:bg-muted hover:text-ink",
                 )}
               >
-                {status === "ALL"
-                  ? "All"
-                  : status.charAt(0) + status.slice(1).toLowerCase()}
+                {chip.label}
               </button>
             ))}
           </div>
-        </div>
-      )}
-
-      {loading ? (
-        <PageLoading label="Loading assignments…" />
-      ) : items.length === 0 ? (
-        <div className="flex flex-col items-center px-2 py-10 text-center sm:py-14">
-          <Image
-            src="/assignments.svg"
-            alt=""
-            width={280}
-            height={220}
-            className="w-[min(70vw,240px)] select-none"
-            priority
-          />
-          <h2 className="mt-6 text-base font-semibold text-brand-dark">
-            No assignments yet
-          </h2>
-          <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-zinc-500">
-            {isStudent
-              ? "When your teacher publishes work, it will show up here. Open it to preview files, download, and submit."
-              : "Create an assignment for one of your classes to get started."}
-          </p>
-          {canManage && (
-            <div className="mt-5">
-              <CreateAssignmentDialog onCreated={load} />
-            </div>
-          )}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="px-2 py-14 text-center">
-          <p className="text-sm font-medium text-brand-dark">No matches</p>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            Try another search or status filter.
-          </p>
-        </div>
-      ) : (
-        <div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left">
-              <thead>
-                <tr className="border-b border-zinc-200/70 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
-                  <th className="py-3 pr-4 font-medium">Assignment</th>
-                  <th className="px-4 py-3 font-medium">Class</th>
-                  <th className="px-4 py-3 font-medium">Due</th>
-                  <th className="px-4 py-3 font-medium">
-                    {isStudent ? "Your work" : "Status"}
-                  </th>
-                  {!isStudent && (
-                    <th className="px-4 py-3 font-medium">Submissions</th>
-                  )}
-                  <th className="py-3 pl-4 text-right font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((a) => {
-                  const due = new Date(a.dueDate);
-                  const overdue =
-                    isStudent &&
-                    a.status === "PUBLISHED" &&
-                    due.getTime() < Date.now() &&
-                    !a.submissions?.[0];
-                  const myStatus = a.submissions?.[0]?.status;
-
-                  return (
-                    <tr
-                      key={a.id}
-                      className="border-b border-zinc-200/50 text-[13px] transition-colors hover:bg-zinc-200/30"
-                    >
-                      <td className="py-3.5 pr-4">
-                        <Link
-                          href={`/assignments/${a.id}`}
-                          className="font-medium text-brand-dark hover:underline"
-                        >
-                          {a.title}
-                        </Link>
-                        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-zinc-400">
-                          <span>{a.totalMarks} marks</span>
-                          {a.attachment && (
-                            <span className="inline-flex items-center gap-0.5 text-brand-dark/70">
-                              <Paperclip className="size-3" />
-                              File attached
-                            </span>
-                          )}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3.5 text-zinc-600">
-                        {a.class?.name ?? "—"}
-                      </td>
-                      <td
-                        className={cn(
-                          "px-4 py-3.5 tabular-nums",
-                          overdue ? "font-medium text-red-600" : "text-zinc-500",
-                        )}
-                      >
-                        {due.toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                        {overdue && (
-                          <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wide">
-                            Overdue
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        {isStudent ? (
-                          <span
-                            className={cn(
-                              "inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                              myStatus === "GRADED"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : myStatus === "SUBMITTED" ||
-                                    myStatus === "LATE"
-                                  ? "bg-sky-50 text-sky-700"
-                                  : "bg-amber-50 text-amber-700",
-                            )}
-                          >
-                            {myStatus ?? "Not submitted"}
-                          </span>
-                        ) : (
-                          <span
-                            className={cn(
-                              "inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                              a.status === "PUBLISHED"
-                                ? "bg-emerald-50/80 text-emerald-700"
-                                : a.status === "DRAFT"
-                                  ? "bg-amber-50/80 text-amber-700"
-                                  : "bg-zinc-200/60 text-zinc-500",
-                            )}
-                          >
-                            {a.status}
-                          </span>
-                        )}
-                      </td>
-                      {!isStudent && (
-                        <td className="px-4 py-3.5 text-zinc-600">
-                          {a._count?.submissions ?? 0}
-                        </td>
-                      )}
-                      <td className="py-3.5 pl-4 text-right">
-                        <Link
-                          href={`/assignments/${a.id}`}
-                          className="inline-flex h-8 items-center gap-1 bg-brand-dark px-3 text-[12px] font-semibold text-white transition-colors hover:bg-brand-dark/90"
-                        >
-                          {isStudent
-                            ? myStatus
-                              ? "View"
-                              : "Open & submit"
-                            : "Open"}
-                          <ArrowRight className="size-3" />
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div className="pt-3 text-[12px] text-zinc-400">
-            Showing {filtered.length} of {items.length} assignment
-            {items.length === 1 ? "" : "s"}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CreateAssignmentDialog({
-  onCreated,
-}: {
-  onCreated: () => Promise<void>;
-}) {
-  const [open, setOpen] = useState(false);
-  const [classes, setClasses] = useState<ClassRoom[]>([]);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [classId, setClassId] = useState("");
-  const [allowLate, setAllowLate] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    instructions: "",
-    dueDate: "",
-    totalMarks: "100",
-    status: "PUBLISHED",
-  });
-
-  useEffect(() => {
-    if (!open) return;
-    setError(null);
-    classesApi
-      .list()
-      .then(setClasses)
-      .catch(() => setError("Could not load classes"));
-  }, [open]);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!classId) {
-      setError("Select a class");
-      return;
-    }
-    setError(null);
-    setPending(true);
-    try {
-      const fd = new FormData();
-      fd.append("classId", classId);
-      fd.append("title", form.title);
-      fd.append("description", form.description);
-      if (form.instructions) fd.append("instructions", form.instructions);
-      fd.append("dueDate", new Date(form.dueDate).toISOString());
-      fd.append("totalMarks", form.totalMarks);
-      fd.append("allowLateSubmission", String(allowLate));
-      fd.append("status", form.status);
-      if (file) fd.append("attachment", file);
-      await assignmentsApi.create(fd);
-      setOpen(false);
-      await onCreated();
-    } catch (err) {
-      setError(
-        err instanceof ApiRequestError ? err.message : "Create failed",
-      );
-    } finally {
-      setPending(false);
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button className="h-9 rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90" />
-        }
-      >
-        <Plus className="mr-1.5 size-3.5" />
-        New assignment
-      </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-display text-lg font-semibold text-brand-dark">
-            New assignment
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="relative space-y-3.5 pt-1">
-          {pending && <PageLoading overlay label="Publishing assignment…" />}
-          {error && (
-            <div
-              className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-              role="alert"
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-medium text-muted-foreground">
+              Sort
+            </span>
+            <Select
+              value={sortMode}
+              onValueChange={(value) => {
+                if (
+                  value === "due_soon" ||
+                  value === "due_late" ||
+                  value === "title"
+                ) {
+                  setSortMode(value);
+                }
+              }}
             >
-              {error}
-            </div>
-          )}
-          <div className="space-y-1.5">
-            <Label className="text-[13px] text-zinc-600">Class</Label>
-            <Select value={classId} onValueChange={(v) => setClassId(v ?? "")}>
-              <SelectTrigger className="h-9 w-full rounded-md">
-                <SelectValue placeholder="Choose class" />
+              <SelectTrigger className="h-9 w-[140px] rounded-md border-border bg-background text-[13px]">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {classes.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="due_soon">Due soon</SelectItem>
+                <SelectItem value="due_late">Due latest</SelectItem>
+                <SelectItem value="title">Title A–Z</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="title" className="text-[13px] text-zinc-600">
-              Title
-            </Label>
-            <Input
-              id="title"
-              required
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              className="h-9 rounded-md"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="description" className="text-[13px] text-zinc-600">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              required
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-              className="rounded-md"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="instructions" className="text-[13px] text-zinc-600">
-              Instructions
-            </Label>
-            <Textarea
-              id="instructions"
-              value={form.instructions}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, instructions: e.target.value }))
-              }
-              className="rounded-md"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="due" className="text-[13px] text-zinc-600">
-                Due date
-              </Label>
-              <Input
-                id="due"
-                type="datetime-local"
-                required
-                value={form.dueDate}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, dueDate: e.target.value }))
-                }
-                className="h-9 rounded-md"
-              />
+        </div>
+      )}
+
+      {items.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-border bg-card">
+          <EmptyState
+            title="No assignments yet"
+            description={
+              isStudent
+                ? "When your teacher publishes work, it will show up here."
+                : "Create an assignment for one of your classes to get started."
+            }
+            action={
+              canManage ? (
+                <ButtonLink href={newHref} size="sm">
+                  <Plus className="size-3.5" />
+                  New assignment
+                </ButtonLink>
+              ) : undefined
+            }
+          />
+        </div>
+      ) : totalFiltered === 0 ? (
+        <div className="rounded-lg border border-border bg-card">
+          <EmptyState
+            title="No matches"
+            description="Try a different search, or clear filters to see all assignments."
+            action={
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={clearFilters}
+              >
+                Clear filters
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <div className="flex flex-1 flex-col gap-4">
+          <div className="overflow-hidden rounded-lg border border-border bg-card">
+            <ul className="divide-y divide-border sm:hidden">
+              {pageItems.map((a) => {
+                const overdue = isStudent && isOverdueForStudent(a);
+                const myStatus = a.submissions?.[0]?.status;
+                return (
+                  <li
+                    key={a.id}
+                    className={cn("px-4 py-4", overdue && "bg-red-50/40")}
+                  >
+                    <Link
+                      href={`/assignments/${a.id}`}
+                      className="flex items-start gap-3"
+                    >
+                      <span
+                        className={cn(
+                          "flex size-10 shrink-0 items-center justify-center rounded-md text-[12px] font-semibold",
+                          overdue
+                            ? "bg-red-50 text-red-700"
+                            : "bg-brand-light text-brand",
+                        )}
+                        aria-hidden
+                      >
+                        {assignmentInitials(a.title)}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[15px] font-semibold tracking-tight text-ink">
+                          {a.title}
+                        </span>
+                        <span className="mt-1 block truncate text-[12px] text-muted-foreground">
+                          {a.class?.name ?? "Class"} · {a.totalMarks} marks
+                        </span>
+                        <span className="mt-2 flex flex-wrap items-center gap-2">
+                          <StatusBadge
+                            tone={
+                              isStudent
+                                ? overdue
+                                  ? "danger"
+                                  : myStatus
+                                    ? statusToneFor(myStatus)
+                                    : "warning"
+                                : statusToneFor(a.status)
+                            }
+                          >
+                            {isStudent
+                              ? overdue
+                                ? "Overdue"
+                                : myStatus
+                                  ? myStatus.charAt(0) +
+                                    myStatus.slice(1).toLowerCase()
+                                  : "Not submitted"
+                              : a.status.charAt(0) +
+                                a.status.slice(1).toLowerCase()}
+                          </StatusBadge>
+                          <span
+                            className={cn(
+                              "font-mono text-[12px] tabular-nums",
+                              overdue
+                                ? "font-medium text-red-700"
+                                : "text-muted-foreground",
+                            )}
+                          >
+                            Due {formatDue(a.dueDate)}
+                          </span>
+                        </span>
+                      </span>
+                    </Link>
+                    <div className="mt-3 pl-[3.25rem]">
+                      <ButtonLink
+                        href={`/assignments/${a.id}`}
+                        size="sm"
+                        variant={isStudent && !myStatus ? "default" : "outline"}
+                        className="w-full"
+                      >
+                        {isStudent ? (myStatus ? "Open" : "Submit") : "Open"}
+                      </ButtonLink>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[800px] table-fixed border-collapse text-left">
+                <colgroup>
+                  <col className="w-[32%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[10%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[12%]" />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase">
+                    <th className="px-5 py-2.5 font-medium">Assignment</th>
+                    <th className="px-5 py-2.5 font-medium">Class</th>
+                    <th className="px-5 py-2.5 font-medium">Due</th>
+                    <th className="px-5 py-2.5 text-right font-medium">Marks</th>
+                    <th className="px-5 py-2.5 font-medium">
+                      {isStudent ? "Your status" : "Status"}
+                    </th>
+                    <th className="px-5 py-2.5 text-right font-medium">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageItems.map((a) => {
+                    const overdue = isStudent && isOverdueForStudent(a);
+                    const myStatus = a.submissions?.[0]?.status;
+                    return (
+                      <tr
+                        key={a.id}
+                        className={cn(
+                          "border-b border-border last:border-b-0 transition-colors duration-150 ease-craft hover:bg-muted/40",
+                          overdue && "bg-red-50/30",
+                        )}
+                      >
+                        <td className="px-5 py-3.5 align-middle">
+                          <Link
+                            href={`/assignments/${a.id}`}
+                            className="flex min-w-0 items-center gap-3"
+                          >
+                            <span
+                              className={cn(
+                                "flex size-9 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold",
+                                overdue
+                                  ? "bg-red-50 text-red-700"
+                                  : "bg-brand-light text-brand",
+                              )}
+                              aria-hidden
+                            >
+                              {assignmentInitials(a.title)}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-[14px] font-semibold tracking-tight text-ink hover:text-brand">
+                                {a.title}
+                              </span>
+                              {a.attachment ? (
+                                <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                  <Paperclip className="size-3" />
+                                  Attachment
+                                </span>
+                              ) : null}
+                            </span>
+                          </Link>
+                        </td>
+                        <td className="px-5 py-3.5 align-middle">
+                          {a.class?.id ? (
+                            <Link
+                              href={`/classes/${a.class.id}`}
+                              className="block truncate text-[13px] font-medium text-ink hover:text-brand hover:underline"
+                            >
+                              {a.class.name}
+                            </Link>
+                          ) : (
+                            <span className="text-[13px] text-muted-foreground">
+                              —
+                            </span>
+                          )}
+                        </td>
+                        <td
+                          className={cn(
+                            "px-5 py-3.5 align-middle font-mono text-[12px] tabular-nums",
+                            overdue
+                              ? "font-medium text-red-700"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {formatDue(a.dueDate)}
+                        </td>
+                        <td className="px-5 py-3.5 text-right align-middle font-mono text-[13px] text-ink tabular-nums">
+                          {a.totalMarks}
+                        </td>
+                        <td className="px-5 py-3.5 align-middle">
+                          {isStudent ? (
+                            <StatusBadge
+                              tone={
+                                overdue
+                                  ? "danger"
+                                  : myStatus
+                                    ? statusToneFor(myStatus)
+                                    : "warning"
+                              }
+                            >
+                              {overdue
+                                ? "Overdue"
+                                : myStatus
+                                  ? myStatus.charAt(0) +
+                                    myStatus.slice(1).toLowerCase()
+                                  : "Not submitted"}
+                            </StatusBadge>
+                          ) : (
+                            <div className="flex flex-col gap-1">
+                              <StatusBadge tone={statusToneFor(a.status)}>
+                                {a.status.charAt(0) +
+                                  a.status.slice(1).toLowerCase()}
+                              </StatusBadge>
+                              <span className="text-[11px] text-muted-foreground">
+                                {a._count?.submissions ?? 0} submission
+                                {(a._count?.submissions ?? 0) === 1 ? "" : "s"}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 text-right align-middle">
+                          <ButtonLink
+                            href={`/assignments/${a.id}`}
+                            size="sm"
+                            variant={
+                              isStudent && !myStatus ? "default" : "outline"
+                            }
+                          >
+                            {isStudent
+                              ? myStatus
+                                ? "Open"
+                                : "Submit"
+                              : "Open"}
+                          </ButtonLink>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="marks" className="text-[13px] text-zinc-600">
-                Total marks
-              </Label>
-              <Input
-                id="marks"
-                type="number"
-                min={1}
-                required
-                value={form.totalMarks}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, totalMarks: e.target.value }))
-                }
-                className="h-9 rounded-md"
-              />
-            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="late"
-              checked={allowLate}
-              onCheckedChange={(v) => setAllowLate(v === true)}
-            />
-            <Label htmlFor="late" className="text-[13px] text-zinc-600">
-              Allow late submission
-            </Label>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="file" className="text-[13px] text-zinc-600">
-              Attachment (optional)
-            </Label>
-            <Input
-              id="file"
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="h-9 rounded-md"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={pending}
-            className="h-9 w-full rounded-md bg-brand-dark text-sm font-semibold text-white hover:bg-brand-dark/90"
-          >
-            {pending ? "Publishing…" : "Publish assignment"}
-          </Button>
-        </form>
-      </DialogContent>
-    </Dialog>
+
+          <ListPagination
+            rangeStart={rangeStart}
+            rangeEnd={rangeEnd}
+            total={totalFiltered}
+            page={currentPage}
+            totalPages={totalPages}
+            onPrevious={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
+        </div>
+      )}
+    </div>
   );
 }

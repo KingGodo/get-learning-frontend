@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowUpRight,
+  ArrowRight,
+  BookOpen,
+  ClipboardCheck,
+  ClipboardList,
+  Library,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { ApiRequestError, dashboardApi } from "@/lib/api";
+import { useDashboard } from "@/hooks/use-dashboard";
 import type {
   AdminDashboard,
   Dashboard,
@@ -16,6 +21,8 @@ import type {
   TeacherDashboard,
 } from "@/lib/types";
 import { PageLoading } from "@/components/ui/page-loading";
+import { ButtonLink } from "@/components/ui/button-link";
+import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
 function isAdminDash(d: Dashboard): d is AdminDashboard {
@@ -34,92 +41,67 @@ function formatDue(date: string) {
   return new Date(date).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
-    year: "numeric",
   });
+}
+
+function greetingForHour(date = new Date()) {
+  const h = date.getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 function statusTone(status: string) {
   switch (status) {
     case "GRADED":
-      return "rounded-full bg-brand-light text-brand-dark";
     case "SUBMITTED":
-      return "rounded-full bg-brand-muted text-brand-dark";
+      return "brand" as const;
     case "LATE":
-      return "rounded-full bg-[#fff5f5] text-[#c41e1e]";
+      return "danger" as const;
     default:
-      return "rounded-full bg-[#f5f7f8] text-[#5c6b6a]";
+      return "neutral" as const;
   }
 }
 
-const btnPrimary =
-  "inline-flex h-9 items-center rounded-full bg-brand px-5 text-[13px] font-semibold text-brand-dark transition-colors hover:bg-brand-hover";
-const btnSecondary =
-  "inline-flex h-9 items-center rounded-full border border-zinc-200 bg-white px-5 text-[13px] font-semibold text-brand-dark transition-colors hover:border-brand/40 hover:bg-brand-light";
-const btnPrimarySm =
-  "inline-flex h-8 items-center rounded-full bg-brand px-4 text-[12px] font-semibold text-brand-dark transition-colors hover:bg-brand-hover";
+function initials(first: string, last: string) {
+  return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
+}
 
-function PageHeader({
+function DashHero({
   eyebrow,
   title,
   description,
   actions,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
-  description: string;
-  actions?: React.ReactNode;
+  description?: string;
+  actions?: ReactNode;
 }) {
   return (
-    <header className="flex flex-wrap items-end justify-between gap-6 pb-2">
-      <div className="max-w-2xl">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-brand-dark/55">
-          {eyebrow}
-        </p>
-        <h1 className="mt-1.5 text-[1.75rem] font-semibold tracking-tight text-ink sm:text-[2rem]">
-          {title}
-        </h1>
-        <p className="mt-2 max-w-lg text-[15px] leading-relaxed text-zinc-500">
-          {description}
-        </p>
+    <header className="border-b border-border pb-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="max-w-2xl">
+          {eyebrow ? (
+            <p className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h1 className="mt-1.5 text-[clamp(1.5rem,2.8vw,1.85rem)] font-semibold leading-[1.15] tracking-tight text-ink">
+            {title}
+          </h1>
+          {description ? (
+            <p className="mt-2 max-w-lg text-[14px] leading-relaxed text-muted-foreground">
+              {description}
+            </p>
+          ) : null}
+        </div>
+        {actions ? (
+          <div className="flex flex-wrap items-center gap-2">{actions}</div>
+        ) : null}
       </div>
-      {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
     </header>
   );
-}
-
-function Metric({
-  label,
-  value,
-  href,
-}: {
-  label: string;
-  value: number;
-  href?: string;
-}) {
-  const content = (
-    <>
-      <p className="text-[13px] text-zinc-500">{label}</p>
-      <p className="mt-3 text-[2rem] font-semibold tracking-tight text-ink">
-        {value.toLocaleString()}
-      </p>
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className="group rounded-2xl bg-white p-5 transition-colors hover:bg-[#fafafa]"
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">{content}</div>
-          <ArrowUpRight className="mt-1 size-4 text-zinc-300 transition-colors group-hover:text-brand-dark" />
-        </div>
-      </Link>
-    );
-  }
-
-  return <div className="rounded-2xl bg-white p-5">{content}</div>;
 }
 
 function MetricStrip({
@@ -130,62 +112,216 @@ function MetricStrip({
   return (
     <div
       className={cn(
-        "grid gap-3",
-        items.length <= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4",
+        "grid gap-px overflow-hidden rounded-lg border border-border bg-border",
+        items.length <= 3 ? "sm:grid-cols-3" : "grid-cols-2 lg:grid-cols-4",
       )}
     >
-      {items.map((m) => (
-        <Metric key={m.label} {...m} />
-      ))}
+      {items.map((m) => {
+        const content = (
+          <div className="bg-card px-5 py-4 transition-colors duration-150 ease-craft">
+            <p className="text-[11px] font-medium tracking-[0.04em] text-muted-foreground uppercase">
+              {m.label}
+            </p>
+            <p className="mt-2 font-mono text-[1.5rem] leading-none font-semibold tracking-tight text-ink tabular-nums">
+              {m.value.toLocaleString()}
+            </p>
+          </div>
+        );
+
+        if (m.href) {
+          return (
+            <Link
+              key={m.label}
+              href={m.href}
+              className="block [&>div]:hover:bg-brand-light/50"
+            >
+              {content}
+            </Link>
+          );
+        }
+
+        return <div key={m.label}>{content}</div>;
+      })}
     </div>
   );
 }
 
-function Panel({
+function Section({
   title,
+  description,
   action,
   children,
   className,
 }: {
   title: string;
-  action?: React.ReactNode;
-  children: React.ReactNode;
+  description?: string;
+  action?: ReactNode;
+  children: ReactNode;
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-2xl bg-white", className)}>
-      <div className="flex items-center justify-between gap-3 px-5 pt-5">
-        <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-ink">
-          {title}
-        </h2>
+    <section className={cn("space-y-3", className)}>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-[13px] font-semibold tracking-tight text-ink">
+            {title}
+          </h2>
+          {description ? (
+            <p className="mt-0.5 text-[12px] text-muted-foreground">
+              {description}
+            </p>
+          ) : null}
+        </div>
         {action}
       </div>
-      <div className="px-5 pb-2 pt-3">{children}</div>
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        {children}
+      </div>
     </section>
+  );
+}
+
+function SectionLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-1 text-[12px] font-medium text-brand transition-colors hover:text-brand-hover"
+    >
+      {children}
+      <ArrowRight className="size-3.5" />
+    </Link>
   );
 }
 
 function EmptyRow({ message }: { message: string }) {
   return (
-    <p className="py-12 text-center text-[14px] text-zinc-400">{message}</p>
+    <p className="px-5 py-12 text-center text-[13px] text-muted-foreground">
+      {message}
+    </p>
+  );
+}
+
+function PersonRow({
+  firstName,
+  lastName,
+  meta,
+  trailing,
+  href,
+}: {
+  firstName: string;
+  lastName: string;
+  meta?: string;
+  trailing?: ReactNode;
+  href?: string;
+}) {
+  const name = (
+    <span className="text-[13px] font-medium text-ink">
+      {firstName} {lastName}
+    </span>
+  );
+
+  return (
+    <li className="flex items-center gap-3 border-t border-border px-4 py-3 first:border-t-0">
+      <span
+        className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-semibold text-slate-600"
+        aria-hidden
+      >
+        {initials(firstName, lastName)}
+      </span>
+      <div className="min-w-0 flex-1">
+        {href ? (
+          <Link href={href} className="hover:text-brand">
+            {name}
+          </Link>
+        ) : (
+          name
+        )}
+        {meta ? (
+          <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+            {meta}
+          </p>
+        ) : null}
+      </div>
+      {trailing ? (
+        <div className="shrink-0 font-mono text-[12px] text-muted-foreground tabular-nums">
+          {trailing}
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
+function Callout({
+  label,
+  children,
+  action,
+  tone = "brand",
+}: {
+  label: string;
+  children: ReactNode;
+  action?: ReactNode;
+  tone?: "brand" | "neutral";
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-center justify-between gap-4 rounded-lg border px-4 py-3.5",
+        tone === "brand"
+          ? "border-brand/15 bg-brand-light/60"
+          : "border-border bg-muted/50",
+      )}
+    >
+      <div className="min-w-0">
+        <p
+          className={cn(
+            "text-[11px] font-medium tracking-[0.08em] uppercase",
+            tone === "brand" ? "text-brand" : "text-muted-foreground",
+          )}
+        >
+          {label}
+        </p>
+        <div className="mt-1 text-[14px] leading-snug text-ink">{children}</div>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function QuickAction({
+  href,
+  icon: Icon,
+  title,
+  description,
+}: {
+  href: string;
+  icon: typeof Users;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3.5 transition-colors duration-150 ease-craft hover:border-brand/25 hover:bg-brand-light/40"
+    >
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-slate-600 transition-colors group-hover:bg-brand group-hover:text-white">
+        <Icon className="size-4" strokeWidth={1.75} />
+      </span>
+      <span className="min-w-0">
+        <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+          {title}
+          <ArrowRight className="size-3.5 text-slate-300 transition-colors group-hover:text-brand" />
+        </span>
+        <span className="mt-0.5 block text-[12px] leading-relaxed text-muted-foreground">
+          {description}
+        </span>
+      </span>
+    </Link>
   );
 }
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [data, setData] = useState<Dashboard | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    dashboardApi
-      .get()
-      .then(setData)
-      .catch((err) =>
-        setError(
-          err instanceof ApiRequestError ? err.message : "Failed to load",
-        ),
-      );
-  }, []);
+  const { data, error, loading } = useDashboard();
 
   if (error) {
     return (
@@ -198,7 +334,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!data || !user) {
+  if (loading || !data || !user) {
     return <PageLoading label="Loading dashboard…" />;
   }
 
@@ -224,6 +360,7 @@ function AdminDashboardView({
   name: string;
   data: AdminDashboard;
 }) {
+  const greet = greetingForHour();
   const metrics = [
     { label: "Schools", value: data.totalSchools, href: "/school" },
     { label: "Teachers", value: data.totalTeachers, href: "/users" },
@@ -233,107 +370,96 @@ function AdminDashboardView({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="System owner"
-        title={`Good to see you, ${name}`}
-        description="Schools and people across Learning Hub."
+      <DashHero
+        eyebrow="Platform overview"
+        title={`${greet}, ${name}`}
+        description="Schools, people, and activity across Learning Hub."
         actions={
           <>
-            <Link href="/school/new" className={btnPrimary}>
+            <ButtonLink href="/school/new" size="sm">
               Create school
-            </Link>
-            <Link href="/users" className={btnSecondary}>
+            </ButtonLink>
+            <ButtonLink href="/users" variant="outline" size="sm">
               View users
-            </Link>
+            </ButtonLink>
           </>
         }
       />
 
       <MetricStrip items={metrics} />
 
-      <Panel
+      <Section
         title="Schools"
-        action={
-          <Link
-            href="/school"
-            className="text-[12px] font-semibold text-brand-dark hover:underline"
-          >
-            View all →
-          </Link>
-        }
+        description="Every campus on the platform"
+        action={<SectionLink href="/school">View all</SectionLink>}
       >
-
         {data.schools.length === 0 ? (
-          <div className="flex flex-col items-center px-2 py-12 text-center">
+          <div className="flex flex-col items-center px-5 py-14 text-center">
             <Image
               src="/schools.svg"
               alt=""
-              width={240}
-              height={190}
-              className="w-[min(60vw,220px)] select-none"
+              width={220}
+              height={170}
+              className="w-[min(60vw,200px)] select-none"
               priority
             />
-            <h3 className="mt-6 text-base font-semibold text-zinc-900">
+            <h3 className="mt-6 text-base font-semibold text-ink">
               No schools yet
             </h3>
-            <p className="mt-1.5 max-w-sm text-[13px] text-zinc-500">
+            <p className="mt-1.5 max-w-sm text-[13px] text-muted-foreground">
               Create the first school to start onboarding teachers and students.
             </p>
-            <Link href="/school/new" className={cn(btnPrimary, "mt-5")}>
+            <ButtonLink href="/school/new" size="sm" className="mt-5">
               Create school
-            </Link>
+            </ButtonLink>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left">
               <thead>
-                <tr className="border-b border-zinc-200/70 text-[11px] uppercase tracking-[0.08em] text-zinc-400">
-                  <th className="py-3 pr-4 font-medium">School</th>
+                <tr className="border-b border-border bg-muted/40 text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase">
+                  <th className="px-5 py-3 font-medium">School</th>
                   <th className="px-4 py-3 font-medium">Code</th>
                   <th className="hidden px-4 py-3 font-medium sm:table-cell">
                     Location
                   </th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 text-right font-medium">Users</th>
-                  <th className="py-3 pl-4 text-right font-medium">Classes</th>
+                  <th className="px-5 py-3 text-right font-medium">Classes</th>
                 </tr>
               </thead>
               <tbody>
                 {data.schools.map((school) => (
                   <tr
                     key={school.id}
-                    className="border-b border-zinc-100 text-[13px] transition-colors hover:bg-brand-light/60"
+                    className="border-b border-border text-[13px] last:border-b-0 transition-colors hover:bg-brand-light/40"
                   >
-                    <td className="py-3.5 pr-4 font-medium text-zinc-900">
+                    <td className="px-5 py-3.5 font-medium text-ink">
                       <Link
                         href={`/school/${school.id}`}
-                        className="hover:text-brand-dark hover:underline"
+                        className="hover:text-brand hover:underline"
                       >
                         {school.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3.5 font-mono text-[12px] text-zinc-600">
+                    <td className="px-4 py-3.5 font-mono text-[12px] text-muted-foreground">
                       {school.code}
                     </td>
-                    <td className="hidden px-4 py-3.5 text-zinc-500 sm:table-cell">
+                    <td className="hidden px-4 py-3.5 text-muted-foreground sm:table-cell">
                       {school.city}, {school.province}
                     </td>
                     <td className="px-4 py-3.5">
-                      <span
-                        className={cn(
-                          "inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                          school.status === "ACTIVE"
-                            ? "bg-brand-light text-brand-dark"
-                            : "bg-zinc-100 text-zinc-500",
-                        )}
-                      >
-                        {school.status}
-                      </span>
+                      <StatusBadge tone={statusToneFor(school.status ?? "")}>
+                        {school.status
+                          ? school.status.charAt(0) +
+                            school.status.slice(1).toLowerCase()
+                          : "—"}
+                      </StatusBadge>
                     </td>
-                    <td className="px-4 py-3.5 text-right tabular-nums text-zinc-600">
+                    <td className="px-4 py-3.5 text-right tabular-nums text-muted-foreground">
                       {school._count.users}
                     </td>
-                    <td className="py-3.5 pl-4 text-right tabular-nums text-zinc-600">
+                    <td className="px-5 py-3.5 text-right tabular-nums text-muted-foreground">
                       {school._count.classes}
                     </td>
                   </tr>
@@ -342,44 +468,29 @@ function AdminDashboardView({
             </table>
           </div>
         )}
-      </Panel>
+      </Section>
 
-      <Panel
+      <Section
         title="Recent teachers"
-        action={
-          <Link
-            href="/users"
-            className="text-[12px] font-semibold text-brand-dark hover:underline"
-          >
-            All users
-          </Link>
-        }
+        description="Newest accounts across schools"
+        action={<SectionLink href="/users">All users</SectionLink>}
       >
         {data.recentTeachers.length === 0 ? (
           <EmptyRow message="No teachers yet." />
         ) : (
           <ul>
             {data.recentTeachers.map((t) => (
-              <li
+              <PersonRow
                 key={t.id}
-                className="flex items-start justify-between gap-3 border-t border-slate-100 py-3.5 first:border-t-0"
-              >
-                <div>
-                  <p className="text-[13px] font-medium text-ink">
-                    {t.user.firstName} {t.user.lastName}
-                  </p>
-                  <p className="mt-0.5 text-[12px] text-slate-500">
-                    {t.user.email}
-                  </p>
-                </div>
-                <p className="shrink-0 text-[12px] text-slate-400">
-                  {t.user.school?.name ?? "—"}
-                </p>
-              </li>
+                firstName={t.user.firstName}
+                lastName={t.user.lastName}
+                meta={t.user.email}
+                trailing={t.user.school?.name ?? "—"}
+              />
             ))}
           </ul>
         )}
-      </Panel>
+      </Section>
     </div>
   );
 }
@@ -391,128 +502,136 @@ function SchoolAdminDashboardView({
   name: string;
   data: SchoolAdminDashboard;
 }) {
+  const greet = greetingForHour();
   const metrics = [
     { label: "Teachers", value: data.totalTeachers, href: "/users" },
     { label: "Students", value: data.totalStudents, href: "/users" },
-    { label: "Classes", value: data.totalClasses },
-    { label: "Subjects", value: data.totalSubjects },
+    { label: "Classes", value: data.totalClasses, href: "/classes" },
+    { label: "Subjects", value: data.totalSubjects, href: "/subjects" },
   ];
+
+  const needsSetup = data.totalSubjects === 0 || data.totalClasses === 0;
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow={data.school?.name ?? "School admin"}
-        title={`Good to see you, ${name}`}
-        description="Create teacher and student accounts, then share login credentials."
+      <DashHero
+        eyebrow={data.school?.name ?? "School"}
+        title={`${greet}, ${name}`}
+        description="Set up subjects and classes, then assign them when you add teachers."
         actions={
           <>
-            <Link href="/users/new/teacher" className={btnPrimary}>
+            <ButtonLink href="/users/new/teacher" size="sm">
               Add teacher
-            </Link>
-            <Link href="/users/new/student" className={btnSecondary}>
+            </ButtonLink>
+            <ButtonLink href="/users/new/student" variant="outline" size="sm">
               Add student
-            </Link>
+            </ButtonLink>
           </>
         }
       />
 
-      <MetricStrip items={metrics} />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel
-          title="Recent teachers"
+      {needsSetup && (
+        <Callout
+          label="Get started"
           action={
-            <Link
-              href="/users"
-              className="text-[12px] font-semibold text-brand-dark hover:underline"
+            <ButtonLink
+              href={data.totalSubjects === 0 ? "/subjects/new" : "/classes/new"}
+              size="sm"
             >
-              All people
-            </Link>
+              {data.totalSubjects === 0 ? "Add subject" : "Add class"}
+            </ButtonLink>
           }
         >
+          {data.totalSubjects === 0
+            ? "Add subjects for your school before creating classes and teachers."
+            : "Create classes under your subjects so you can allocate them to teachers."}
+        </Callout>
+      )}
+
+      <MetricStrip items={metrics} />
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <QuickAction
+          href="/subjects"
+          icon={Library}
+          title="Subjects"
+          description="Catalog for your school"
+        />
+        <QuickAction
+          href="/classes"
+          icon={BookOpen}
+          title="Classes"
+          description="Sections and join codes"
+        />
+        <QuickAction
+          href="/users"
+          icon={Users}
+          title="People"
+          description="Teachers and students"
+        />
+        <QuickAction
+          href="/users/new/teacher"
+          icon={ClipboardList}
+          title="Assign teacher"
+          description="Subjects and classes"
+        />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Section
+          title="Recent teachers"
+          action={<SectionLink href="/users">All people</SectionLink>}
+        >
           {data.recentTeachers.length === 0 ? (
-            <EmptyRow message="No teachers yet." />
+            <EmptyRow message="No teachers yet — add one to get started." />
           ) : (
             <ul>
               {data.recentTeachers.map((t) => (
-                <li
+                <PersonRow
                   key={t.id}
-                  className="flex items-start justify-between gap-3 border-t border-slate-100 py-3.5 first:border-t-0"
-                >
-                  <div>
-                    <p className="text-[13px] font-medium text-ink">
-                      {t.user.firstName} {t.user.lastName}
-                    </p>
-                    <p className="mt-0.5 text-[12px] text-slate-500">
-                      {t.user.email}
-                    </p>
-                  </div>
-                  <p className="shrink-0 font-mono text-[12px] text-slate-400">
-                    {t.employeeNumber}
-                  </p>
-                </li>
+                  firstName={t.user.firstName}
+                  lastName={t.user.lastName}
+                  meta={t.user.email}
+                  trailing={
+                    <span className="font-mono">{t.employeeNumber}</span>
+                  }
+                />
               ))}
             </ul>
           )}
-        </Panel>
+        </Section>
 
-        <Panel
+        <Section
           title="Recent students"
-          action={
-            <Link
-              href="/users"
-              className="text-[12px] font-semibold text-brand-dark hover:underline"
-            >
-              All people
-            </Link>
-          }
+          action={<SectionLink href="/users">All people</SectionLink>}
         >
           {data.recentStudents.length === 0 ? (
             <EmptyRow message="No students yet." />
           ) : (
             <ul>
               {data.recentStudents.map((s) => (
-                <li
+                <PersonRow
                   key={s.id}
-                  className="flex items-start justify-between gap-3 border-t border-slate-100 py-3.5 first:border-t-0"
-                >
-                  <div>
-                    <p className="text-[13px] font-medium text-ink">
-                      {s.user.firstName} {s.user.lastName}
-                    </p>
-                    <p className="mt-0.5 text-[12px] text-slate-500">
-                      {s.user.email}
-                    </p>
-                  </div>
-                  <p className="shrink-0 font-mono text-[12px] text-slate-400">
-                    {s.studentNumber}
-                  </p>
-                </li>
+                  firstName={s.user.firstName}
+                  lastName={s.user.lastName}
+                  meta={s.user.email}
+                  trailing={
+                    <span className="font-mono">{s.studentNumber}</span>
+                  }
+                />
               ))}
             </ul>
           )}
-        </Panel>
+        </Section>
       </div>
     </div>
   );
 }
 
 function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
-  const needsSubjects = data.totalSubjects === 0;
-  const needsClasses = data.totalClasses === 0;
-  const nextStep = needsSubjects
-    ? {
-        href: "/subjects/new",
-        label: "Add a subject",
-        hint: "Create a subject before opening a class.",
-      }
-    : needsClasses
-      ? {
-          href: "/classes/new",
-          label: "Create a class",
-          hint: "Open a class so students can join with a code.",
-        }
-      : null;
+  const greet = greetingForHour();
+  const needsAllocation =
+    data.totalSubjects === 0 || data.totalClasses === 0;
 
   const metrics = [
     { label: "Classes", value: data.totalClasses, href: "/classes" },
@@ -521,89 +640,60 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
     { label: "To grade", value: data.pendingGrading, href: "/submissions" },
   ];
 
-  const pending = data.recentSubmissions.filter(
-    (s) => s.status === "SUBMITTED" || s.status === "LATE",
+  const pending = useMemo(
+    () =>
+      data.recentSubmissions.filter(
+        (s) => s.status === "SUBMITTED" || s.status === "LATE",
+      ),
+    [data.recentSubmissions],
   );
 
   return (
     <div className="space-y-6">
-      <PageHeader
+      <DashHero
         eyebrow={data.school?.name ?? "Teaching"}
-        title={`Hello, ${data.profile.firstName}`}
-        description="Here’s what needs your attention today."
+        title={`${greet}, ${data.profile.firstName}`}
+        description="Classes, deadlines, and work that needs your review."
         actions={
-          needsSubjects || needsClasses ? (
-            <>
-              <Link href="/subjects/new" className={btnPrimary}>
-                Add subject
-              </Link>
-              <Link href="/classes/new" className={btnSecondary}>
-                Create class
-              </Link>
-            </>
-          ) : (
-            <Link href="/assignments" className={btnPrimary}>
-              Assignments
-            </Link>
-          )
+          <ButtonLink href="/assignments" size="sm">
+            Assignments
+          </ButtonLink>
         }
       />
 
-      {nextStep && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/25 bg-brand-light px-5 py-4">
-          <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-brand-dark/70">
-              Next step
-            </p>
-            <p className="mt-1 text-[15px] text-ink">{nextStep.hint}</p>
-          </div>
-          <Link href={nextStep.href} className={btnPrimarySm}>
-            {nextStep.label}
-          </Link>
-        </div>
+      {needsAllocation && (
+        <Callout label="Waiting on school admin">
+          {data.totalSubjects === 0
+            ? "No subjects have been allocated to you yet."
+            : "No classes have been allocated to you yet."}{" "}
+          Ask your school admin to assign subjects and classes.
+        </Callout>
       )}
 
       {data.pendingGrading > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-5 py-4">
-          <div className="flex items-start gap-3">
-            <span className="mt-1.5 size-2 shrink-0 rounded-full bg-brand" aria-hidden />
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-brand-dark/70">
-                Needs grading
-              </p>
-              <p className="mt-1 text-[15px] font-medium text-ink">
-                {data.pendingGrading} submission
-                {data.pendingGrading === 1 ? "" : "s"} waiting
-              </p>
-            </div>
-          </div>
-          <Link href="/submissions" className={btnPrimarySm}>
-            Grade now
-          </Link>
-        </div>
+        <Callout
+          label="Needs grading"
+          tone="neutral"
+          action={
+            <ButtonLink href="/submissions" size="sm">
+              Grade now
+            </ButtonLink>
+          }
+        >
+          {data.pendingGrading} submission
+          {data.pendingGrading === 1 ? "" : "s"} waiting for review.
+        </Callout>
       )}
 
       <MetricStrip items={metrics} />
 
       {data.classes.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-semibold text-zinc-900">
-                Students by class
-              </h2>
-              <p className="mt-0.5 text-[12px] text-zinc-500">
-                Who is enrolled — open a class for the full roster.
-              </p>
-            </div>
-            <Link
-              href="/classes"
-              className="text-[12px] font-semibold text-brand-dark hover:underline"
-            >
-              All classes →
-            </Link>
-          </div>
-          <ul className="overflow-hidden rounded-2xl bg-white">
+        <Section
+          title="Your classes"
+          description="Who is enrolled — open a class for the full roster"
+          action={<SectionLink href="/classes">All classes</SectionLink>}
+        >
+          <ul>
             {data.classes.map((cls) => {
               const names = (cls.classStudents ?? []).map(
                 (row) =>
@@ -615,33 +705,33 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
               return (
                 <li
                   key={cls.id}
-                  className="flex flex-col gap-2 border-t border-[#f5f5f7] px-5 py-4 first:border-t-0 sm:flex-row sm:items-start sm:justify-between"
+                  className="flex flex-col gap-2 border-t border-border px-5 py-4 first:border-t-0 sm:flex-row sm:items-start sm:justify-between"
                 >
                   <div className="min-w-0">
                     <Link
                       href={`/classes/${cls.id}#students`}
-                      className="text-[13px] font-medium text-zinc-900 hover:text-brand-dark hover:underline"
+                      className="text-[13px] font-semibold text-ink hover:text-brand hover:underline"
                     >
                       {cls.name}
                     </Link>
-                    <p className="mt-0.5 text-[12px] text-zinc-500">
+                    <p className="mt-0.5 text-[12px] text-muted-foreground">
                       {cls.subject?.name ?? "Subject"} · {total} student
                       {total === 1 ? "" : "s"}
                     </p>
                     {total === 0 ? (
-                      <p className="mt-2 text-[13px] text-zinc-400">
+                      <p className="mt-2 text-[13px] text-muted-foreground">
                         No students yet — share code{" "}
-                        <span className="font-mono text-zinc-500">
+                        <span className="font-mono text-ink">
                           {cls.classCode}
                         </span>
                       </p>
                     ) : (
-                      <p className="mt-2 text-[13px] text-zinc-600">
+                      <p className="mt-2 text-[13px] text-muted-foreground">
                         {names.join(", ")}
                         {extra > 0 ? (
                           <Link
                             href={`/classes/${cls.id}#students`}
-                            className="ml-1 font-medium text-brand-dark hover:underline"
+                            className="ml-1 font-medium text-brand hover:underline"
                           >
                             +{extra} more
                           </Link>
@@ -651,7 +741,7 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
                   </div>
                   <Link
                     href={`/classes/${cls.id}#students`}
-                    className="shrink-0 text-[12px] font-semibold text-brand-dark hover:underline"
+                    className="shrink-0 text-[12px] font-semibold text-brand hover:underline"
                   >
                     View roster →
                   </Link>
@@ -659,20 +749,13 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
               );
             })}
           </ul>
-        </section>
+        </Section>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Section
           title="Upcoming deadlines"
-          action={
-            <Link
-              href="/assignments"
-              className="text-[12px] font-semibold text-brand-dark hover:underline"
-            >
-              See all
-            </Link>
-          }
+          action={<SectionLink href="/assignments">See all</SectionLink>}
         >
           {data.upcomingDeadlines.length === 0 ? (
             <EmptyRow message="Nothing due soon." />
@@ -681,38 +764,31 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
               {data.upcomingDeadlines.map((a) => (
                 <li
                   key={a.id}
-                  className="flex items-start justify-between gap-3 border-t border-zinc-100 py-3 first:border-t-0"
+                  className="flex items-start justify-between gap-3 border-t border-border px-5 py-3.5 first:border-t-0"
                 >
                   <div className="min-w-0">
                     <Link
                       href={`/assignments/${a.id}`}
-                      className="text-[13px] font-medium text-zinc-900 hover:text-brand-dark hover:underline"
+                      className="text-[13px] font-medium text-ink hover:text-brand hover:underline"
                     >
                       {a.title}
                     </Link>
-                    <p className="mt-0.5 text-[12px] text-zinc-500">
+                    <p className="mt-0.5 text-[12px] text-muted-foreground">
                       {a.class?.name ?? "Class"}
                     </p>
                   </div>
-                  <time className="shrink-0 text-[12px] tabular-nums text-zinc-500">
+                  <time className="shrink-0 text-[12px] tabular-nums text-muted-foreground">
                     {formatDue(a.dueDate)}
                   </time>
                 </li>
               ))}
             </ul>
           )}
-        </Panel>
+        </Section>
 
-        <Panel
+        <Section
           title="Recent to grade"
-          action={
-            <Link
-              href="/submissions"
-              className="text-[12px] font-semibold text-brand-dark hover:underline"
-            >
-              View all
-            </Link>
-          }
+          action={<SectionLink href="/submissions">View all</SectionLink>}
         >
           {pending.length === 0 ? (
             <EmptyRow message="No submissions waiting." />
@@ -721,31 +797,26 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
               {pending.slice(0, 5).map((s) => (
                 <li
                   key={s.id}
-                  className="flex items-start justify-between gap-3 border-t border-zinc-100 py-3 first:border-t-0"
+                  className="flex items-start justify-between gap-3 border-t border-border px-5 py-3.5 first:border-t-0"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[13px] font-medium text-zinc-900">
+                    <p className="truncate text-[13px] font-medium text-ink">
                       {s.assignment?.title ?? "Submission"}
                     </p>
-                    <p className="mt-0.5 text-[12px] text-zinc-500">
+                    <p className="mt-0.5 text-[12px] text-muted-foreground">
                       {s.student
                         ? `${s.student.user.firstName} ${s.student.user.lastName}`
                         : formatDue(s.submittedAt)}
                     </p>
                   </div>
-                  <span
-                    className={cn(
-                      "shrink-0 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                      statusTone(s.status),
-                    )}
-                  >
+                  <StatusBadge tone={statusTone(s.status)}>
                     {s.status}
-                  </span>
+                  </StatusBadge>
                 </li>
               ))}
             </ul>
           )}
-        </Panel>
+        </Section>
       </div>
     </div>
   );
@@ -758,6 +829,7 @@ function StudentDashboardView({
   userName: string;
   data: StudentDashboard;
 }) {
+  const greet = greetingForHour();
   const metrics = [
     { label: "Classes", value: data.joinedClasses, href: "/classes" },
     {
@@ -770,79 +842,148 @@ function StudentDashboardView({
       value: data.upcomingDeadlines.length,
       href: "/assignments",
     },
+    {
+      label: "Submitted",
+      value: data.recentSubmissions.length,
+      href: "/submissions",
+    },
   ];
+
+  const dueSoon = data.upcomingDeadlines.length > 0;
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Learning overview"
-        title={`Hello, ${userName}`}
-        description="See what’s still due, and catch up on work you’ve already submitted."
+      <DashHero
+        eyebrow="Your learning"
+        title={`${greet}, ${userName}`}
+        description="Track what’s due, submit work, and review feedback in one place."
         actions={
           <>
-            <Link href="/classes" className={btnPrimary}>
+            <ButtonLink href="/classes" size="sm">
               My classes
-            </Link>
-            <Link href="/assignments" className={btnSecondary}>
+            </ButtonLink>
+            <ButtonLink href="/assignments" variant="outline" size="sm">
               Assignments
-            </Link>
+            </ButtonLink>
           </>
         }
       />
 
+      {dueSoon && (
+        <Callout
+          label="Up next"
+          action={
+            <ButtonLink
+              href={`/assignments/${data.upcomingDeadlines[0].id}`}
+              size="sm"
+            >
+              Open next
+            </ButtonLink>
+          }
+        >
+          <span className="font-semibold">
+            {data.upcomingDeadlines[0].title}
+          </span>
+          {" · "}
+          {data.upcomingDeadlines[0].class?.name ?? "Class"}
+          {" · due "}
+          {formatDue(data.upcomingDeadlines[0].dueDate)}
+        </Callout>
+      )}
+
       <MetricStrip items={metrics} />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <QuickAction
+          href="/classes"
+          icon={BookOpen}
+          title="Classes"
+          description="Join codes and class materials"
+        />
+        <QuickAction
+          href="/assignments"
+          icon={ClipboardList}
+          title="Assignments"
+          description="Preview files and submit work"
+        />
+        <QuickAction
+          href="/submissions"
+          icon={ClipboardCheck}
+          title="Submissions"
+          description="Scores and teacher feedback"
+        />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Section
           title="Still to submit"
-          action={
-            <Link
-              href="/assignments"
-              className="text-[12px] font-semibold text-brand-dark hover:underline"
-            >
-              See all
-            </Link>
-          }
+          description="Work waiting on you"
+          action={<SectionLink href="/assignments">See all</SectionLink>}
         >
           {data.upcomingDeadlines.length === 0 ? (
             <EmptyRow message="You're caught up — nothing waiting." />
           ) : (
             <ul>
-              {data.upcomingDeadlines.map((a) => (
-                <li
-                  key={a.id}
-                  className="flex items-center justify-between gap-3 border-t border-zinc-100 py-3 first:border-t-0"
-                >
-                  <div className="min-w-0">
-                    <Link
-                      href={`/assignments/${a.id}`}
-                      className="text-[13px] font-medium text-zinc-900 hover:text-brand-dark hover:underline"
+              {data.upcomingDeadlines.map((a) => {
+                const overdue = new Date(a.dueDate).getTime() < Date.now();
+                return (
+                  <li
+                    key={a.id}
+                    className="flex items-center gap-3 border-t border-border px-4 py-3.5 first:border-t-0 sm:px-5"
+                  >
+                    <span
+                      className={cn(
+                        "flex size-9 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold",
+                        overdue
+                          ? "bg-red-50 text-red-700"
+                          : "bg-brand-light text-brand",
+                      )}
+                      aria-hidden
                     >
-                      {a.title}
-                    </Link>
-                    <p className="mt-0.5 text-[11px] text-zinc-400">
-                      {a.class?.name ?? "Class"}
-                    </p>
-                  </div>
-                  <time className="shrink-0 text-[12px] tabular-nums text-zinc-500">
-                    Due {formatDue(a.dueDate)}
-                  </time>
-                </li>
-              ))}
+                      {formatDue(a.dueDate).split(" ")[0]?.slice(0, 3) ?? "Due"}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/assignments/${a.id}`}
+                        className="block truncate text-[14px] font-semibold tracking-tight text-ink hover:text-brand"
+                      >
+                        {a.title}
+                      </Link>
+                      <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+                        {a.class?.name ?? "Class"}
+                        {overdue ? " · Overdue" : ""}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <time
+                        className={cn(
+                          "font-mono text-[12px] tabular-nums",
+                          overdue
+                            ? "font-medium text-red-700"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {formatDue(a.dueDate)}
+                      </time>
+                      <ButtonLink
+                        href={`/assignments/${a.id}`}
+                        size="xs"
+                        variant={overdue ? "default" : "outline"}
+                      >
+                        {overdue ? "Submit" : "Open"}
+                      </ButtonLink>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
-        </Panel>
+        </Section>
 
-        <Panel
+        <Section
           title="Already submitted"
-          action={
-            <Link
-              href="/submissions"
-              className="text-[12px] font-semibold text-brand-dark hover:underline"
-            >
-              See all
-            </Link>
-          }
+          description="Recent turn-ins and scores"
+          action={<SectionLink href="/submissions">See all</SectionLink>}
         >
           {data.recentSubmissions.length === 0 ? (
             <EmptyRow message="No submissions yet." />
@@ -851,37 +992,51 @@ function StudentDashboardView({
               {data.recentSubmissions.map((s) => (
                 <li
                   key={s.id}
-                  className="flex items-center justify-between gap-3 border-t border-zinc-100 py-3 first:border-t-0"
+                  className="flex items-center gap-3 border-t border-border px-4 py-3.5 first:border-t-0 sm:px-5"
                 >
-                  <div className="min-w-0">
+                  <span
+                    className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-semibold text-slate-600"
+                    aria-hidden
+                  >
+                    {s.score != null ? String(s.score) : "—"}
+                  </span>
+                  <div className="min-w-0 flex-1">
                     <Link
                       href={
                         s.assignment?.id
                           ? `/assignments/${s.assignment.id}`
                           : "/submissions"
                       }
-                      className="truncate text-[13px] font-medium text-zinc-900 hover:text-brand-dark hover:underline"
+                      className="block truncate text-[14px] font-semibold tracking-tight text-ink hover:text-brand"
                     >
                       {s.assignment?.title ?? "Submission"}
                     </Link>
-                    <p className="mt-0.5 text-[11px] text-zinc-400">
+                    <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
                       Submitted {formatDue(s.submittedAt)}
                       {s.score != null ? ` · Score ${s.score}` : ""}
                     </p>
                   </div>
-                  <span
-                    className={cn(
-                      "shrink-0 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                      statusTone(s.status),
-                    )}
-                  >
-                    {s.status}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <StatusBadge tone={statusTone(s.status)}>
+                      {s.status.charAt(0) + s.status.slice(1).toLowerCase()}
+                    </StatusBadge>
+                    <ButtonLink
+                      href={
+                        s.assignment?.id
+                          ? `/assignments/${s.assignment.id}`
+                          : "/submissions"
+                      }
+                      size="xs"
+                      variant="outline"
+                    >
+                      View
+                    </ButtonLink>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
-        </Panel>
+        </Section>
       </div>
     </div>
   );

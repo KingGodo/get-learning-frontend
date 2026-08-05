@@ -7,9 +7,12 @@ import { ArrowLeft } from "lucide-react";
 import { GenderSelect } from "@/components/auth/registration-fields";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CredentialsPanel } from "@/components/users/credentials-panel";
-import { ApiRequestError, usersApi } from "@/lib/api";
+import { usersApi } from "@/lib/api";
+import { toastFromError } from "@/lib/toast";
 import type { IssuedCredentials } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
+import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoading } from "@/components/ui/page-loading";
@@ -27,7 +30,6 @@ export default function NewStudentPage() {
     user?.role === "SCHOOL_ADMIN" || user?.role === "ADMIN";
   const [checking, setChecking] = useState(true);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedStudent | null>(null);
   const [form, setForm] = useState({
     firstName: "",
@@ -57,7 +59,6 @@ export default function NewStudentPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     setPending(true);
     try {
       const data = await usersApi.createStudent({
@@ -79,11 +80,7 @@ export default function NewStudentPage() {
       });
       setPending(false);
     } catch (err) {
-      setError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "Could not create student",
-      );
+      toastFromError(err, "Could not create student");
       setPending(false);
     }
   }
@@ -95,29 +92,22 @@ export default function NewStudentPage() {
   if (created) {
     return (
       <div className="relative mx-auto max-w-xl space-y-8">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-            Student created
-          </p>
-          <h1 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-            {created.name}
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
-            Share these credentials so they can sign in.
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="Student created"
+          title={created.name}
+          description="Share these credentials so they can sign in."
+        />
         <CredentialsPanel
           credentials={created.credentials}
           footer={
             <div className="flex flex-wrap gap-2">
-              <Link
-                href={`/users/${created.userId}`}
-                className="inline-flex h-9 items-center bg-brand-dark px-4 text-sm font-semibold text-white hover:bg-brand-dark/90"
-              >
+              <ButtonLink href={`/users/${created.userId}`} size="sm">
                 View profile
-              </Link>
-              <button
+              </ButtonLink>
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   setCreated(null);
                   setForm({
@@ -133,10 +123,9 @@ export default function NewStudentPage() {
                     emergencyContact: "",
                   });
                 }}
-                className="inline-flex h-9 items-center border border-zinc-200 px-4 text-sm font-medium text-brand-dark hover:bg-zinc-50"
               >
                 Add another
-              </button>
+              </Button>
               <Link
                 href="/users"
                 className="inline-flex h-9 items-center px-4 text-sm font-medium text-zinc-500 hover:text-brand-dark"
@@ -161,24 +150,14 @@ export default function NewStudentPage() {
           <ArrowLeft className="size-3.5" />
           Back to people
         </Link>
-        <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight text-brand-dark">
-          Add student
-        </h1>
-        <p className="mt-1 text-[13px] text-zinc-500">
-          Creates an account for your school and issues a temporary password.
-        </p>
+        <PageHeader
+          title="Add student"
+          description="Creates an account for your school and issues a temporary password."
+          className="mt-4 pb-0"
+        />
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
-        {error && (
-          <div
-            className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-            role="alert"
-          >
-            {error}
-          </div>
-        )}
-
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
             <Label htmlFor="firstName" className="text-[13px] text-zinc-600">
@@ -260,7 +239,7 @@ export default function NewStudentPage() {
           onChange={(value) => setForm((f) => ({ ...f, gender: value }))}
         />
 
-        <div className="border-t border-zinc-200/80 pt-4">
+        <div className="border-t border-border pt-4">
           <h2 className="text-[13px] font-semibold text-brand-dark">Guardian</h2>
           <div className="mt-4 space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -332,19 +311,12 @@ export default function NewStudentPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2">
-          <Button
-            type="submit"
-            disabled={pending}
-            className="h-9 rounded-md bg-brand-dark px-5 text-sm font-semibold text-white hover:bg-brand-dark/90"
-          >
+          <Button type="submit" disabled={pending} size="sm">
             {pending ? "Creating…" : "Create student"}
           </Button>
-          <Link
-            href="/users"
-            className="inline-flex h-9 items-center px-4 text-sm font-medium text-zinc-500 hover:text-brand-dark"
-          >
+          <ButtonLink href="/users" variant="outline" size="sm">
             Cancel
-          </Link>
+          </ButtonLink>
         </div>
       </form>
     </div>
