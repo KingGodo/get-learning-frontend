@@ -28,12 +28,13 @@ export const metadata: Metadata = {
   description: `${APP_NAME} is a learning platform for teachers and students — classes, assignments, and feedback.`,
   icons: {
     icon: [
-      { url: "/favicon.ico?v=8", sizes: "any" },
-      { url: "/favicon.png?v=8", type: "image/png", sizes: "32x32" },
-      { url: "/icon-192.png?v=8", type: "image/png", sizes: "192x192" },
+      { url: "/favicon.ico?v=9", sizes: "any" },
+      { url: "/logo.png?v=9", type: "image/png", sizes: "any" },
+      { url: "/favicon.png?v=9", type: "image/png", sizes: "32x32" },
+      { url: "/icon-192.png?v=9", type: "image/png", sizes: "192x192" },
     ],
-    apple: [{ url: "/apple-touch-icon.png?v=8", sizes: "180x180" }],
-    shortcut: "/favicon.ico?v=8",
+    apple: [{ url: "/apple-touch-icon.png?v=9", sizes: "180x180" }],
+    shortcut: "/favicon.ico?v=9",
   },
 };
 

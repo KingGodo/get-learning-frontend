@@ -1,7 +1,7 @@
 import type { UserRole } from "./types";
 
 /**
- * Learning Hub role themes — professional, cool neutrals.
+ * GetLeaning role themes — professional, cool neutrals.
  * Distinct accents per role; shared cool gray page chrome (no loud orange/green).
  *
  * Direction (ui-design-system):
@@ -115,7 +115,7 @@ export function themeForRole(role: UserRole | null | undefined): RoleTheme {
   if (!role) {
     return {
       id: "ADMIN",
-      label: "Learning Hub",
+      label: "GetLeaning",
       direction: "Default",
       ...defaultTheme,
       sidebar: defaultTheme.brand,

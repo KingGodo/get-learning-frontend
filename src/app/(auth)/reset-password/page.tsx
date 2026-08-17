@@ -10,6 +10,7 @@ import { toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { APP_NAME } from "@/lib/brand";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -86,7 +87,7 @@ export default function ResetPasswordPage() {
           Set new password
         </h1>
         <p className="mt-1.5 text-[14px] text-zinc-500">
-          Choose a new password for your Learning Hub account.
+          Choose a new password for your {APP_NAME} account.
         </p>
 
         {done ? (

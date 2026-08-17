@@ -1,10 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { APP_NAME } from "@/lib/brand";
+import { APP_NAME, LOGO_SRC } from "@/lib/brand";
 import { cn } from "@/lib/utils";
-
-/** Always serve the file from /public (bypass optimizer cache). */
-const LOGO_SRC = "/logo.png?v=7";
 
 type BrandMarkProps = {
   className?: string;
@@ -14,7 +11,7 @@ type BrandMarkProps = {
   showWordmark?: boolean;
   /** Use display font (landing / marketing). */
   display?: boolean;
-  /** White wordmark for dark/blue backgrounds. */
+  /** White wordmark + inverted mark for dark/blue backgrounds. */
   inverted?: boolean;
 };
 
@@ -51,7 +48,7 @@ export function BrandMark({
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <span
         className={cn(
-          "relative inline-flex shrink-0 overflow-hidden rounded-xl bg-brand",
+          "relative inline-flex shrink-0 items-center justify-center overflow-hidden",
           markBox[size],
         )}
       >
@@ -62,7 +59,10 @@ export function BrandMark({
           height={markPx[size]}
           unoptimized
           priority
-          className="size-full object-contain mix-blend-screen"
+          className={cn(
+            "size-full object-contain",
+            inverted && "brightness-0 invert",
+          )}
         />
       </span>
       {showWordmark && (

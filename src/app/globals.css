@@ -49,6 +49,7 @@
   --color-brand-muted: var(--brand-muted);
   --color-page: var(--page-bg);
   --color-ink: var(--ink);
+  --color-landing: var(--landing);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -60,7 +61,7 @@
 
 :root {
   /*
-    Learning Hub — Sophistication & Trust
+    GetLeaning — Sophistication & Trust
     Cool slate foundation, borders-only depth, one accent for meaning.
   */
   --brand: #2563eb;
@@ -73,6 +74,7 @@
 
   --page-bg: #f8fafc;
   --ink: #111827;
+  --landing: #f3f4f6;
 
   --background: #ffffff;
   --foreground: var(--ink);
@@ -207,7 +209,7 @@
   }
 
   .illustration-quiet {
-    filter: grayscale(0.35) saturate(0.55) brightness(1.02);
+    filter: saturate(1.05);
   }
 
   .surface {

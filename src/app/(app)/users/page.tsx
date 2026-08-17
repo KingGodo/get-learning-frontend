@@ -15,6 +15,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
 import { StatStrip } from "@/components/ui/stat-strip";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
+import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 function canManageUsers(role: string | undefined) {
@@ -130,7 +131,7 @@ export default function UsersPage() {
         description={
           isSchoolAdmin
             ? "Create teachers and students, then share their login credentials."
-            : "Every account on Learning Hub."
+            : `Every account on ${APP_NAME}.`
         }
         actions={
           isSchoolAdmin ? (

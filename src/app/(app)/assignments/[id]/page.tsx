@@ -124,9 +124,11 @@ export default function AssignmentDetailPage() {
   const mySubmission = isStudent ? submissions[0] : undefined;
   const due = new Date(data.dueDate);
   const isOverdue = due.getTime() < Date.now() && data.status === "PUBLISHED";
+  const isGraded = mySubmission?.status === "GRADED";
   const canSubmit =
     isStudent &&
     data.status === "PUBLISHED" &&
+    !isGraded &&
     (data.allowLateSubmission || !isOverdue || !!mySubmission);
 
   return (
@@ -263,6 +265,12 @@ export default function AssignmentDetailPage() {
               {mySubmission.feedback && (
                 <p className="mt-2 text-[13px] leading-relaxed text-zinc-700">
                   Feedback: {mySubmission.feedback}
+                </p>
+              )}
+              {isGraded && (
+                <p className="mt-2 text-[12px] text-muted-foreground">
+                  This assignment has been marked. Resubmission is no longer
+                  available.
                 </p>
               )}
             </div>

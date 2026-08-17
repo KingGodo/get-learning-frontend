@@ -1,184 +1,206 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Menu } from "lucide-react";
-import { BrandMark } from "@/components/brand/brand-mark";
 import {
-  LandingIllustration,
-  landingIllustrations,
-} from "@/components/landing/landing-illustration";
-import { Button } from "@/components/ui/button";
+  ArrowRight,
+  ClipboardList,
+  FileText,
+  PenLine,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button-link";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { APP_NAME } from "@/lib/brand";
+import { cn } from "@/lib/utils";
 
-const ease = [0.22, 1, 0.36, 1] as const;
+const faces = [
+  "/landing/avatars/teacher.webp",
+  "/landing/avatars/student.webp",
+  "/landing/avatars/peer.webp",
+];
 
-const navLinks: Array<{
-  href: string;
-  label: string;
-  isRoute?: boolean;
-}> = [
-  { href: "#product", label: "Product" },
-  { href: "#how-it-works", label: "How it works" },
-  { href: "/login", label: "Sign in", isRoute: true },
-  { href: "/register", label: "Get access", isRoute: true },
+const assignments = [
+  {
+    icon: ClipboardList,
+    tone: "bg-blue-50 text-blue-600",
+    title: "Essay — Industrial Revolution",
+    meta: "Mathematics 10A · Due Friday",
+    status: "12 submitted",
+    statusTone: "bg-blue-50 text-blue-700",
+  },
+  {
+    icon: FileText,
+    tone: "bg-sky-50 text-sky-700",
+    title: "Lab report · Period 3",
+    meta: "Science 11B · Awaiting grade",
+    status: "8 left",
+    statusTone: "bg-slate-100 text-slate-600",
+  },
+  {
+    icon: PenLine,
+    tone: "bg-indigo-50 text-indigo-600",
+    title: "Quiz 4 — Algebra",
+    meta: "Mathematics 10A · Returned",
+    status: "Graded",
+    statusTone: "bg-blue-50 text-blue-700",
+  },
 ];
 
 export function LandingHero() {
   return (
-    <section className="relative isolate min-h-svh overflow-hidden bg-white">
-      <header className="relative z-20 border-b border-border/70">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <BrandMark href="/" size="sm" display />
-          <nav className="hidden items-center gap-8 text-sm sm:flex">
-            <a
-              href="#product"
-              className="font-medium text-ink/55 transition-colors hover:text-ink"
-            >
-              Product
-            </a>
-            <a
-              href="#how-it-works"
-              className="font-medium text-ink/55 transition-colors hover:text-ink"
-            >
-              How it works
-            </a>
-            <Link
-              href="/login"
-              className="font-medium text-ink/55 transition-colors hover:text-ink"
-            >
-              Sign in
-            </Link>
-            <ButtonLink href="/register" size="sm">
-              Get access
-            </ButtonLink>
-          </nav>
-
-          <div className="sm:hidden">
-            <Sheet>
-              <SheetTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-ink hover:bg-page"
-                    aria-label="Open menu"
-                  />
-                }
-              >
-                <Menu className="size-5" />
-              </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="w-[min(100vw-2rem,20rem)] border-border bg-white p-0 text-ink"
-              >
-                <SheetHeader className="border-b border-border px-5 py-4">
-                  <SheetTitle className="text-left">
-                    <BrandMark href={null} size="sm" display />
-                  </SheetTitle>
-                </SheetHeader>
-                <nav className="flex flex-col gap-1 px-3 py-4">
-                  {navLinks.map((link) =>
-                    link.isRoute ? (
-                      <SheetClose
-                        key={link.href}
-                        nativeButton={false}
-                        render={
-                          <Link
-                            href={link.href}
-                            className="rounded-md px-3 py-2.5 text-sm font-medium text-ink/70 transition-colors hover:bg-page hover:text-ink"
-                          />
-                        }
-                      >
-                        {link.label}
-                      </SheetClose>
-                    ) : (
-                      <SheetClose
-                        key={link.href}
-                        nativeButton={false}
-                        render={
-                          <a
-                            href={link.href}
-                            className="rounded-md px-3 py-2.5 text-sm font-medium text-ink/70 transition-colors hover:bg-page hover:text-ink"
-                          />
-                        }
-                      >
-                        {link.label}
-                      </SheetClose>
-                    ),
-                  )}
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative z-10 grid min-h-[calc(100svh-4rem)] lg:grid-cols-2">
-        <div className="flex flex-col justify-center px-6 py-16 sm:px-10 lg:px-14 xl:px-16">
-          <div className="mx-auto w-full max-w-xl lg:mx-0">
-            <motion.h1
-              className="font-display text-[2.6rem] font-semibold leading-[1.05] tracking-tight text-ink sm:text-[3.4rem] md:text-[3.85rem]"
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease }}
-            >
-              The classroom,
-              <br />
-              clarified.
-            </motion.h1>
-
-            <motion.p
-              className="mt-6 max-w-lg text-[16px] leading-relaxed text-ink/60"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.75, delay: 0.08, ease }}
-            >
-              Learning Hub brings classes, assignments, submissions, and feedback
-              into one calm workspace — so teachers can teach and students stay
-              on track. Your school admin creates accounts and shares the login
-              credentials you need to get started.
-            </motion.p>
-
-            <motion.div
-              className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.75, delay: 0.16, ease }}
-            >
-              <ButtonLink href="/login" size="lg">
-                Sign in
-              </ButtonLink>
-              <ButtonLink href="/register" variant="outline" size="lg">
-                How to get access
-              </ButtonLink>
-            </motion.div>
-          </div>
-        </div>
-
-        <motion.div
-          className="relative flex min-h-[40vh] items-center justify-center bg-page px-6 py-12 sm:px-10 lg:min-h-full lg:py-16"
-          initial={{ opacity: 0, x: 24 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.9, delay: 0.12, ease }}
+    <section className="px-6">
+      <div className="mx-auto flex max-w-[980px] flex-col items-center gap-2 py-12 md:py-16 lg:py-24">
+        <Link
+          href="#how-it-works"
+          className="inline-flex items-center gap-1 rounded-lg border border-border bg-white px-3 py-1 text-sm font-medium text-foreground"
         >
-          <LandingIllustration
-            src={landingIllustrations.hero}
-            alt="Teachers and students working in Learning Hub"
-            priority
-            className="w-full"
-            imageClassName="max-w-lg illustration-quiet"
-          />
-        </motion.div>
+          <Badge variant="secondary" className="h-5 rounded-md px-1.5">
+            New
+          </Badge>
+          Accounts are created by your school
+          <ArrowRight className="size-3.5 text-muted-foreground" />
+        </Link>
+
+        <h1 className="mt-4 max-w-[820px] text-center text-4xl font-bold tracking-tighter text-balance text-foreground md:text-6xl lg:leading-[1.1]">
+          The class workspace for teachers{" "}
+          <span
+            className="mx-1 inline-flex translate-y-[0.08em] items-center align-middle"
+            aria-hidden
+          >
+            {faces.map((src, i) => (
+              <span
+                key={src}
+                className={cn(
+                  "relative inline-block size-[0.82em] overflow-hidden rounded-full ring-2 ring-white",
+                  i > 0 && "-ml-[0.22em]",
+                )}
+                style={{ zIndex: faces.length - i }}
+              >
+                <Image
+                  src={src}
+                  alt=""
+                  width={96}
+                  height={96}
+                  className="size-full object-cover"
+                  priority
+                />
+              </span>
+            ))}
+          </span>{" "}
+          and students
+        </h1>
+
+        <p className="mt-3 max-w-[680px] text-center text-lg text-balance text-muted-foreground sm:text-xl">
+          Assign work, collect files, and send grades in one place. No extra
+          modules. {APP_NAME} is issued by your school — then the day can start.
+        </p>
+
+        <div className="mt-6 flex w-full items-center justify-center gap-2">
+          <ButtonLink href="/login">
+            Sign in
+            <ArrowRight className="size-4" />
+          </ButtonLink>
+          <ButtonLink href="/register" variant="outline" className="bg-white">
+            How to get access
+          </ButtonLink>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-5xl pb-16 md:pb-24">
+        <HeroPreview />
       </div>
     </section>
+  );
+}
+
+function HeroPreview() {
+  return (
+    <div className="overflow-hidden rounded-xl border border-border bg-white">
+      <div className="flex items-center justify-between border-b border-border bg-landing px-4 py-3">
+        <div className="flex items-center gap-3">
+          <span className="size-2.5 rounded-full bg-zinc-300" />
+          <span className="size-2.5 rounded-full bg-zinc-300" />
+          <span className="size-2.5 rounded-full bg-zinc-300" />
+        </div>
+        <p className="text-[13px] font-medium text-muted-foreground">
+          {APP_NAME} · Mathematics 10A
+        </p>
+        <span className="w-12" />
+      </div>
+
+      <div className="grid lg:grid-cols-[13rem_minmax(0,1fr)]">
+        <aside className="hidden border-r border-border p-4 lg:block">
+          <p className="px-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            Class
+          </p>
+          <ul className="mt-2 space-y-1 text-[13px]">
+            {["Assignments", "Students", "Materials", "Grades"].map(
+              (item, i) => (
+                <li
+                  key={item}
+                  className={cn(
+                    "rounded-md px-2 py-1.5",
+                    i === 0
+                      ? "bg-muted font-medium text-foreground"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {item}
+                </li>
+              ),
+            )}
+          </ul>
+        </aside>
+
+        <div className="p-4 md:p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-[13px] font-medium text-foreground">
+                Assignments
+              </p>
+              <p className="text-[12px] text-muted-foreground">
+                This week in Mathematics 10A
+              </p>
+            </div>
+            <Badge variant="outline">Teacher view</Badge>
+          </div>
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {assignments.map((row) => (
+              <li
+                key={row.title}
+                className="flex items-center justify-between gap-4 px-3 py-3"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    className={cn(
+                      "inline-flex size-9 shrink-0 items-center justify-center rounded-md",
+                      row.tone,
+                    )}
+                  >
+                    <row.icon className="size-4" strokeWidth={1.75} aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-medium text-foreground">
+                      {row.title}
+                    </p>
+                    <p className="truncate text-[12px] text-muted-foreground">
+                      {row.meta}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={cn(
+                    "hidden shrink-0 rounded-md px-2 py-1 text-[11px] font-medium sm:inline",
+                    row.statusTone,
+                  )}
+                >
+                  {row.status}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
   );
 }

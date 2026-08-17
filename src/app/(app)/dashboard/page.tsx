@@ -23,6 +23,7 @@ import type {
 import { PageLoading } from "@/components/ui/page-loading";
 import { ButtonLink } from "@/components/ui/button-link";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
+import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 function isAdminDash(d: Dashboard): d is AdminDashboard {
@@ -373,7 +374,7 @@ function AdminDashboardView({
       <DashHero
         eyebrow="Platform overview"
         title={`${greet}, ${name}`}
-        description="Schools, people, and activity across Learning Hub."
+        description={`Schools, people, and activity across ${APP_NAME}.`}
         actions={
           <>
             <ButtonLink href="/school/new" size="sm">

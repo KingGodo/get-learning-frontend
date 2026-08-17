@@ -1,6 +1,6 @@
-# Learning Hub (LMS Frontend)
+# GetLeaning (LMS Frontend)
 
-Next.js + shadcn/ui client for the Learning Management System API.
+Next.js + shadcn/ui client for the GetLeaning learning management API.
 
 ## Setup
 
@@ -12,8 +12,8 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-API default: `http://localhost:4000/api/v1` (start `lms-backend` first).
+API default: `http://localhost:4000/api/v1` (start `getleaning-backend` first).
 
 ## Brand
 
-**Learning Hub** — calm pine + cool mist UI, Fraunces display + Outfit body.
+**GetLeaning** — calm pine + cool mist UI, Fraunces display + Outfit body.

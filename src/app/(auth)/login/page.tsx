@@ -11,6 +11,7 @@ import { toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { APP_NAME } from "@/lib/brand";
 
 export default function LoginPage() {
   const { login, logout } = useAuth();
@@ -47,7 +48,7 @@ export default function LoginPage() {
             Sign in
           </h1>
           <p className="mt-1.5 text-[14px] text-muted-foreground">
-            Continue to Learning Hub
+            Continue to {APP_NAME}
           </p>
 
           <form onSubmit={onSubmit} className="mt-7 space-y-4">

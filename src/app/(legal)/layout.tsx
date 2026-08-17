@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteFooter } from "@/components/landing/site-footer";
+import { APP_NAME } from "@/lib/brand";
 
 export default function LegalLayout({
   children,
@@ -7,14 +8,14 @@ export default function LegalLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-white">
-      <header className="border-b border-zinc-200 bg-white">
+    <div className="flex min-h-full flex-1 flex-col bg-landing">
+      <header className="border-b border-border bg-landing">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
           <Link
             href="/"
             className="font-display text-[15px] font-semibold tracking-tight text-brand-dark"
           >
-            Learning Hub
+            {APP_NAME}
           </Link>
           <nav className="flex items-center gap-5 text-[13px]">
             <Link

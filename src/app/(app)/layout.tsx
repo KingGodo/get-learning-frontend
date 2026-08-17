@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { HeaderNotifications } from "@/components/layout/header-notifications";
+import { APP_NAME } from "@/lib/brand";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/page-loading";
@@ -302,7 +303,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
             <div>
               <p className="text-[14px] font-semibold tracking-tight text-ink">
-                {activeLink?.label ?? "Learning Hub"}
+                {activeLink?.label ?? APP_NAME}
               </p>
               <p className="hidden text-[12px] text-muted-foreground sm:block">
                 {user.school?.name ?? roleLabel}

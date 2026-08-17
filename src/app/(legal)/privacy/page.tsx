@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { APP_NAME, PRIVACY_EMAIL } from "@/lib/brand";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How Learning Hub collects, uses, and protects personal information on the learning management platform.",
+    `How ${APP_NAME} collects, uses, and protects personal information on the learning management platform.`,
 };
 
 export default function PrivacyPage() {
@@ -17,21 +18,21 @@ export default function PrivacyPage() {
         Privacy Policy
       </h1>
       <p className="mt-3 text-[13px] text-zinc-500">
-        Last updated: 18 July 2026
+        Last updated: 16 August 2026
       </p>
 
       <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-zinc-600">
         <section className="space-y-3">
           <h2 className="text-lg font-semibold text-brand-dark">1. Overview</h2>
           <p>
-            Learning Hub (“we”, “us”, or “our”) provides a learning management system
+            GetLeaning (“we”, “us”, or “our”) provides a learning management system
             for teachers, students, and system administrators. This Privacy
             Policy explains what personal information we collect, how we use it,
-            and the choices you have when you use Learning Hub (the “Service”).
+            and the choices you have when you use GetLeaning (the “Service”).
           </p>
           <p>
             By creating an account or using the Service, you acknowledge this
-            Policy. If you do not agree, please do not use Learning Hub.
+            Policy. If you do not agree, please do not use GetLeaning.
           </p>
         </section>
 
@@ -104,7 +105,7 @@ export default function PrivacyPage() {
             </li>
             <li>
               When required by law, or to protect the safety, rights, or
-              property of Learning Hub, our users, or others
+              property of GetLeaning, our users, or others
             </li>
             <li>
               In connection with a merger, acquisition, or asset transfer, with
@@ -150,7 +151,7 @@ export default function PrivacyPage() {
             8. Children’s privacy
           </h2>
           <p>
-            Learning Hub may be used by students, including minors, under the
+            GetLeaning may be used by students, including minors, under the
             supervision of a school or guardian where required by law. If you
             believe we have collected information inappropriately, contact us
             and we will take appropriate steps.
@@ -183,10 +184,10 @@ export default function PrivacyPage() {
           <p>
             For privacy questions, email{" "}
             <a
-              href="mailto:privacy@Learning Hub.app"
+              href={`mailto:${PRIVACY_EMAIL}`}
               className="font-medium text-brand-dark underline-offset-2 hover:underline"
             >
-              privacy@Learning Hub.app
+              {PRIVACY_EMAIL}
             </a>
             .
           </p>

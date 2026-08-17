@@ -13,6 +13,7 @@ import { ButtonLink } from "@/components/ui/button-link";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatStrip } from "@/components/ui/stat-strip";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
+import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 function termLabel(system?: TermSystem, count?: number) {
@@ -97,7 +98,7 @@ function AdminSchoolsPage() {
       <PageHeader
         eyebrow="Administration"
         title="Schools"
-        description="Every school registered on Learning Hub."
+        description={`Every school registered on ${APP_NAME}.`}
         actions={
           <ButtonLink href="/school/new" size="sm">
             <Plus className="size-3.5" />
