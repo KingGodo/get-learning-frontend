@@ -9,7 +9,7 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-[100svh] flex-col bg-page">
       <header className="border-b border-border bg-background">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <BrandMark href="/" size="sm" />
           <Link
             href="/"
@@ -20,7 +20,7 @@ export default function AuthLayout({
         </div>
       </header>
 
-      <div className="relative flex flex-1 items-start justify-center overflow-y-auto px-6 py-12 sm:items-center sm:py-16">
+      <div className="relative flex flex-1 items-start justify-center overflow-y-auto px-4 py-10 sm:items-center sm:px-6 sm:py-16">
         {children}
       </div>
     </div>

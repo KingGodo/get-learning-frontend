@@ -42,7 +42,7 @@ export function LandingNav() {
           : "border-transparent bg-landing",
       )}
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         <BrandMark href="/" size="sm" />
         <nav className="hidden items-center gap-7 text-[13px] font-medium md:flex">
           {links.map((link) => (

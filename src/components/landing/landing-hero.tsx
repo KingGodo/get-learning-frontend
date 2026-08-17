@@ -48,20 +48,20 @@ const assignments = [
 
 export function LandingHero() {
   return (
-    <section className="px-6">
-      <div className="mx-auto flex max-w-[980px] flex-col items-center gap-2 py-12 md:py-16 lg:py-24">
+    <section className="px-4 sm:px-6">
+      <div className="mx-auto flex max-w-[980px] flex-col items-center gap-2 py-10 md:py-16 lg:py-24">
         <Link
           href="#how-it-works"
-          className="inline-flex items-center gap-1 rounded-lg border border-border bg-white px-3 py-1 text-sm font-medium text-foreground"
+          className="inline-flex max-w-full items-center gap-1 rounded-lg border border-border bg-white px-3 py-1 text-left text-sm font-medium text-foreground"
         >
-          <Badge variant="secondary" className="h-5 rounded-md px-1.5">
+          <Badge variant="secondary" className="h-5 shrink-0 rounded-md px-1.5">
             New
           </Badge>
-          Accounts are created by your school
-          <ArrowRight className="size-3.5 text-muted-foreground" />
+          <span className="min-w-0">Accounts are created by your school</span>
+          <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" />
         </Link>
 
-        <h1 className="mt-4 max-w-[820px] text-center text-4xl font-bold tracking-tighter text-balance text-foreground md:text-6xl lg:leading-[1.1]">
+        <h1 className="mt-4 max-w-[820px] text-center text-[2rem] font-bold tracking-tighter text-balance text-foreground sm:text-4xl md:text-6xl lg:leading-[1.1]">
           The class workspace for teachers{" "}
           <span
             className="mx-1 inline-flex translate-y-[0.08em] items-center align-middle"
@@ -90,17 +90,17 @@ export function LandingHero() {
           and students
         </h1>
 
-        <p className="mt-3 max-w-[680px] text-center text-lg text-balance text-muted-foreground sm:text-xl">
+        <p className="mt-3 max-w-[680px] text-center text-base text-balance text-muted-foreground sm:text-lg md:text-xl">
           Assign work, collect files, and send grades in one place. No extra
           modules. {APP_NAME} is issued by your school — then the day can start.
         </p>
 
-        <div className="mt-6 flex w-full items-center justify-center gap-2">
-          <ButtonLink href="/login">
+        <div className="mt-6 flex w-full max-w-sm flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:items-center sm:justify-center">
+          <ButtonLink href="/login" className="w-full sm:w-auto">
             Sign in
             <ArrowRight className="size-4" />
           </ButtonLink>
-          <ButtonLink href="/register" variant="outline" className="bg-white">
+          <ButtonLink href="/register" variant="outline" className="w-full bg-white sm:w-auto">
             How to get access
           </ButtonLink>
         </div>

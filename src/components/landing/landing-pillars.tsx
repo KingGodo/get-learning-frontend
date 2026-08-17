@@ -87,7 +87,7 @@ export function LandingPillars() {
 
   return (
     <>
-      <section id="product" className="scroll-mt-16 px-6 py-12 md:py-16">
+      <section id="product" className="scroll-mt-16 px-4 py-12 sm:px-6 md:py-16">
         <div className="mx-auto max-w-6xl">
           <motion.div {...fade} className="max-w-xl">
             <p className="text-[12px] font-medium tracking-[0.14em] text-brand uppercase">
@@ -140,7 +140,7 @@ export function LandingPillars() {
 
       <section
         id="how-it-works"
-        className="scroll-mt-16 px-6 py-12 md:py-16"
+        className="scroll-mt-16 px-4 py-12 sm:px-6 md:py-16"
       >
         <div className="mx-auto max-w-6xl">
           <div className="grid items-end gap-8 lg:grid-cols-[1fr_auto]">
@@ -194,7 +194,7 @@ export function LandingPillars() {
         </div>
       </section>
 
-      <section id="roles" className="scroll-mt-16 px-6 py-12 md:py-16">
+      <section id="roles" className="scroll-mt-16 px-4 py-12 sm:px-6 md:py-16">
         <div className="mx-auto max-w-6xl">
           <motion.div {...fade} className="max-w-xl">
             <p className="text-[12px] font-medium tracking-[0.14em] text-brand uppercase">
@@ -278,7 +278,7 @@ export function LandingPillars() {
         </div>
       </section>
 
-      <section id="faq" className="scroll-mt-16 px-6 py-12 md:py-16">
+      <section id="faq" className="scroll-mt-16 px-4 py-12 sm:px-6 md:py-16">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
           <motion.div {...fade}>
             <p className="text-[12px] font-medium tracking-[0.14em] text-brand uppercase">
@@ -337,7 +337,7 @@ export function LandingPillars() {
         </div>
       </section>
 
-      <section className="px-6 pb-12 md:pb-16">
+      <section className="px-4 pb-12 sm:px-6 md:pb-16">
         <motion.div
           className="mx-auto grid max-w-6xl overflow-hidden rounded-lg border border-border bg-white lg:grid-cols-2"
           {...fade}

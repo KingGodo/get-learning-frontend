@@ -26,7 +26,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-border bg-landing">
-      <div className="mx-auto max-w-6xl px-6 py-12 md:py-16">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <BrandMark href="/" size="sm" />

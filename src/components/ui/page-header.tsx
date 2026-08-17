@@ -19,7 +19,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6",
+        "flex flex-col items-start gap-4 border-b border-border pb-6 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between",
         className,
       )}
     >

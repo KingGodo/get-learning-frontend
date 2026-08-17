@@ -162,7 +162,7 @@ export function HeaderNotifications() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[min(92vw,360px)] overflow-hidden rounded-lg border border-border bg-card shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+        <div className="fixed inset-x-3 top-[4.25rem] z-50 overflow-hidden rounded-lg border border-border bg-card shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-[min(92vw,360px)]">
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <div>
               <p className="text-[13px] font-semibold text-ink">
