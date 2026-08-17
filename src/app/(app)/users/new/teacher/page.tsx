@@ -13,7 +13,7 @@ import {
   type TeacherAssignmentDraft,
 } from "@/components/users/teacher-assignments-fields";
 import { classesApi, subjectsApi, usersApi } from "@/lib/api";
-import { toastFromError } from "@/lib/toast";
+import { toast, toastFromError } from "@/lib/toast";
 import type { ClassRoom, IssuedCredentials, Subject } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";

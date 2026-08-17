@@ -12,7 +12,7 @@ import {
   type TeacherAssignmentDraft,
 } from "@/components/users/teacher-assignments-fields";
 import { ApiRequestError, classesApi, subjectsApi, usersApi } from "@/lib/api";
-import { toastFromError } from "@/lib/toast";
+import { toast, toastFromError } from "@/lib/toast";
 import type { AdminUserDetail, ClassRoom, Subject } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,7 @@ export default function EditUserPage() {
       return;
     }
 
+    const editorRole = authUser.role;
     let cancelled = false;
 
     async function load() {
@@ -85,7 +86,7 @@ export default function EditUserPage() {
           emergencyContact: data.student?.emergencyContact ?? "",
         });
 
-        if (data.teacher && authUser.role === "SCHOOL_ADMIN") {
+        if (data.teacher && editorRole === "SCHOOL_ADMIN") {
           const [subjectRows, classRows] = await Promise.all([
             subjectsApi.list(),
             classesApi.list(),
@@ -142,11 +143,13 @@ export default function EditUserPage() {
     authUser.role === "ADMIN" ||
     (authUser.role === "SCHOOL_ADMIN" && user.role !== "SCHOOL_ADMIN");
 
+  const editorRole = authUser.role;
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canEdit || !user) return;
 
-    if (user.teacher && authUser.role === "SCHOOL_ADMIN") {
+    if (user.teacher && editorRole === "SCHOOL_ADMIN") {
       if (!assignmentsAreValid(assignments)) {
         toast.error(
           "Select at least one subject and at least one class for each selected subject.",
@@ -168,7 +171,7 @@ export default function EditUserPage() {
           ? {
               department: form.department || null,
               qualification: form.qualification || null,
-              ...(authUser.role === "SCHOOL_ADMIN"
+              ...(editorRole === "SCHOOL_ADMIN"
                 ? { assignments }
                 : {}),
             }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { UserRound } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { authApi } from "@/lib/api";
-import { toastFromError } from "@/lib/toast";
+import { toast, toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -490,8 +490,6 @@ function Field({
     guardianPhone: string;
     guardianEmail: string;
     emergencyContact: string;
-    currentPassword: string;
-    newPassword: string;
   };
   value: string;
   onChange: (key: typeof id, value: string) => void;
