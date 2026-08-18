@@ -163,6 +163,11 @@ export const authApi = {
       method: "PATCH",
       body,
     }),
+  changeEmail: (body: { email: string; currentPassword: string }) =>
+    api<{ message: string; user: import("./types").User }>("/auth/change-email", {
+      method: "PATCH",
+      body,
+    }),
   verifyCurrentPassword: (currentPassword: string) =>
     api<{ valid: true }>("/auth/verify-password", {
       method: "POST",

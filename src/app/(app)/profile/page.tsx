@@ -32,6 +32,7 @@ function toDateInput(value?: string | null) {
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
   const [pending, setPending] = useState(false);
+  const [emailPending, setEmailPending] = useState(false);
   const [passwordPending, setPasswordPending] = useState(false);
   const [verifyPending, setVerifyPending] = useState(false);
   const [passwordVerified, setPasswordVerified] = useState(false);
@@ -49,6 +50,10 @@ export default function ProfilePage() {
     guardianPhone: "",
     guardianEmail: "",
     emergencyContact: "",
+  });
+  const [emailForm, setEmailForm] = useState({
+    email: "",
+    currentPassword: "",
   });
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -72,6 +77,10 @@ export default function ProfilePage() {
       guardianPhone: user.student?.guardianPhone ?? "",
       guardianEmail: user.student?.guardianEmail ?? "",
       emergencyContact: user.student?.emergencyContact ?? "",
+    });
+    setEmailForm({
+      email: user.email,
+      currentPassword: "",
     });
     setPasswordForm({
       currentPassword: "",
@@ -119,10 +128,42 @@ export default function ProfilePage() {
 
       await authApi.updateProfile(payload);
       await refreshUser();
+      toast.success("Profile saved");
     } catch (err) {
       toastFromError(err, "Could not save profile");
     } finally {
       setPending(false);
+    }
+  }
+
+  async function onChangeEmail() {
+    const nextEmail = emailForm.email.trim().toLowerCase();
+    if (!nextEmail) {
+      toast.error("Enter a new email address.");
+      return;
+    }
+    if (nextEmail === user!.email.trim().toLowerCase()) {
+      toast.error("That is already your email address.");
+      return;
+    }
+    if (!emailForm.currentPassword) {
+      toast.error("Enter your current password to change email.");
+      return;
+    }
+
+    setEmailPending(true);
+    try {
+      await authApi.changeEmail({
+        email: nextEmail,
+        currentPassword: emailForm.currentPassword,
+      });
+      setEmailForm((prev) => ({ ...prev, currentPassword: "" }));
+      await refreshUser();
+      toast.success("Email updated", "Use this address the next time you sign in.");
+    } catch (err) {
+      toastFromError(err, "Could not update email");
+    } finally {
+      setEmailPending(false);
     }
   }
 
@@ -145,6 +186,7 @@ export default function ProfilePage() {
         confirmPassword: "",
       });
       setPasswordVerified(false);
+      toast.success("Password updated", "Use the new password the next time you sign in.");
     } catch (err) {
       toastFromError(err, "Could not update password");
     } finally {
@@ -161,6 +203,7 @@ export default function ProfilePage() {
     try {
       await authApi.verifyCurrentPassword(passwordForm.currentPassword);
       setPasswordVerified(true);
+      toast.success("Current password verified");
     } catch (err) {
       setPasswordVerified(false);
       toastFromError(err, "Could not verify current password");
@@ -195,7 +238,7 @@ export default function ProfilePage() {
               Personal details
             </h2>
             <p className="mt-0.5 text-[12px] text-zinc-400">
-              Email stays the same — contact support to change it.
+              Name, phone, and other profile information.
             </p>
           </div>
 
@@ -235,17 +278,6 @@ export default function ProfilePage() {
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-[13px] text-zinc-600">
-                Email
-              </Label>
-              <Input
-                id="email"
-                value={user.email}
-                disabled
-                className={`${fieldInput} bg-zinc-50 text-zinc-500`}
-              />
             </div>
             <Field
               label="Phone"
@@ -365,47 +397,115 @@ export default function ProfilePage() {
           </section>
         )}
 
-        <section className="space-y-3.5">
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Button type="submit" disabled={pending} size="sm">
+            {pending ? "Saving…" : "Save changes"}
+          </Button>
+        </div>
+      </form>
+
+      <section className="space-y-4 border-t border-border pt-8">
+        <div>
+          <h2 className="text-sm font-semibold text-brand-dark">Sign-in</h2>
+          <p className="mt-0.5 text-[12px] text-zinc-400">
+            Change the email and password you use to log in. Current password is required.
+          </p>
+        </div>
+
+        <div className="space-y-3.5 rounded-xl border border-border bg-white p-4">
           <div>
-            <h2 className="text-sm font-semibold text-brand-dark">Password</h2>
+            <h3 className="text-[13px] font-medium text-brand-dark">Email</h3>
+            <p className="mt-0.5 text-[12px] text-zinc-400">
+              Current: {user.email}
+            </p>
+          </div>
+          <div className="grid gap-3.5 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="accountEmail" className="text-[13px] text-zinc-600">
+                New email
+              </Label>
+              <Input
+                id="accountEmail"
+                type="email"
+                value={emailForm.email}
+                autoComplete="email"
+                onChange={(e) =>
+                  setEmailForm((p) => ({ ...p, email: e.target.value }))
+                }
+                className={fieldInput}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="emailCurrentPassword"
+                className="text-[13px] text-zinc-600"
+              >
+                Current password
+              </Label>
+              <Input
+                id="emailCurrentPassword"
+                type="password"
+                value={emailForm.currentPassword}
+                autoComplete="current-password"
+                onChange={(e) =>
+                  setEmailForm((p) => ({ ...p, currentPassword: e.target.value }))
+                }
+                className={fieldInput}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={() => void onChangeEmail()}
+              disabled={emailPending}
+              size="sm"
+            >
+              {emailPending ? "Updating…" : "Change email"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-3.5 rounded-xl border border-border bg-white p-4">
+          <div>
+            <h3 className="text-[13px] font-medium text-brand-dark">Password</h3>
             <p className="mt-0.5 text-[12px] text-zinc-400">
               Enter your current password first, then set a new one.
             </p>
           </div>
-          <div className="space-y-3.5 rounded-xl border border-border bg-white p-4">
-            <div className="grid gap-3.5 sm:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="currentPassword" className="text-[13px] text-zinc-600">
-                  Current password
-                </Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={passwordForm.currentPassword}
-                  autoComplete="current-password"
-                  onChange={(e) =>
-                    setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))
-                  }
-                  className={fieldInput}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[13px] text-zinc-600">Verify</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => void onVerifyCurrentPassword()}
-                  disabled={verifyPending || passwordPending}
-                  className="h-9 w-full justify-center"
-                >
-                  {verifyPending ? "Verifying…" : "Verify current password"}
-                </Button>
-              </div>
+          <div className="grid gap-3.5 sm:grid-cols-3">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="currentPassword" className="text-[13px] text-zinc-600">
+                Current password
+              </Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={passwordForm.currentPassword}
+                autoComplete="current-password"
+                onChange={(e) =>
+                  setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))
+                }
+                className={fieldInput}
+              />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px] text-zinc-600">Verify</Label>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void onVerifyCurrentPassword()}
+                disabled={verifyPending || passwordPending}
+                className="h-9 w-full justify-center"
+              >
+                {verifyPending ? "Verifying…" : "Verify current password"}
+              </Button>
+            </div>
+          </div>
 
-            {passwordVerified && (
-              <div className="grid gap-3.5 sm:grid-cols-2">
-                <div className="space-y-1.5">
+          {passwordVerified && (
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="newPassword" className="text-[13px] text-zinc-600">
                   New password
                 </Label>
@@ -435,27 +535,20 @@ export default function ProfilePage() {
                   className={fieldInput}
                 />
               </div>
-              </div>
-            )}
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                onClick={() => void onChangePassword()}
-                disabled={passwordPending || !passwordVerified}
-                size="sm"
-              >
-                {passwordPending ? "Updating…" : "Change password"}
-              </Button>
             </div>
+          )}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={() => void onChangePassword()}
+              disabled={passwordPending || !passwordVerified}
+              size="sm"
+            >
+              {passwordPending ? "Updating…" : "Change password"}
+            </Button>
           </div>
-        </section>
-
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Button type="submit" disabled={pending} size="sm">
-            {pending ? "Saving…" : "Save changes"}
-          </Button>
         </div>
-      </form>
+      </section>
 
       <p className="flex items-center gap-2 text-[12px] text-zinc-400">
         <UserRound className="size-3.5" />

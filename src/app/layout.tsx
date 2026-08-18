@@ -33,14 +33,9 @@ export const metadata: Metadata = {
   },
   description: `${APP_NAME} is a learning platform for teachers and students — classes, assignments, and feedback.`,
   icons: {
-    icon: [
-      { url: "/favicon.ico?v=9", sizes: "any" },
-      { url: "/logo.png?v=9", type: "image/png", sizes: "any" },
-      { url: "/favicon.png?v=9", type: "image/png", sizes: "32x32" },
-      { url: "/icon-192.png?v=9", type: "image/png", sizes: "192x192" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png?v=9", sizes: "180x180" }],
-    shortcut: "/favicon.ico?v=9",
+    icon: [{ url: "/logo.png?v=11", type: "image/png" }],
+    apple: [{ url: "/logo.png?v=11", type: "image/png" }],
+    shortcut: "/logo.png?v=11",
   },
 };
 
