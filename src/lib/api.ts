@@ -2,31 +2,51 @@ import type { ApiError, ApiSuccess } from "./types";
 
 const DEFAULT_API_URL = "http://localhost:4000/api/v1";
 
-/** API base URL; rewrites localhost to the current host when testing over LAN IP. */
+function stripTrailingSlash(value: string) {
+  return value.replace(/\/$/, "");
+}
+
+/** API base URL used by the browser and server. */
 export function getApiBaseUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL;
+  const configured = stripTrailingSlash(
+    process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL,
+  );
 
   if (typeof window === "undefined") {
+    if (configured.startsWith("/")) {
+      return "http://127.0.0.1:4000/api/v1";
+    }
     return configured;
   }
 
-  try {
-    const url = new URL(configured);
-    const pageHost = window.location.hostname;
-    const isLocalApi =
-      url.hostname === "localhost" || url.hostname === "127.0.0.1";
-    const isRemotePage =
-      pageHost !== "localhost" && pageHost !== "127.0.0.1";
+  // Same-origin path (Nginx or Next rewrites). Works from any laptop.
+  if (configured.startsWith("/")) {
+    return configured || "/api/v1";
+  }
 
-    if (isLocalApi && isRemotePage) {
-      const port = url.port || "4000";
-      const pathname = url.pathname.replace(/\/$/, "") || "/api/v1";
-      return `${window.location.protocol}//${pageHost}:${port}${pathname}`;
+  try {
+    const api = new URL(configured);
+    const page = window.location;
+    const loopback =
+      api.hostname === "localhost" || api.hostname === "127.0.0.1";
+    const pagePort = page.port || (page.protocol === "https:" ? "443" : "80");
+    const apiOnAppPort =
+      api.hostname === page.hostname && api.port === "4000";
+
+    // Public site is on 80/443/3000 — never send other machines to :4000.
+    if (
+      loopback ||
+      apiOnAppPort ||
+      pagePort === "80" ||
+      pagePort === "443" ||
+      pagePort === "3000"
+    ) {
+      return "/api/v1";
     }
 
-    return configured;
+    return stripTrailingSlash(api.pathname) || "/api/v1";
   } catch {
-    return configured;
+    return "/api/v1";
   }
 }
 
