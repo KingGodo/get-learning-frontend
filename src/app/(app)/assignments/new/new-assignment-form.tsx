@@ -22,7 +22,10 @@ export default function NewAssignmentForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const presetClassId = searchParams.get("classId") ?? "";
-  const canManage = user?.role === "TEACHER" || user?.role === "ADMIN";
+  const canManage =
+    user?.role === "TEACHER" ||
+    user?.role === "ADMIN" ||
+    user?.role === "SCHOOL_ADMIN";
 
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [loading, setLoading] = useState(true);

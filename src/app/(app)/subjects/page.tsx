@@ -218,7 +218,7 @@ export default function SubjectsPage() {
             description={
               isTeacher
                 ? "Your school admin will assign subjects and classes to your account."
-                : "Add subjects like Mathematics or Science before creating classes."
+                : "Add subjects like Mathematics or Science, then create classes under them in Setup."
             }
             action={
               canManage ? (

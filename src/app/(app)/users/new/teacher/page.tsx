@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { GenderSelect } from "@/components/auth/registration-fields";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CredentialsPanel } from "@/components/users/credentials-panel";
+import { OneOffPasswordField } from "@/components/users/one-off-password-field";
 import {
   TeacherAssignmentsFields,
   assignmentsAreValid,
@@ -21,6 +22,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoading } from "@/components/ui/page-loading";
+import { SetupRequired } from "@/components/school/school-setup-guide";
 
 type CreatedTeacher = {
   name: string;
@@ -187,7 +189,7 @@ export default function NewTeacherPage() {
         email: form.email,
         phoneNumber: form.phoneNumber,
         gender: form.gender,
-        password: form.password,
+        ...(form.password.trim() ? { password: form.password.trim() } : {}),
         department: form.department || undefined,
         qualification: form.qualification || undefined,
         assignments,
@@ -270,10 +272,19 @@ export default function NewTeacherPage() {
         </Link>
         <PageHeader
           title="Add teacher"
-          description="Creates an account for your school, assigns subjects and classes, and issues a temporary password."
+          description="Creates an account for your school, assigns subjects and classes, and issues a one-time password."
           className="mt-4 pb-0"
         />
       </div>
+
+      {subjects.length === 0 || classes.length === 0 ? (
+        <SetupRequired
+          reason="A teacher is assigned to subjects and classes. Add a subject and a class first."
+          href={subjects.length === 0 ? "/subjects/new" : "/classes/new"}
+          action={subjects.length === 0 ? "Add a subject" : "Add a class"}
+        />
+      ) : (
+        <>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
@@ -337,24 +348,11 @@ export default function NewTeacherPage() {
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="password" className="text-[13px] text-zinc-600">
-              One-time password
-            </Label>
-            <Input
+            <OneOffPasswordField
               id="password"
-              type="text"
-              required
-              minLength={8}
               value={form.password}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, password: e.target.value }))
-              }
-              className="h-9 rounded-md bg-transparent font-mono"
-              placeholder="Set a temporary password"
+              onChange={(password) => setForm((f) => ({ ...f, password }))}
             />
-            <p className="text-[12px] text-zinc-500">
-              This will be shared with the teacher for first login.
-            </p>
           </div>
         </div>
 
@@ -427,6 +425,8 @@ export default function NewTeacherPage() {
           </ButtonLink>
         </div>
       </form>
+        </>
+      )}
     </div>
   );
 }

@@ -23,6 +23,7 @@ import type {
 import { PageLoading } from "@/components/ui/page-loading";
 import { ButtonLink } from "@/components/ui/button-link";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
+import { SchoolOrderCard } from "@/components/school/school-setup-guide";
 import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
@@ -531,23 +532,24 @@ function SchoolAdminDashboardView({
         }
       />
 
-      {needsSetup && (
-        <Callout
-          label="Get started"
+      {data.totalSubjects === 0 ||
+      data.totalClasses === 0 ||
+      data.totalTeachers === 0 ? (
+        <SchoolOrderCard
           action={
-            <ButtonLink
-              href={data.totalSubjects === 0 ? "/subjects/new" : "/classes/new"}
-              size="sm"
-            >
-              {data.totalSubjects === 0 ? "Add subject" : "Add class"}
-            </ButtonLink>
+            needsSetup ? (
+              <ButtonLink
+                href={
+                  data.totalSubjects === 0 ? "/subjects/new" : "/classes/new"
+                }
+                size="sm"
+              >
+                {data.totalSubjects === 0 ? "Add subject" : "Add class"}
+              </ButtonLink>
+            ) : undefined
           }
-        >
-          {data.totalSubjects === 0
-            ? "Add subjects for your school before creating classes and teachers."
-            : "Create classes under your subjects so you can allocate them to teachers."}
-        </Callout>
-      )}
+        />
+      ) : null}
 
       <MetricStrip items={metrics} />
 

@@ -95,7 +95,10 @@ function materialDisplayTitle(title: string, attachment: string) {
 export default function ClassDetailPage() {
   const params = useParams<{ id: string }>();
   const { user } = useAuth();
-  const canUpload = user?.role === "TEACHER" || user?.role === "ADMIN";
+  const canUpload =
+    user?.role === "TEACHER" ||
+    user?.role === "ADMIN" ||
+    user?.role === "SCHOOL_ADMIN";
 
   const [data, setData] = useState<ClassRoom | null>(null);
   const [materials, setMaterials] = useState<ClassMaterial[]>([]);

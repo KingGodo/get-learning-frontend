@@ -57,7 +57,10 @@ export default function AssignmentsPageClient() {
   const searchParams = useSearchParams();
   const classIdFilter = searchParams.get("classId") ?? undefined;
   const isStudent = user?.role === "STUDENT";
-  const canManage = user?.role === "TEACHER" || user?.role === "ADMIN";
+  const canManage =
+    user?.role === "TEACHER" ||
+    user?.role === "ADMIN" ||
+    user?.role === "SCHOOL_ADMIN";
 
   const [items, setItems] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);

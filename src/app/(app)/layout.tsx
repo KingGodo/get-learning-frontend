@@ -74,9 +74,10 @@ const schoolAdminNavGroups: NavGroup[] = [
   {
     label: "School",
     items: [
-      { href: "/users", label: "Users", icon: Users },
       { href: "/subjects", label: "Subjects", icon: Library },
       { href: "/classes", label: "Classes", icon: BookOpen },
+      { href: "/users", label: "Users", icon: Users },
+      { href: "/assignments", label: "Assignments", icon: ClipboardList },
       { href: "/school", label: "School", icon: Building2 },
     ],
   },

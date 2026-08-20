@@ -15,11 +15,15 @@ import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { Textarea } from "@/components/ui/textarea";
 import { PageLoading } from "@/components/ui/page-loading";
+import { SetupRequired } from "@/components/school/school-setup-guide";
+import { useSchoolSetupCounts } from "@/hooks/use-school-setup";
 
 export default function NewClassPage() {
   const { user } = useAuth();
   const router = useRouter();
   const canManage = user?.role === "SCHOOL_ADMIN" || user?.role === "ADMIN";
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+  const { counts: setupCounts } = useSchoolSetupCounts(isSchoolAdmin);
 
   const [school, setSchool] = useState<School | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -95,6 +99,15 @@ export default function NewClassPage() {
         academicYear: Number(form.academicYear),
         semester: Number(form.semester),
       });
+      const firstClass = (setupCounts?.classes ?? 0) === 0;
+      if (isSchoolAdmin && firstClass) {
+        toast.success(
+          "Class created",
+          "Next: add a teacher and assign them to this class.",
+        );
+      } else {
+        toast.success("Class created");
+      }
       router.push(`/classes/${created.id}`);
     } catch (err) {
       toastFromError(err, "Create failed");
@@ -124,58 +137,66 @@ export default function NewClassPage() {
         />
       </div>
 
-      {error && (
-        <div
-          className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
-          role="alert"
-        >
-          {error}
-        </div>
-      )}
+      {subjects.length === 0 ? (
+        <SetupRequired
+          reason="A class belongs to a subject. Add a subject first, then create the class under it."
+          href="/subjects/new"
+          action="Add a subject"
+        />
+      ) : (
+        <>
+          {error && (
+            <div
+              className="border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
 
-      {school && (
-        <section className="border-y border-border py-5">
-          <p className="text-[12px] font-medium text-muted-foreground">
-            School
-          </p>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-[12px] text-muted-foreground">Name</dt>
-              <dd className="mt-0.5 text-sm font-medium text-brand-dark">
-                {school.name}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[12px] text-zinc-400">Code</dt>
-              <dd className="mt-0.5 font-mono text-sm text-brand-dark">
-                {school.code}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[12px] text-zinc-400">Email</dt>
-              <dd className="mt-0.5 text-sm text-zinc-600">{school.email}</dd>
-            </div>
-            {school.phoneNumber && (
-              <div>
-                <dt className="text-[12px] text-zinc-400">Phone</dt>
-                <dd className="mt-0.5 text-sm text-zinc-600">
-                  {school.phoneNumber}
-                </dd>
-              </div>
-            )}
-            <div className="sm:col-span-2">
-              <dt className="text-[12px] text-zinc-400">Location</dt>
-              <dd className="mt-0.5 text-sm text-zinc-600">
-                {[school.address, school.city, school.province, school.country]
-                  .filter(Boolean)
-                  .join(", ")}
-              </dd>
-            </div>
-          </dl>
-        </section>
-      )}
+          {school && (
+            <section className="border-y border-border py-5">
+              <p className="text-[12px] font-medium text-muted-foreground">
+                School
+              </p>
+              <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-[12px] text-muted-foreground">Name</dt>
+                  <dd className="mt-0.5 text-sm font-medium text-brand-dark">
+                    {school.name}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[12px] text-zinc-400">Code</dt>
+                  <dd className="mt-0.5 font-mono text-sm text-brand-dark">
+                    {school.code}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[12px] text-zinc-400">Email</dt>
+                  <dd className="mt-0.5 text-sm text-zinc-600">{school.email}</dd>
+                </div>
+                {school.phoneNumber && (
+                  <div>
+                    <dt className="text-[12px] text-zinc-400">Phone</dt>
+                    <dd className="mt-0.5 text-sm text-zinc-600">
+                      {school.phoneNumber}
+                    </dd>
+                  </div>
+                )}
+                <div className="sm:col-span-2">
+                  <dt className="text-[12px] text-zinc-400">Location</dt>
+                  <dd className="mt-0.5 text-sm text-zinc-600">
+                    {[school.address, school.city, school.province, school.country]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          )}
 
-      <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="subjectId" className="text-[13px] text-zinc-600">
             Subject
@@ -319,6 +340,8 @@ export default function NewClassPage() {
           </ButtonLink>
         </div>
       </form>
+        </>
+      )}
     </div>
   );
 }

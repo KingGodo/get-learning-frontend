@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
+import { useSchoolSetupCounts } from "@/hooks/use-school-setup";
 import { cn } from "@/lib/utils";
 
 type StatusFilter = "ALL" | "ACTIVE" | "ARCHIVED";
@@ -41,6 +42,8 @@ export default function ClassesPage() {
   const { user, refreshUser } = useAuth();
   const isStudent = user?.role === "STUDENT";
   const canManage = user?.role === "SCHOOL_ADMIN" || user?.role === "ADMIN";
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+  const { counts: setupCounts } = useSchoolSetupCounts(isSchoolAdmin);
 
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,12 +163,16 @@ export default function ClassesPage() {
   const rangeStart =
     totalFiltered === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(currentPage * PAGE_SIZE, totalFiltered);
+  const needsSubjectFirst =
+    isSchoolAdmin && (setupCounts ? setupCounts.subjects === 0 : false);
 
   const description = isStudent
     ? "Join with a code or open a class you are enrolled in."
     : user?.role === "TEACHER"
       ? "Classes allocated to you by your school admin."
-      : "Create and manage classes for your school.";
+      : needsSubjectFirst
+        ? "Add a subject first — a class belongs to one subject."
+        : "Create and manage classes for your school.";
 
   return (
     <div className="flex min-h-[calc(100svh-8.5rem)] flex-col gap-6">
@@ -179,10 +186,17 @@ export default function ClassesPage() {
         }
         actions={
           canManage ? (
-            <ButtonLink href="/classes/new" size="sm">
-              <Plus className="size-3.5" />
-              New class
-            </ButtonLink>
+            needsSubjectFirst ? (
+              <ButtonLink href="/subjects/new" size="sm">
+                <Plus className="size-3.5" />
+                Add subject
+              </ButtonLink>
+            ) : (
+              <ButtonLink href="/classes/new" size="sm">
+                <Plus className="size-3.5" />
+                New class
+              </ButtonLink>
+            )
           ) : undefined
         }
       />
@@ -293,14 +307,23 @@ export default function ClassesPage() {
                 ? "Ask your teacher for a class code, then join from the form above."
                 : user?.role === "TEACHER"
                   ? "Your school admin will allocate classes to your account."
-                  : "Create your first class to invite students and publish assignments."
+                  : needsSubjectFirst
+                    ? "Add a subject first, then create a class under it."
+                    : "Create a class under a subject, then add a teacher and assign them to it."
             }
             action={
               canManage ? (
-                <ButtonLink href="/classes/new" size="sm">
-                  <Plus className="size-3.5" />
-                  New class
-                </ButtonLink>
+                needsSubjectFirst ? (
+                  <ButtonLink href="/subjects/new" size="sm">
+                    <Plus className="size-3.5" />
+                    Add subject
+                  </ButtonLink>
+                ) : (
+                  <ButtonLink href="/classes/new" size="sm">
+                    <Plus className="size-3.5" />
+                    New class
+                  </ButtonLink>
+                )
               ) : undefined
             }
           />

@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { GenderSelect } from "@/components/auth/registration-fields";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CredentialsPanel } from "@/components/users/credentials-panel";
+import { OneOffPasswordField } from "@/components/users/one-off-password-field";
 import { schoolsApi } from "@/lib/api";
 import { toastFromError } from "@/lib/toast";
 import type { IssuedCredentials, School } from "@/lib/types";
@@ -46,6 +47,7 @@ export default function NewSchoolPage() {
     adminEmail: "",
     adminPhoneNumber: "",
     adminGender: "PREFER_NOT_TO_SAY",
+    adminPassword: "",
   });
 
   useEffect(() => {
@@ -78,6 +80,9 @@ export default function NewSchoolPage() {
           email: form.adminEmail,
           phoneNumber: form.adminPhoneNumber,
           gender: form.adminGender,
+          ...(form.adminPassword.trim()
+            ? { password: form.adminPassword.trim() }
+            : {}),
         },
       });
       setCreated({
@@ -148,7 +153,7 @@ export default function NewSchoolPage() {
         </Link>
         <PageHeader
           title="Create a school"
-          description="Add the school and its school admin account. A temporary password is generated automatically."
+          description="Add the school and its school admin account. Set a one-time password or leave it blank to generate one."
           className="mt-4 pb-0"
         />
       </div>
@@ -417,6 +422,12 @@ export default function NewSchoolPage() {
             id="adminGender"
             value={form.adminGender}
             onChange={(value) => setForm((f) => ({ ...f, adminGender: value }))}
+          />
+
+          <OneOffPasswordField
+            id="adminPassword"
+            value={form.adminPassword}
+            onChange={(adminPassword) => setForm((f) => ({ ...f, adminPassword }))}
           />
         </section>
 

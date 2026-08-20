@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, ChevronDown, Search } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { subjectsApi } from "@/lib/api";
-import { toastFromError } from "@/lib/toast";
+import { toast, toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Input } from "@/components/ui/input";
@@ -78,7 +78,9 @@ export default function NewSubjectPage() {
   const { user } = useAuth();
   const router = useRouter();
   const canManage = user?.role === "SCHOOL_ADMIN" || user?.role === "ADMIN";
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
   const [pending, setPending] = useState(false);
+  const [existingCount, setExistingCount] = useState<number | null>(null);
   const [form, setForm] = useState({ name: "", code: "", description: "" });
 
   const [open, setOpen] = useState(false);
@@ -88,6 +90,22 @@ export default function NewSubjectPage() {
   useEffect(() => {
     if (user && !canManage) router.replace("/subjects");
   }, [user, canManage, router]);
+
+  useEffect(() => {
+    if (!canManage) return;
+    let cancelled = false;
+    subjectsApi
+      .list()
+      .then((rows) => {
+        if (!cancelled) setExistingCount(rows.length);
+      })
+      .catch(() => {
+        if (!cancelled) setExistingCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [canManage]);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -124,7 +142,17 @@ export default function NewSubjectPage() {
         code: form.code.trim().toUpperCase(),
         description: form.description || undefined,
       });
-      router.push("/subjects");
+      const firstSubject = (existingCount ?? 0) === 0;
+      if (isSchoolAdmin && firstSubject) {
+        toast.success(
+          "Subject created",
+          "Next: create a class under this subject.",
+        );
+        router.push("/classes/new");
+      } else {
+        toast.success("Subject created");
+        router.push("/subjects");
+      }
     } catch (err) {
       toastFromError(err, "Could not create");
       setPending(false);
@@ -148,7 +176,11 @@ export default function NewSubjectPage() {
         </Link>
         <PageHeader
           title="Add a subject"
-          description="Pick from common subjects or type your own. Assign subjects to teachers when you add or edit them."
+          description={
+            isSchoolAdmin
+              ? "Pick from common subjects or type your own. After this, create a class under the subject."
+              : "Pick from common subjects or type your own. Assign subjects to teachers when you add or edit them."
+          }
           className="mt-4 pb-0"
         />
       </div>

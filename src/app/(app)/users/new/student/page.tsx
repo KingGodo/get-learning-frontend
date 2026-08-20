@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { GenderSelect } from "@/components/auth/registration-fields";
 import { useAuth } from "@/components/providers/auth-provider";
 import { CredentialsPanel } from "@/components/users/credentials-panel";
+import { OneOffPasswordField } from "@/components/users/one-off-password-field";
 import { usersApi } from "@/lib/api";
 import { toastFromError } from "@/lib/toast";
 import type { IssuedCredentials } from "@/lib/types";
@@ -38,6 +39,7 @@ export default function NewStudentPage() {
     email: "",
     phoneNumber: "",
     gender: "PREFER_NOT_TO_SAY",
+    password: "",
     guardianName: "",
     guardianPhone: "",
     guardianEmail: "",
@@ -68,6 +70,7 @@ export default function NewStudentPage() {
         email: form.email,
         phoneNumber: form.phoneNumber,
         gender: form.gender,
+        ...(form.password.trim() ? { password: form.password.trim() } : {}),
         guardianName: form.guardianName,
         guardianPhone: form.guardianPhone,
         guardianEmail: form.guardianEmail || undefined,
@@ -117,6 +120,7 @@ export default function NewStudentPage() {
                     email: "",
                     phoneNumber: "",
                     gender: "PREFER_NOT_TO_SAY",
+                    password: "",
                     guardianName: "",
                     guardianPhone: "",
                     guardianEmail: "",
@@ -152,7 +156,7 @@ export default function NewStudentPage() {
         </Link>
         <PageHeader
           title="Add student"
-          description="Creates an account for your school and issues a temporary password."
+          description="Creates an account for your school. Set a one-time password or leave it blank to generate one."
           className="mt-4 pb-0"
         />
       </div>
@@ -237,6 +241,12 @@ export default function NewStudentPage() {
         <GenderSelect
           value={form.gender}
           onChange={(value) => setForm((f) => ({ ...f, gender: value }))}
+        />
+
+        <OneOffPasswordField
+          id="password"
+          value={form.password}
+          onChange={(password) => setForm((f) => ({ ...f, password }))}
         />
 
         <div className="border-t border-border pt-4">
