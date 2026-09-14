@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -8,6 +8,7 @@ import {
   BookOpen,
   ClipboardCheck,
   ClipboardList,
+  Copy,
   Library,
   Users,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import { useDashboard } from "@/hooks/use-dashboard";
 import type {
   AdminDashboard,
   Dashboard,
+  ParentDashboard,
   SchoolAdminDashboard,
   StudentDashboard,
   TeacherDashboard,
@@ -25,6 +27,8 @@ import { ButtonLink } from "@/components/ui/button-link";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { SchoolOrderCard } from "@/components/school/school-setup-guide";
 import { APP_NAME } from "@/lib/brand";
+import { copyToClipboard } from "@/lib/copy";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 function isAdminDash(d: Dashboard): d is AdminDashboard {
@@ -32,11 +36,15 @@ function isAdminDash(d: Dashboard): d is AdminDashboard {
 }
 
 function isSchoolAdminDash(d: Dashboard): d is SchoolAdminDashboard {
-  return d.role === "SCHOOL_ADMIN";
+  return d.role === "SCHOOL_ADMIN" || d.role === "HEADMASTER";
 }
 
 function isTeacherDash(d: Dashboard): d is TeacherDashboard {
   return d.role === "TEACHER";
+}
+
+function isParentDash(d: Dashboard): d is ParentDashboard {
+  return d.role === "PARENT";
 }
 
 function formatDue(date: string) {
@@ -352,6 +360,10 @@ export default function DashboardPage() {
     return <TeacherDashboardView data={data} />;
   }
 
+  if (isParentDash(data)) {
+    return <ParentDashboardView name={user.firstName} data={data} />;
+  }
+
   return <StudentDashboardView userName={user.firstName} data={data} />;
 }
 
@@ -455,7 +467,7 @@ function AdminDashboardView({
                         {school.status
                           ? school.status.charAt(0) +
                             school.status.slice(1).toLowerCase()
-                          : "—"}
+                          : "None"}
                       </StatusBadge>
                     </td>
                     <td className="px-4 py-3.5 text-right tabular-nums text-muted-foreground">
@@ -487,7 +499,7 @@ function AdminDashboardView({
                 firstName={t.user.firstName}
                 lastName={t.user.lastName}
                 meta={t.user.email}
-                trailing={t.user.school?.name ?? "—"}
+                trailing={t.user.school?.name ?? "None"}
               />
             ))}
           </ul>
@@ -505,6 +517,7 @@ function SchoolAdminDashboardView({
   data: SchoolAdminDashboard;
 }) {
   const greet = greetingForHour();
+  const isHeadmaster = data.role === "HEADMASTER";
   const metrics = [
     { label: "Teachers", value: data.totalTeachers, href: "/users" },
     { label: "Students", value: data.totalStudents, href: "/users" },
@@ -519,22 +532,38 @@ function SchoolAdminDashboardView({
       <DashHero
         eyebrow={data.school?.name ?? "School"}
         title={`${greet}, ${name}`}
-        description="Set up subjects and classes, then assign them when you add teachers."
+        description={
+          isHeadmaster
+            ? "School wide view of people, classes, assignments, and work still waiting."
+            : "Set up subjects and classes, then assign them when you add teachers."
+        }
         actions={
-          <>
-            <ButtonLink href="/users/new/teacher" size="sm">
-              Add teacher
-            </ButtonLink>
-            <ButtonLink href="/users/new/student" variant="outline" size="sm">
-              Add student
-            </ButtonLink>
-          </>
+          isHeadmaster ? (
+            <>
+              <ButtonLink href="/submissions" size="sm">
+                Submissions
+              </ButtonLink>
+              <ButtonLink href="/users" variant="outline" size="sm">
+                People
+              </ButtonLink>
+            </>
+          ) : (
+            <>
+              <ButtonLink href="/users/new/teacher" size="sm">
+                Add teacher
+              </ButtonLink>
+              <ButtonLink href="/users/new/student" variant="outline" size="sm">
+                Add student
+              </ButtonLink>
+            </>
+          )
         }
       />
 
-      {data.totalSubjects === 0 ||
-      data.totalClasses === 0 ||
-      data.totalTeachers === 0 ? (
+      {!isHeadmaster &&
+      (data.totalSubjects === 0 ||
+        data.totalClasses === 0 ||
+        data.totalTeachers === 0) ? (
         <SchoolOrderCard
           action={
             needsSetup ? (
@@ -573,10 +602,10 @@ function SchoolAdminDashboardView({
           description="Teachers and students"
         />
         <QuickAction
-          href="/users/new/teacher"
+          href={isHeadmaster ? "/submissions" : "/users/new/teacher"}
           icon={ClipboardList}
-          title="Assign teacher"
-          description="Subjects and classes"
+          title={isHeadmaster ? "Submissions" : "Assign teacher"}
+          description={isHeadmaster ? "Work across the school" : "Subjects and classes"}
         />
       </div>
 
@@ -586,7 +615,7 @@ function SchoolAdminDashboardView({
           action={<SectionLink href="/users">All people</SectionLink>}
         >
           {data.recentTeachers.length === 0 ? (
-            <EmptyRow message="No teachers yet — add one to get started." />
+            <EmptyRow message="No teachers yet. Add one to get started." />
           ) : (
             <ul>
               {data.recentTeachers.map((t) => (
@@ -631,6 +660,145 @@ function SchoolAdminDashboardView({
   );
 }
 
+function ParentDashboardView({
+  name,
+  data,
+}: {
+  name: string;
+  data: ParentDashboard;
+}) {
+  const greet = greetingForHour();
+  const classCount = data.children.reduce((sum, child) => sum + child.classes.length, 0);
+
+  return (
+    <div className="space-y-6">
+      <DashHero
+        eyebrow={data.school?.name ?? "Family"}
+        title={`${greet}, ${name}`}
+        description="See classes, due work, and grades for your children."
+        actions={
+          <>
+            <ButtonLink href="/assignments" size="sm">
+              Assignments
+            </ButtonLink>
+            <ButtonLink href="/submissions" variant="outline" size="sm">
+              Submissions
+            </ButtonLink>
+          </>
+        }
+      />
+
+      <MetricStrip
+        items={[
+          { label: "Children", value: data.children.length },
+          { label: "Classes", value: classCount, href: "/classes" },
+          {
+            label: "Due soon",
+            value: data.upcomingDeadlines.length,
+            href: "/assignments",
+          },
+          {
+            label: "Recent work",
+            value: data.recentSubmissions.length,
+            href: "/submissions",
+          },
+        ]}
+      />
+
+      <Section title="Children" description="Students linked to this account">
+        {data.children.length === 0 ? (
+          <EmptyRow message="No students are linked yet. Ask the school admin to connect them." />
+        ) : (
+          <ul>
+            {data.children.map((child) => (
+              <PersonRow
+                key={child.id}
+                firstName={child.firstName}
+                lastName={child.lastName}
+                meta={
+                  child.classes.length
+                    ? child.classes.map((c) => c.name).join(", ")
+                    : "No classes yet"
+                }
+                trailing={
+                  <span className="font-mono">{child.studentNumber}</span>
+                }
+              />
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Section
+          title="Upcoming work"
+          action={<SectionLink href="/assignments">All assignments</SectionLink>}
+        >
+          {data.upcomingDeadlines.length === 0 ? (
+            <EmptyRow message="Nothing due right now." />
+          ) : (
+            <ul>
+              {data.upcomingDeadlines.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5 last:border-b-0"
+                >
+                  <div className="min-w-0">
+                    <Link
+                      href={`/assignments/${a.id}`}
+                      className="block truncate text-[13px] font-medium text-ink hover:text-brand"
+                    >
+                      {a.title}
+                    </Link>
+                    <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+                      {a.class?.name ?? "Class"}
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-mono text-[12px] text-muted-foreground">
+                    {formatDue(a.dueDate)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+
+        <Section
+          title="Recent submissions"
+          action={<SectionLink href="/submissions">All submissions</SectionLink>}
+        >
+          {data.recentSubmissions.length === 0 ? (
+            <EmptyRow message="No submissions yet." />
+          ) : (
+            <ul>
+              {data.recentSubmissions.map((s) => (
+                <li
+                  key={s.id}
+                  className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5 last:border-b-0"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-medium text-ink">
+                      {s.assignment?.title ?? "Assignment"}
+                    </p>
+                    <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+                      {s.student?.user
+                        ? `${s.student.user.firstName} ${s.student.user.lastName}`
+                        : "Student"}
+                    </p>
+                  </div>
+                  <StatusBadge tone={statusTone(s.status)}>
+                    {s.score != null ? String(s.score) : s.status}
+                  </StatusBadge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+      </div>
+    </div>
+  );
+}
+
 function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
   const greet = greetingForHour();
   const needsAllocation =
@@ -650,6 +818,17 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
       ),
     [data.recentSubmissions],
   );
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  async function copyCode(code: string) {
+    try {
+      await copyToClipboard(code);
+      setCopiedCode(code);
+      window.setTimeout(() => setCopiedCode(null), 1600);
+    } catch {
+      toast.error("Could not copy code");
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -693,7 +872,7 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
       {data.classes.length > 0 && (
         <Section
           title="Your classes"
-          description="Who is enrolled — open a class for the full roster"
+          description="Who is enrolled. Open a class for the full roster"
           action={<SectionLink href="/classes">All classes</SectionLink>}
         >
           <ul>
@@ -718,15 +897,29 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
                       {cls.name}
                     </Link>
                     <p className="mt-0.5 text-[12px] text-muted-foreground">
-                      {cls.subject?.name ?? "Subject"} · {total} student
+                      {cls.subject
+                        ? `${cls.subject.name} (${cls.subject.code})`
+                        : "Subject"}{" "}
+                      · {total} student
                       {total === 1 ? "" : "s"}
                     </p>
                     {total === 0 ? (
                       <p className="mt-2 text-[13px] text-muted-foreground">
-                        No students yet — share code{" "}
-                        <span className="font-mono text-ink">
+                        No students yet. Share code{" "}
+                        <button
+                          type="button"
+                          onClick={() => void copyCode(cls.classCode)}
+                          className="inline-flex items-center gap-1 font-mono text-ink hover:text-brand"
+                          title="Copy class code"
+                        >
                           {cls.classCode}
-                        </span>
+                          <Copy className="size-3 opacity-50" />
+                          {copiedCode === cls.classCode ? (
+                            <span className="font-sans text-[11px] text-brand">
+                              Copied
+                            </span>
+                          ) : null}
+                        </button>
                       </p>
                     ) : (
                       <p className="mt-2 text-[13px] text-muted-foreground">
@@ -924,7 +1117,7 @@ function StudentDashboardView({
           action={<SectionLink href="/assignments">See all</SectionLink>}
         >
           {data.upcomingDeadlines.length === 0 ? (
-            <EmptyRow message="You're caught up — nothing waiting." />
+            <EmptyRow message="You're caught up. Nothing waiting." />
           ) : (
             <ul>
               {data.upcomingDeadlines.map((a) => {
@@ -985,7 +1178,7 @@ function StudentDashboardView({
 
         <Section
           title="Already submitted"
-          description="Recent turn-ins and scores"
+          description="Recent turn ins and scores"
           action={<SectionLink href="/submissions">See all</SectionLink>}
         >
           {data.recentSubmissions.length === 0 ? (
@@ -1001,7 +1194,7 @@ function StudentDashboardView({
                     className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-semibold text-slate-600"
                     aria-hidden
                   >
-                    {s.score != null ? String(s.score) : "—"}
+                    {s.score != null ? String(s.score) : "None"}
                   </span>
                   <div className="min-w-0 flex-1">
                     <Link

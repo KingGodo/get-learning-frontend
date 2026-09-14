@@ -1,9 +1,26 @@
-export type UserRole = "ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT";
+export type UserRole =
+  | "ADMIN"
+  | "SCHOOL_ADMIN"
+  | "HEADMASTER"
+  | "TEACHER"
+  | "STUDENT"
+  | "PARENT";
 
 export type IssuedCredentials = {
   email: string;
   temporaryPassword: string;
   mustChangePassword: boolean;
+};
+
+export type ParentProfile = {
+  id: string;
+  children?: Array<{
+    student: {
+      id: string;
+      studentNumber: string;
+      user: { firstName: string; lastName: string; email?: string };
+    };
+  }>;
 };
 
 export type User = {
@@ -21,6 +38,7 @@ export type User = {
   status?: string;
   teacher?: Teacher | null;
   student?: Student | null;
+  parent?: ParentProfile | null;
   school?: School | null;
 };
 
@@ -131,6 +149,7 @@ export type AdminUserDetail = AdminUserSummary & {
         _count?: { submissions: number };
       })
     | null;
+  parent?: ParentProfile | null;
 };
 
 export type AdminSchoolDetail = School & {
@@ -380,7 +399,7 @@ export type AdminDashboard = {
 };
 
 export type SchoolAdminDashboard = {
-  role: "SCHOOL_ADMIN";
+  role: "SCHOOL_ADMIN" | "HEADMASTER";
   profile: {
     firstName: string;
     lastName: string;
@@ -417,11 +436,107 @@ export type SchoolAdminDashboard = {
   upcomingDeadlines: Assignment[];
 };
 
+export type ParentDashboard = {
+  role: "PARENT";
+  profile: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+  };
+  school: School | null;
+  children: Array<{
+    id: string;
+    studentNumber: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    classes: Array<{
+      id: string;
+      name: string;
+      subject: { name: string; code: string } | null;
+    }>;
+  }>;
+  upcomingDeadlines: Assignment[];
+  recentSubmissions: Submission[];
+};
+
 export type Dashboard =
   | AdminDashboard
   | SchoolAdminDashboard
   | TeacherDashboard
-  | StudentDashboard;
+  | StudentDashboard
+  | ParentDashboard;
+
+export type AuditLogEntry = {
+  id: string;
+  schoolId: string | null;
+  actorUserId: string | null;
+  actorRole: string;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  summary: string;
+  metadata?: unknown;
+  ip: string | null;
+  createdAt: string;
+  actor: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: UserRole;
+  } | null;
+  school: { id: string; name: string; code: string } | null;
+};
+
+export type AuditListResult = {
+  items: AuditLogEntry[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+export type TeacherAnalytics = {
+  overview: {
+    assignmentsPublished: number;
+    assignmentsTotal: number;
+    submissionsReceived: number;
+    gradedCount: number;
+    pendingGrading: number;
+    averageScorePercent: number | null;
+    onTimeRatePercent: number;
+    lateRatePercent: number;
+  };
+  perClass: Array<{
+    id: string;
+    name: string;
+    academicYear: number;
+    semester: number;
+    subject: { id: string; name: string; code: string } | null;
+    studentCount: number;
+    assignmentCount: number;
+    submissionCount: number;
+    submissionRatePercent: number;
+    averageScorePercent: number | null;
+    pendingGrading: number;
+  }>;
+  recentAssignments: Array<{
+    id: string;
+    title: string;
+    status: Assignment["status"];
+    dueDate: string;
+    class: { id: string; name: string };
+    totalMarks: number;
+    submittedCount: number;
+    studentCount: number;
+    submissionRatePercent: number;
+    averageScorePercent: number | null;
+    overdueUnsubmitted: number;
+  }>;
+  classCount: number;
+};
 
 export type ApiError = {
   success: false;

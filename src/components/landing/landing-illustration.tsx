@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-/** Illustration paths under /public/landing — keep the artwork, change the frame. */
+/** Illustration paths under /public/landing. Keep the artwork, change the frame. */
 export const landingIllustrations = {
   hero: "/landing/undraw_online-learning_tgmv.svg",
   teacher: "/landing/undraw_team-assignment_lzot.svg",

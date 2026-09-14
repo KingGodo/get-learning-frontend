@@ -31,7 +31,7 @@ export function SiteFooter() {
           <div className="sm:col-span-2 lg:col-span-1">
             <BrandMark href="/" size="sm" />
             <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-ink/55">
-              Classes, assignments, and feedback — the school day, in one
+              Classes, assignments, and feedback: the school day, in one
               workspace.
             </p>
           </div>

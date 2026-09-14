@@ -7,12 +7,14 @@ import {
   Bell,
   BookOpen,
   Building2,
+  ChartColumn,
   ClipboardCheck,
   ClipboardList,
   LayoutDashboard,
   Library,
   LogOut,
   Menu,
+  ScrollText,
   UserRound,
   Users,
 } from "lucide-react";
@@ -55,6 +57,7 @@ const adminNavGroups: NavGroup[] = [
     items: [
       { href: "/users", label: "Users", icon: Users },
       { href: "/school", label: "Schools", icon: Building2 },
+      { href: "/audit", label: "Audit", icon: ScrollText },
     ],
   },
   {
@@ -79,6 +82,33 @@ const schoolAdminNavGroups: NavGroup[] = [
       { href: "/users", label: "Users", icon: Users },
       { href: "/assignments", label: "Assignments", icon: ClipboardList },
       { href: "/school", label: "School", icon: Building2 },
+      { href: "/audit", label: "Audit", icon: ScrollText },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { href: "/notifications", label: "Notifications", icon: Bell },
+      { href: "/profile", label: "Profile", icon: UserRound },
+    ],
+  },
+];
+
+const headmasterNavGroups: NavGroup[] = [
+  {
+    label: "Main",
+    items: [{ href: "/dashboard", label: "Overview", icon: LayoutDashboard }],
+  },
+  {
+    label: "School",
+    items: [
+      { href: "/subjects", label: "Subjects", icon: Library },
+      { href: "/classes", label: "Classes", icon: BookOpen },
+      { href: "/users", label: "People", icon: Users },
+      { href: "/assignments", label: "Assignments", icon: ClipboardList },
+      { href: "/submissions", label: "Submissions", icon: ClipboardCheck },
+      { href: "/school", label: "School", icon: Building2 },
+      { href: "/audit", label: "Audit", icon: ScrollText },
     ],
   },
   {
@@ -102,6 +132,7 @@ const teacherNavGroups: NavGroup[] = [
       { href: "/classes", label: "Classes", icon: BookOpen },
       { href: "/assignments", label: "Assignments", icon: ClipboardList },
       { href: "/submissions", label: "Submissions", icon: ClipboardCheck },
+      { href: "/analytics", label: "Analytics", icon: ChartColumn },
     ],
   },
   {
@@ -139,10 +170,34 @@ const studentNavGroups: NavGroup[] = [
   },
 ];
 
+const parentNavGroups: NavGroup[] = [
+  {
+    label: "Main",
+    items: [{ href: "/dashboard", label: "Overview", icon: LayoutDashboard }],
+  },
+  {
+    label: "Family",
+    items: [
+      { href: "/classes", label: "Classes", icon: BookOpen },
+      { href: "/assignments", label: "Assignments", icon: ClipboardList },
+      { href: "/submissions", label: "Submissions", icon: ClipboardCheck },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { href: "/notifications", label: "Notifications", icon: Bell },
+      { href: "/profile", label: "Profile", icon: UserRound },
+    ],
+  },
+];
+
 function navForRole(role: UserRole): NavGroup[] {
   if (role === "ADMIN") return adminNavGroups;
   if (role === "SCHOOL_ADMIN") return schoolAdminNavGroups;
+  if (role === "HEADMASTER") return headmasterNavGroups;
   if (role === "TEACHER") return teacherNavGroups;
+  if (role === "PARENT") return parentNavGroups;
   return studentNavGroups;
 }
 

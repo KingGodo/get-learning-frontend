@@ -66,7 +66,7 @@ const steps = [
 const faqs = [
   {
     q: "How do I get an account?",
-    a: "Accounts are created by your school administrator. Ask them for a login — then sign in here. Self-serve public signup is not how schools join.",
+    a: "Accounts are created by your school administrator. Ask them for a login, then sign in here. Self serve public signup is not how schools join.",
   },
   {
     q: "Can students register themselves?",
@@ -75,6 +75,14 @@ const faqs = [
   {
     q: "What can teachers do?",
     a: "Create subjects and classes, publish assignments with files, collect submissions, grade work, and send feedback.",
+  },
+  {
+    q: "What does the headmaster see?",
+    a: "A school wide view of people, classes, assignments, and submissions. The school admin still creates accounts and sets up the school.",
+  },
+  {
+    q: "How do parents get access?",
+    a: "The school admin creates a parent account and links it to one or more students. Parents can then follow classes, due work, and grades.",
   },
   {
     q: "Is this for one school or many?",
@@ -97,7 +105,7 @@ export function LandingPillars() {
               The workflow. Nothing extra.
             </h2>
             <p className="mt-4 max-w-md text-[15px] leading-relaxed text-ink/55">
-              {APP_NAME} keeps the pieces a class actually touches — and leaves
+              {APP_NAME} keeps the pieces a class actually touches, and leaves
               the rest out.
             </p>
           </motion.div>
@@ -201,7 +209,7 @@ export function LandingPillars() {
               Who it’s for
             </p>
             <h2 className="mt-3 font-display text-[2rem] font-semibold leading-[1.1] tracking-[-0.02em] text-ink md:text-[2.5rem]">
-              Two roles. One shared desk.
+              Teachers, students, headmasters, and parents.
             </h2>
           </motion.div>
 
@@ -227,8 +235,8 @@ export function LandingPillars() {
                   Time on teaching, not on hunting.
                 </h3>
                 <p className="mt-3 text-[14px] leading-relaxed text-ink/55">
-                  Subjects, classes, assignments, submissions, and notifications
-                  — structured so the next action is obvious.
+                  Subjects, classes, assignments, submissions, and notifications,
+                  structured so the next action is obvious.
                 </p>
                 <Link
                   href="/register"

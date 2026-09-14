@@ -61,7 +61,7 @@
 
 :root {
   /*
-    GetLeaning — Sophistication & Trust
+    GetLeaning: Sophistication & Trust
     Cool slate foundation, borders-only depth, one accent for meaning.
   */
   --brand: #2563eb;
@@ -114,7 +114,7 @@
   --surface-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04);
 }
 
-/* Role dashboards — accent only; chrome stays light */
+/* Role dashboards: accent only; chrome stays light */
 [data-role-theme="admin"] {
   --brand: #1f2937;
   --brand-hover: #111827;
@@ -191,6 +191,44 @@
   --sidebar-ring: var(--brand);
 }
 
+[data-role-theme="headmaster"] {
+  --brand: #6b21a3;
+  --brand-hover: #7e22ce;
+  --brand-pressed: #581c87;
+  --brand-dark: #4c1d95;
+  --brand-dark-hover: #3b0764;
+  --brand-light: #faf5ff;
+  --brand-muted: #f3e8ff;
+  --page-bg: #f8fafc;
+  --ink: #111827;
+  --primary: var(--brand);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: #7e22ce;
+  --chart-5: #f3e8ff;
+  --sidebar-primary: var(--brand);
+  --sidebar-ring: var(--brand);
+}
+
+[data-role-theme="parent"] {
+  --brand: #3f6212;
+  --brand-hover: #4d7c0f;
+  --brand-pressed: #365314;
+  --brand-dark: #365314;
+  --brand-dark-hover: #1a2e05;
+  --brand-light: #f7fee7;
+  --brand-muted: #ecfccb;
+  --page-bg: #f8fafc;
+  --ink: #111827;
+  --primary: var(--brand);
+  --ring: var(--brand);
+  --chart-1: var(--brand);
+  --chart-2: #4d7c0f;
+  --chart-5: #ecfccb;
+  --sidebar-primary: var(--brand);
+  --sidebar-ring: var(--brand);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -221,7 +259,7 @@
   }
 }
 
-/* Branded Sonner toasts — keep highly visible over app chrome */
+/* Branded Sonner toasts: keep highly visible over app chrome */
 [data-sonner-toaster] {
   z-index: 999999 !important;
   pointer-events: none;

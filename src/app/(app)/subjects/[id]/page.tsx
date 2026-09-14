@@ -280,7 +280,7 @@ export default function SubjectDetailPage() {
                             : "text-muted-foreground",
                         )}
                       >
-                        {s.phoneNumber || "—"}
+                        {s.phoneNumber || "None"}
                       </td>
                       <td className="px-5 py-3.5 align-middle text-[13px]">
                         <div className="flex flex-wrap gap-1.5">

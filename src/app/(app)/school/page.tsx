@@ -201,7 +201,7 @@ function AdminSchoolsPage() {
                         {school.status
                           ? school.status.charAt(0) +
                             school.status.slice(1).toLowerCase()
-                          : "—"}
+                          : "None"}
                       </StatusBadge>
                     </td>
                     <td className="px-4 py-3.5 text-right tabular-nums text-zinc-600">
@@ -237,7 +237,7 @@ function ProfileField({
       <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </dt>
-      <dd className="mt-1 text-[13px] text-ink">{children ?? "—"}</dd>
+      <dd className="mt-1 text-[13px] text-ink">{children ?? "None"}</dd>
     </div>
   );
 }
@@ -356,7 +356,7 @@ function TeacherSchoolPage() {
         items={[
           { label: "Academic system", value: termSystemName(school.termSystem) },
           { label: `${termSystemName(school.termSystem)} / year`, value: school.termsPerYear ?? 3 },
-          { label: "Country", value: school.country || "—" },
+          { label: "Country", value: school.country || "None" },
         ]}
       />
 
@@ -366,13 +366,13 @@ function TeacherSchoolPage() {
           <h2 className="text-[12px] font-medium text-muted-foreground">Contact</h2>
           <dl className="mt-4 space-y-5">
             <ProfileField label="Email">{school.email}</ProfileField>
-            <ProfileField label="Phone">{school.phoneNumber || "—"}</ProfileField>
+            <ProfileField label="Phone">{school.phoneNumber || "None"}</ProfileField>
             <ProfileField label="Website">
               {school.website ? (
                 <a href={school.website} target="_blank" rel="noreferrer" className="text-brand-dark hover:underline">
                   {school.website.replace(/^https?:\/\//, "")}
                 </a>
-              ) : "—"}
+              ) : "None"}
             </ProfileField>
           </dl>
         </section>
@@ -380,10 +380,10 @@ function TeacherSchoolPage() {
         <section>
           <h2 className="text-[12px] font-medium text-muted-foreground">Location</h2>
           <dl className="mt-4 space-y-5">
-            <ProfileField label="Address">{school.address || "—"}</ProfileField>
+            <ProfileField label="Address">{school.address || "None"}</ProfileField>
             <ProfileField label="City">{school.city}</ProfileField>
             <ProfileField label="Province">{school.province}</ProfileField>
-            <ProfileField label="Country">{school.country || "—"}</ProfileField>
+            <ProfileField label="Country">{school.country || "None"}</ProfileField>
           </dl>
         </section>
       </div>

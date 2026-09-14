@@ -24,7 +24,7 @@ export function ListPagination({
     <div className="sticky bottom-0 z-10 mt-auto -mx-4 border-t border-border bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/90 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-[12px] text-zinc-400">
-          Showing {rangeStart}–{rangeEnd} of {total}
+          Showing {rangeStart} to {rangeEnd} of {total}
         </p>
         <div className="flex items-center gap-2">
           <Button

@@ -6,6 +6,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { authApi } from "@/lib/api";
 import { toast, toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +20,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { themeForRole } from "@/lib/theme";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import {
+  changeEmailSchema,
+  changePasswordSchema,
+  updateProfileSchema,
+} from "@/lib/validation/schemas";
 
 const fieldInput = "h-9 rounded-md border-border bg-white px-2.5 text-sm";
 
@@ -60,6 +72,9 @@ export default function ProfilePage() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [emailErrors, setEmailErrors] = useState<FieldErrors>({});
+  const [passwordErrors, setPasswordErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     if (!user) return;
@@ -100,36 +115,66 @@ export default function ProfilePage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const parsed = parseForm(updateProfileSchema, {
+      firstName: form.firstName,
+      middleName: form.middleName || null,
+      lastName: form.lastName,
+      phoneNumber: form.phoneNumber,
+      gender,
+      dateOfBirth: form.dateOfBirth || null,
+      ...(user!.role === "TEACHER" || user!.teacher
+        ? {
+            department: form.department || null,
+            qualification: form.qualification || null,
+            bio: form.bio || null,
+          }
+        : {}),
+      ...(user!.role === "STUDENT" || user!.student
+        ? {
+            guardianName: form.guardianName,
+            guardianPhone: form.guardianPhone,
+            guardianEmail: form.guardianEmail || null,
+            emergencyContact: form.emergencyContact || null,
+          }
+        : {}),
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
+      return;
+    }
+    setFieldErrors({});
     setPending(true);
     try {
       const payload: Record<string, unknown> = {
-        firstName: form.firstName,
-        middleName: form.middleName || null,
-        lastName: form.lastName,
-        phoneNumber: form.phoneNumber,
-        gender,
-        dateOfBirth: form.dateOfBirth
-          ? new Date(form.dateOfBirth).toISOString()
+        firstName: parsed.data.firstName,
+        middleName: parsed.data.middleName ?? null,
+        lastName: parsed.data.lastName,
+        phoneNumber: parsed.data.phoneNumber,
+        gender: parsed.data.gender,
+        dateOfBirth: parsed.data.dateOfBirth
+          ? new Date(parsed.data.dateOfBirth).toISOString()
           : null,
       };
 
       if (user!.role === "TEACHER" || user!.teacher) {
-        payload.department = form.department || null;
-        payload.qualification = form.qualification || null;
-        payload.bio = form.bio || null;
+        payload.department = parsed.data.department ?? null;
+        payload.qualification = parsed.data.qualification ?? null;
+        payload.bio = parsed.data.bio ?? null;
       }
 
       if (user!.role === "STUDENT" || user!.student) {
-        payload.guardianName = form.guardianName;
-        payload.guardianPhone = form.guardianPhone;
-        payload.guardianEmail = form.guardianEmail || null;
-        payload.emergencyContact = form.emergencyContact || null;
+        payload.guardianName = parsed.data.guardianName;
+        payload.guardianPhone = parsed.data.guardianPhone;
+        payload.guardianEmail = parsed.data.guardianEmail ?? null;
+        payload.emergencyContact = parsed.data.emergencyContact ?? null;
       }
 
       await authApi.updateProfile(payload);
       await refreshUser();
       toast.success("Profile saved");
     } catch (err) {
+      setFieldErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not save profile");
     } finally {
       setPending(false);
@@ -137,30 +182,29 @@ export default function ProfilePage() {
   }
 
   async function onChangeEmail() {
-    const nextEmail = emailForm.email.trim().toLowerCase();
-    if (!nextEmail) {
-      toast.error("Enter a new email address.");
+    const parsed = parseForm(changeEmailSchema, emailForm);
+    if (!parsed.ok) {
+      setEmailErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
       return;
     }
+    const nextEmail = parsed.data.email.trim().toLowerCase();
     if (nextEmail === user!.email.trim().toLowerCase()) {
       toast.error("That is already your email address.");
       return;
     }
-    if (!emailForm.currentPassword) {
-      toast.error("Enter your current password to change email.");
-      return;
-    }
-
+    setEmailErrors({});
     setEmailPending(true);
     try {
       await authApi.changeEmail({
         email: nextEmail,
-        currentPassword: emailForm.currentPassword,
+        currentPassword: parsed.data.currentPassword,
       });
       setEmailForm((prev) => ({ ...prev, currentPassword: "" }));
       await refreshUser();
       toast.success("Email updated", "Use this address the next time you sign in.");
     } catch (err) {
+      setEmailErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not update email");
     } finally {
       setEmailPending(false);
@@ -168,18 +212,20 @@ export default function ProfilePage() {
   }
 
   async function onChangePassword() {
-    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
-      toast.error("Enter your current password and new password.");
+    const parsed = parseForm(changePasswordSchema, passwordForm);
+    if (!parsed.ok) {
+      setPasswordErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
       return;
     }
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error("New passwords do not match.");
-      return;
-    }
-
+    setPasswordErrors({});
     setPasswordPending(true);
     try {
-      await authApi.changePassword(passwordForm);
+      await authApi.changePassword({
+        currentPassword: parsed.data.currentPassword,
+        newPassword: parsed.data.newPassword,
+        confirmPassword: parsed.data.confirmPassword,
+      });
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
@@ -188,6 +234,7 @@ export default function ProfilePage() {
       setPasswordVerified(false);
       toast.success("Password updated", "Use the new password the next time you sign in.");
     } catch (err) {
+      setPasswordErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not update password");
     } finally {
       setPasswordPending(false);
@@ -231,6 +278,7 @@ export default function ProfilePage() {
 
       <form onSubmit={onSubmit} className="relative space-y-8">
         {pending && <PageLoading overlay label="Saving profile…" />}
+        <FieldError message={firstFieldError(fieldErrors)} />
 
         <section className="space-y-3.5 border-y border-border py-6">
           <div>
@@ -406,7 +454,7 @@ export default function ProfilePage() {
 
       <section className="space-y-4 border-t border-border pt-8">
         <div>
-          <h2 className="text-sm font-semibold text-brand-dark">Sign-in</h2>
+          <h2 className="text-sm font-semibold text-brand-dark">Sign in</h2>
           <p className="mt-0.5 text-[12px] text-zinc-400">
             Change the email and password you use to log in. Current password is required.
           </p>
@@ -419,6 +467,7 @@ export default function ProfilePage() {
               Current: {user.email}
             </p>
           </div>
+          <FieldError message={firstFieldError(emailErrors)} />
           <div className="grid gap-3.5 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="accountEmail" className="text-[13px] text-zinc-600">
@@ -433,7 +482,9 @@ export default function ProfilePage() {
                   setEmailForm((p) => ({ ...p, email: e.target.value }))
                 }
                 className={fieldInput}
+                aria-invalid={Boolean(emailErrors.email)}
               />
+              <FieldError message={emailErrors.email} />
             </div>
             <div className="space-y-1.5">
               <Label
@@ -451,7 +502,9 @@ export default function ProfilePage() {
                   setEmailForm((p) => ({ ...p, currentPassword: e.target.value }))
                 }
                 className={fieldInput}
+                aria-invalid={Boolean(emailErrors.currentPassword)}
               />
+              <FieldError message={emailErrors.currentPassword} />
             </div>
           </div>
           <div className="flex justify-end">
@@ -473,6 +526,7 @@ export default function ProfilePage() {
               Enter your current password first, then set a new one.
             </p>
           </div>
+          <FieldError message={firstFieldError(passwordErrors)} />
           <div className="grid gap-3.5 sm:grid-cols-3">
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="currentPassword" className="text-[13px] text-zinc-600">
@@ -487,7 +541,9 @@ export default function ProfilePage() {
                   setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))
                 }
                 className={fieldInput}
+                aria-invalid={Boolean(passwordErrors.currentPassword)}
               />
+              <FieldError message={passwordErrors.currentPassword} />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[13px] text-zinc-600">Verify</Label>
@@ -518,7 +574,9 @@ export default function ProfilePage() {
                     setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))
                   }
                   className={fieldInput}
+                  aria-invalid={Boolean(passwordErrors.newPassword)}
                 />
+                <FieldError message={passwordErrors.newPassword} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="confirmPassword" className="text-[13px] text-zinc-600">
@@ -533,7 +591,9 @@ export default function ProfilePage() {
                     setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))
                   }
                   className={fieldInput}
+                  aria-invalid={Boolean(passwordErrors.confirmPassword)}
                 />
+                <FieldError message={passwordErrors.confirmPassword} />
               </div>
             </div>
           )}

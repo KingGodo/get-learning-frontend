@@ -5,11 +5,13 @@ import Link from "next/link";
 import { ChevronRight, Copy, Plus, Search } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, classesApi, setToken } from "@/lib/api";
+import { copyToClipboard } from "@/lib/copy";
 import { toast, toastFromError } from "@/lib/toast";
 import type { ClassRoom } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ListPagination } from "@/components/ui/list-pagination";
@@ -25,6 +27,13 @@ import {
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { useSchoolSetupCounts } from "@/hooks/use-school-setup";
 import { cn } from "@/lib/utils";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { joinClassSchema } from "@/lib/validation/schemas";
 
 type StatusFilter = "ALL" | "ACTIVE" | "ARCHIVED";
 type SortMode = "name" | "students" | "year";
@@ -53,6 +62,7 @@ export default function ClassesPage() {
   const [page, setPage] = useState(1);
   const [joinCode, setJoinCode] = useState("");
   const [joining, setJoining] = useState(false);
+  const [joinErrors, setJoinErrors] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -129,15 +139,25 @@ export default function ClassesPage() {
 
   async function joinClass(e: React.FormEvent) {
     e.preventDefault();
+    const parsed = parseForm(joinClassSchema, { classCode: joinCode });
+    if (!parsed.ok) {
+      setJoinErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the class code");
+      return;
+    }
+    setJoinErrors({});
     setJoining(true);
     try {
-      const result = await classesApi.join(joinCode.trim().toUpperCase());
+      const result = await classesApi.join(
+        parsed.data.classCode.trim().toUpperCase(),
+      );
       setToken(result.token);
       await refreshUser();
       setJoinCode("");
       setLoading(true);
       await load();
     } catch (err) {
+      setJoinErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not join");
     } finally {
       setJoining(false);
@@ -148,7 +168,7 @@ export default function ClassesPage() {
     e.preventDefault();
     e.stopPropagation();
     try {
-      await navigator.clipboard.writeText(code);
+      await copyToClipboard(code);
       setCopiedCode(code);
       window.setTimeout(() => setCopiedCode(null), 1600);
     } catch {
@@ -171,7 +191,7 @@ export default function ClassesPage() {
     : user?.role === "TEACHER"
       ? "Classes allocated to you by your school admin."
       : needsSubjectFirst
-        ? "Add a subject first — a class belongs to one subject."
+        ? "Add a subject first. A class belongs to one subject."
         : "Create and manage classes for your school.";
 
   return (
@@ -229,7 +249,9 @@ export default function ClassesPage() {
               placeholder="e.g. K3RKRBYC"
               className="h-9 rounded-md border-border bg-background font-mono text-sm uppercase shadow-none"
               required
+              aria-invalid={Boolean(joinErrors.classCode)}
             />
+            <FieldError message={joinErrors.classCode} />
           </div>
           <Button type="submit" disabled={joining} size="sm">
             {joining ? "Joining…" : "Join class"}
@@ -289,7 +311,7 @@ export default function ClassesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">Name A–Z</SelectItem>
+                <SelectItem value="name">Name A to Z</SelectItem>
                 <SelectItem value="students">Most students</SelectItem>
                 <SelectItem value="year">Newest year</SelectItem>
               </SelectContent>

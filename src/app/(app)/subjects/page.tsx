@@ -5,12 +5,14 @@ import Link from "next/link";
 import {
   BookOpen,
   ChevronRight,
+  Copy,
   Plus,
   Search,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, subjectsApi } from "@/lib/api";
-import { toastFromError } from "@/lib/toast";
+import { copyToClipboard } from "@/lib/copy";
+import { toast, toastFromError } from "@/lib/toast";
 import type { Subject } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -57,6 +59,7 @@ export default function SubjectsPage() {
   const [sortMode, setSortMode] = useState<SortMode>("name");
   const [page, setPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [confirmSubject, setConfirmSubject] = useState<Subject | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -121,6 +124,18 @@ export default function SubjectsPage() {
     setQuery("");
     setSortMode("name");
     setPage(1);
+  }
+
+  async function copyCode(code: string, e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await copyToClipboard(code);
+      setCopiedCode(code);
+      window.setTimeout(() => setCopiedCode(null), 1600);
+    } catch {
+      toast.error("Could not copy code");
+    }
   }
 
   async function onDeleteConfirm() {
@@ -203,8 +218,8 @@ export default function SubjectsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">Name A–Z</SelectItem>
-                <SelectItem value="code">Code A–Z</SelectItem>
+                <SelectItem value="name">Name A to Z</SelectItem>
+                <SelectItem value="code">Code A to Z</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -271,10 +286,21 @@ export default function SubjectsPage() {
                         </span>
                         <ChevronRight className="size-3.5 shrink-0 text-slate-300" />
                       </span>
-                      <span className="mt-1 inline-flex items-center gap-1.5 font-mono text-[12px] text-muted-foreground">
+                      <button
+                        type="button"
+                        onClick={(e) => void copyCode(s.code, e)}
+                        className="mt-1 inline-flex items-center gap-1.5 font-mono text-[12px] text-muted-foreground hover:text-brand"
+                        title="Copy subject code"
+                      >
                         <BookOpen className="size-3" strokeWidth={1.75} />
                         {s.code}
-                      </span>
+                        <Copy className="size-3 opacity-50" />
+                        {copiedCode === s.code ? (
+                          <span className="font-sans text-[11px] text-brand">
+                            Copied
+                          </span>
+                        ) : null}
+                      </button>
                       <p
                         className={cn(
                           "mt-2 line-clamp-2 text-[13px] leading-snug",
@@ -313,7 +339,7 @@ export default function SubjectsPage() {
               ))}
             </ul>
 
-            {/* Desktop table — shared column widths for header + body */}
+            {/* Desktop table. Shared column widths for header + body */}
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[640px] table-fixed border-collapse text-left">
                 <colgroup>
@@ -355,9 +381,20 @@ export default function SubjectsPage() {
                         </Link>
                       </td>
                       <td className="px-5 py-3.5 align-middle">
-                        <span className="inline-flex max-w-full truncate rounded-md border border-border bg-background px-2 py-1 font-mono text-[12px] font-medium text-ink tabular-nums">
-                          {s.code}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => void copyCode(s.code, e)}
+                          className="inline-flex max-w-full items-center gap-1.5 truncate rounded-md border border-border bg-background px-2 py-1 font-mono text-[12px] font-medium text-ink tabular-nums transition-colors hover:border-brand/30 hover:bg-brand-light hover:text-brand"
+                          title="Copy subject code"
+                        >
+                          <span className="truncate">{s.code}</span>
+                          <Copy className="size-3 shrink-0 opacity-50" />
+                          {copiedCode === s.code ? (
+                            <span className="font-sans text-[11px] text-brand">
+                              Copied
+                            </span>
+                          ) : null}
+                        </button>
                       </td>
                       <td className="px-5 py-3.5 align-middle">
                         <p

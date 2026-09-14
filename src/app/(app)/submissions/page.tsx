@@ -249,7 +249,7 @@ export default function SubmissionsPage() {
               <SelectContent>
                 <SelectItem value="newest">Newest</SelectItem>
                 <SelectItem value="oldest">Oldest</SelectItem>
-                <SelectItem value="assignment">Assignment A–Z</SelectItem>
+                <SelectItem value="assignment">Assignment A to Z</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -306,7 +306,7 @@ export default function SubmissionsPage() {
                         {isStudent
                           ? s.score != null
                             ? String(s.score)
-                            : "—"
+                            : "None"
                           : studentInitials(s)}
                       </span>
                       <div className="min-w-0 flex-1">
@@ -413,7 +413,7 @@ export default function SubmissionsPage() {
                               {isStudent
                                 ? s.score != null
                                   ? String(s.score)
-                                  : "—"
+                                  : "None"
                                 : studentInitials(s)}
                             </span>
                             <span className="truncate text-[14px] font-semibold tracking-tight text-ink">
@@ -426,7 +426,7 @@ export default function SubmissionsPage() {
                         <td className="px-5 py-3.5 align-middle">
                           {isStudent ? (
                             <span className="block truncate text-[13px] text-slate-600">
-                              {s.assignment?.class?.name ?? "—"}
+                              {s.assignment?.class?.name ?? "None"}
                             </span>
                           ) : assignmentIdOf(s) ? (
                             <Link
@@ -437,7 +437,7 @@ export default function SubmissionsPage() {
                             </Link>
                           ) : (
                             <span className="text-[13px] text-muted-foreground">
-                              —
+                              None
                             </span>
                           )}
                         </td>
@@ -457,7 +457,7 @@ export default function SubmissionsPage() {
                                   ? `/${s.assignment.totalMarks}`
                                   : ""
                               }`
-                            : "—"}
+                            : "None"}
                         </td>
                         <td className="px-5 py-3.5 text-right align-middle">
                           {href ? (
@@ -470,7 +470,7 @@ export default function SubmissionsPage() {
                             </ButtonLink>
                           ) : (
                             <span className="text-[12px] text-muted-foreground">
-                              —
+                              None
                             </span>
                           )}
                         </td>

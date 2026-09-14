@@ -17,7 +17,7 @@ export function OneOffPasswordField({
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id} className="text-[13px] text-zinc-600">
-        One-time password
+        One time password
         <span className="ml-1 font-normal text-zinc-400">(optional)</span>
       </Label>
       <Input

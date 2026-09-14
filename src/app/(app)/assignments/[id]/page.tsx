@@ -15,6 +15,7 @@ import { toast, toastFromError } from "@/lib/toast";
 import type { Assignment, Submission } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { CenterSuccessToast } from "@/components/ui/center-success-toast";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,11 +23,21 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
+import {
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import {
+  gradeScoreSchema,
+  validateDocumentFile,
+} from "@/lib/validation/schemas";
 
 export default function AssignmentDetailPage() {
   const params = useParams<{ id: string }>();
   const { user } = useAuth();
   const isStudent = user?.role === "STUDENT";
+  const isParent = user?.role === "PARENT";
   const [data, setData] = useState<Assignment | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -69,15 +80,16 @@ export default function AssignmentDetailPage() {
 
   async function submitWork(e: React.FormEvent) {
     e.preventDefault();
-    if (!file) {
-      toast.error("Choose a PDF or Word file to upload");
+    const fileError = validateDocumentFile(file);
+    if (fileError) {
+      toast.error(fileError);
       return;
     }
     setSubmitting(true);
     try {
       const fd = new FormData();
       fd.append("assignmentId", params.id);
-      fd.append("attachment", file);
+      fd.append("attachment", file!);
       await submissionsApi.submit(fd);
       setFile(null);
       await load();
@@ -228,7 +240,7 @@ export default function AssignmentDetailPage() {
       ) : (
         isStudent && (
           <p className="text-[13px] text-zinc-500">
-            No file attached — follow the brief and instructions above.
+            No file attached. Follow the brief and instructions above.
           </p>
         )
       )}
@@ -381,6 +393,7 @@ function GradeRow({
   );
   const [feedback, setFeedback] = useState(submission.feedback ?? "");
   const [pending, setPending] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   return (
     <li
@@ -427,7 +440,9 @@ function GradeRow({
             value={score}
             onChange={(e) => setScore(e.target.value)}
             className="h-9 rounded-md"
+            aria-invalid={Boolean(fieldErrors.score)}
           />
+          <FieldError message={fieldErrors.score} />
         </div>
         <div className="space-y-1.5">
           <Label className="text-[13px] text-zinc-600">Feedback</Label>
@@ -436,18 +451,32 @@ function GradeRow({
             onChange={(e) => setFeedback(e.target.value)}
             className="min-h-9 rounded-md"
             rows={2}
+            aria-invalid={Boolean(fieldErrors.feedback)}
           />
+          <FieldError message={fieldErrors.feedback} />
         </div>
         <div className="flex items-end">
           <Button
             size="sm"
             disabled={pending || score === ""}
             onClick={async () => {
+              const parsed = parseForm(gradeScoreSchema(totalMarks), {
+                score,
+                feedback: feedback || undefined,
+              });
+              if (!parsed.ok) {
+                setFieldErrors(parsed.fieldErrors);
+                toast.error(
+                  firstFieldError(parsed.fieldErrors) ?? "Check the score",
+                );
+                return;
+              }
+              setFieldErrors({});
               setPending(true);
               const ok = await onGrade(
                 submission.id,
-                Number(score),
-                feedback,
+                parsed.data.score,
+                parsed.data.feedback ?? "",
               );
               if (ok) {
                 setScore("");

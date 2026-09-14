@@ -1,14 +1,16 @@
 import type { UserRole } from "./types";
 
 /**
- * GetLeaning role themes — professional, cool neutrals.
+ * GetLeaning role themes: professional, cool neutrals.
  * Distinct accents per role; shared cool gray page chrome (no loud orange/green).
  *
  * Direction (ui-design-system):
- * - ADMIN: Precision & density — graphite
- * - SCHOOL_ADMIN: Sophistication & trust — navy
- * - TEACHER: Focus & clarity — muted teal
- * - STUDENT: Calm & clarity — soft sky
+ * - ADMIN: Precision & density, graphite
+ * - SCHOOL_ADMIN: Sophistication & trust, navy
+ * - HEADMASTER: Authority & oversight, plum
+ * - TEACHER: Focus & clarity, muted teal
+ * - STUDENT: Calm & clarity, soft sky
+ * - PARENT: Care & clarity, olive
  */
 
 export type RoleThemeId = UserRole;
@@ -63,6 +65,21 @@ export const roleThemes: Record<UserRole, RoleTheme> = {
     pageBg,
     ink,
   },
+  HEADMASTER: {
+    id: "HEADMASTER",
+    label: "Headmaster",
+    direction: "Authority & oversight",
+    brand: "#6b21a3",
+    brandHover: "#7e22ce",
+    brandPressed: "#581c87",
+    brandDark: "#4c1d95",
+    brandDarkHover: "#3b0764",
+    brandLight: "#faf5ff",
+    brandMuted: "#f3e8ff",
+    sidebar: "#ffffff",
+    pageBg,
+    ink,
+  },
   TEACHER: {
     id: "TEACHER",
     label: "Teacher",
@@ -93,6 +110,21 @@ export const roleThemes: Record<UserRole, RoleTheme> = {
     pageBg,
     ink,
   },
+  PARENT: {
+    id: "PARENT",
+    label: "Parent",
+    direction: "Care & clarity",
+    brand: "#3f6212",
+    brandHover: "#4d7c0f",
+    brandPressed: "#365314",
+    brandDark: "#365314",
+    brandDarkHover: "#1a2e05",
+    brandLight: "#f7fee7",
+    brandMuted: "#ecfccb",
+    sidebar: "#ffffff",
+    pageBg,
+    ink,
+  },
 };
 
 /** Default / marketing chrome (unauthenticated). */
@@ -108,7 +140,7 @@ export const defaultTheme = {
   ink,
 } as const;
 
-/** @deprecated Prefer roleThemes[role] — kept for any legacy imports */
+/** @deprecated Prefer roleThemes[role]. Kept for any legacy imports */
 export const theme = defaultTheme;
 
 export function themeForRole(role: UserRole | null | undefined): RoleTheme {

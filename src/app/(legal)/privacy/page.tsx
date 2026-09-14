@@ -77,7 +77,7 @@ export default function PrivacyPage() {
             <li>Provide, maintain, and improve the Service</li>
             <li>Authenticate users and protect accounts</li>
             <li>Enable teaching workflows (classes, assignments, grading)</li>
-            <li>Send in-app notifications related to your activity</li>
+            <li>Send in app notifications related to your activity</li>
             <li>Respond to support requests and enforce our Terms</li>
             <li>Comply with applicable law and protect our rights</li>
           </ul>
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
         <section className="space-y-3">
           <h2 className="text-lg font-semibold text-brand-dark">5. File storage</h2>
           <p>
-            Assignment and submission files may be stored with third-party
+            Assignment and submission files may be stored with third party
             cloud storage providers. Access is controlled through the Service.
             You should only upload content you are allowed to share for
             educational purposes.

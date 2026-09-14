@@ -10,6 +10,7 @@ import { toast, toastFromError } from "@/lib/toast";
 import type { School, Subject } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
@@ -17,6 +18,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { PageLoading } from "@/components/ui/page-loading";
 import { SetupRequired } from "@/components/school/school-setup-guide";
 import { useSchoolSetupCounts } from "@/hooks/use-school-setup";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { createClassSchema } from "@/lib/validation/schemas";
 
 export default function NewClassPage() {
   const { user } = useAuth();
@@ -31,6 +39,7 @@ export default function NewClassPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subjectId, setSubjectId] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -86,18 +95,27 @@ export default function NewClassPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!subjectId) {
-      toast.error("Select a subject");
+    const parsed = parseForm(createClassSchema, {
+      subjectId,
+      name: form.name,
+      description: form.description || undefined,
+      academicYear: form.academicYear,
+      semester: form.semester,
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
       return;
     }
+    setFieldErrors({});
     setPending(true);
     try {
       const created = await classesApi.create({
-        subjectId,
-        name: form.name,
-        description: form.description || undefined,
-        academicYear: Number(form.academicYear),
-        semester: Number(form.semester),
+        subjectId: parsed.data.subjectId,
+        name: parsed.data.name,
+        description: parsed.data.description,
+        academicYear: parsed.data.academicYear,
+        semester: parsed.data.semester,
       });
       const firstClass = (setupCounts?.classes ?? 0) === 0;
       if (isSchoolAdmin && firstClass) {
@@ -110,6 +128,7 @@ export default function NewClassPage() {
       }
       router.push(`/classes/${created.id}`);
     } catch (err) {
+      setFieldErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Create failed");
       setPending(false);
     }
@@ -197,6 +216,7 @@ export default function NewClassPage() {
           )}
 
           <form onSubmit={onSubmit} className="space-y-4">
+        <FieldError message={firstFieldError(fieldErrors)} />
         <div className="space-y-1.5">
           <Label htmlFor="subjectId" className="text-[13px] text-zinc-600">
             Subject

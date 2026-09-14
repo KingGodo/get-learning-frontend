@@ -11,11 +11,22 @@ import type { ClassRoom } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import {
+  createAssignmentFormSchema,
+  validateDocumentFile,
+} from "@/lib/validation/schemas";
 
 export default function NewAssignmentForm() {
   const { user } = useAuth();
@@ -33,6 +44,7 @@ export default function NewAssignmentForm() {
   const [classId, setClassId] = useState(presetClassId);
   const [allowLate, setAllowLate] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -65,39 +77,61 @@ export default function NewAssignmentForm() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!classId) {
-      toast.error("Select a class");
-      return;
-    }
-    if (!form.dueDate) {
-      toast.error("Choose a due date");
+    const parsed = parseForm(createAssignmentFormSchema, {
+      classId,
+      title: form.title,
+      description: form.description,
+      instructions: form.instructions || undefined,
+      dueDate: form.dueDate,
+      totalMarks: form.totalMarks,
+      allowLateSubmission: allowLate,
+      status: form.status,
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
       return;
     }
 
-    const due = new Date(form.dueDate);
+    if (file) {
+      const fileError = validateDocumentFile(file);
+      if (fileError) {
+        setFieldErrors({ attachment: fileError });
+        toast.error(fileError);
+        return;
+      }
+    }
+
+    const due = new Date(parsed.data.dueDate);
     if (Number.isNaN(due.getTime())) {
+      setFieldErrors({ dueDate: "Due date is invalid" });
       toast.error("Due date is invalid");
       return;
     }
 
+    setFieldErrors({});
     setPending(true);
     try {
       const fd = new FormData();
-      fd.append("classId", classId);
-      fd.append("title", form.title.trim());
-      fd.append("description", form.description.trim());
-      if (form.instructions.trim()) {
-        fd.append("instructions", form.instructions.trim());
+      fd.append("classId", parsed.data.classId);
+      fd.append("title", parsed.data.title);
+      fd.append("description", parsed.data.description);
+      if (parsed.data.instructions) {
+        fd.append("instructions", parsed.data.instructions);
       }
       fd.append("dueDate", due.toISOString());
-      fd.append("totalMarks", form.totalMarks);
-      fd.append("allowLateSubmission", allowLate ? "true" : "false");
-      fd.append("status", form.status);
+      fd.append("totalMarks", String(parsed.data.totalMarks));
+      fd.append(
+        "allowLateSubmission",
+        parsed.data.allowLateSubmission ? "true" : "false",
+      );
+      fd.append("status", parsed.data.status ?? "PUBLISHED");
       if (file) fd.append("attachment", file);
 
       const created = await assignmentsApi.create(fd);
       router.replace(`/assignments/${created.id}`);
     } catch (err) {
+      setFieldErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not create assignment");
       setPending(false);
     }
@@ -135,6 +169,7 @@ export default function NewAssignmentForm() {
         </div>
       ) : (
         <form onSubmit={onSubmit} className="space-y-4">
+          <FieldError message={firstFieldError(fieldErrors)} />
           <div className="space-y-1.5">
             <Label htmlFor="classId" className="text-[13px] text-muted-foreground">
               Class
@@ -145,6 +180,7 @@ export default function NewAssignmentForm() {
               value={classId}
               onChange={(e) => setClassId(e.target.value)}
               className="flex h-9 w-full rounded-md border border-border bg-transparent px-3 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-brand-dark/20"
+              aria-invalid={Boolean(fieldErrors.classId)}
             >
               <option value="" disabled>
                 Choose class
@@ -288,6 +324,7 @@ export default function NewAssignmentForm() {
               PDF or Word only (.pdf, .doc, .docx). Leave empty if you don’t need
               a file.
             </p>
+            <FieldError message={fieldErrors.attachment} />
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2">

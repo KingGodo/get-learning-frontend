@@ -7,11 +7,18 @@ import { Eye, EyeOff } from "lucide-react";
 import { AuthLoading } from "@/components/auth/auth-loading";
 import { useAuth } from "@/components/providers/auth-provider";
 import { clearToken } from "@/lib/api";
-import { toastFromError } from "@/lib/toast";
+import { toast, toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { APP_NAME } from "@/lib/brand";
+import {
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { loginSchema } from "@/lib/validation/schemas";
 
 export default function LoginPage() {
   const { login, logout } = useAuth();
@@ -20,6 +27,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     clearToken();
@@ -28,10 +36,17 @@ export default function LoginPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const parsed = parseForm(loginSchema, { email, password });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
+      return;
+    }
+    setFieldErrors({});
     setPending(true);
     clearToken();
     try {
-      await login(email.trim(), password);
+      await login(parsed.data.email, parsed.data.password);
       router.replace("/dashboard");
     } catch (err) {
       toastFromError(err, "Unable to sign in");
@@ -61,15 +76,17 @@ export default function LoginPage() {
               </Label>
               <Input
                 id="email"
-                type="text"
+                type="email"
                 inputMode="email"
                 autoComplete="username"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={Boolean(fieldErrors.email)}
                 className="h-10 rounded-md border-border bg-background px-3 text-sm shadow-none focus-visible:border-brand/40 focus-visible:ring-brand/15"
                 placeholder="you@school.edu"
               />
+              <FieldError message={fieldErrors.email} />
             </div>
 
             <div className="space-y-1.5">
@@ -95,6 +112,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  aria-invalid={Boolean(fieldErrors.password)}
                   className="h-10 rounded-md border-border bg-background pr-10 pl-3 text-sm shadow-none focus-visible:border-brand/40 focus-visible:ring-brand/15"
                 />
                 <button
@@ -110,6 +128,7 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+              <FieldError message={fieldErrors.password} />
             </div>
 
             <Button

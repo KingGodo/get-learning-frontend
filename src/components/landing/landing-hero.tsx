@@ -23,7 +23,7 @@ const assignments = [
   {
     icon: ClipboardList,
     tone: "bg-blue-50 text-blue-600",
-    title: "Essay — Industrial Revolution",
+    title: "Essay: Industrial Revolution",
     meta: "Mathematics 10A · Due Friday",
     status: "12 submitted",
     statusTone: "bg-blue-50 text-blue-700",
@@ -39,7 +39,7 @@ const assignments = [
   {
     icon: PenLine,
     tone: "bg-indigo-50 text-indigo-600",
-    title: "Quiz 4 — Algebra",
+    title: "Quiz 4: Algebra",
     meta: "Mathematics 10A · Returned",
     status: "Graded",
     statusTone: "bg-blue-50 text-blue-700",
@@ -92,7 +92,7 @@ export function LandingHero() {
 
         <p className="mt-3 max-w-[680px] text-center text-base text-balance text-muted-foreground sm:text-lg md:text-xl">
           Assign work, collect files, and send grades in one place. No extra
-          modules. {APP_NAME} is issued by your school — then the day can start.
+          modules. {APP_NAME} is issued by your school, then the day can start.
         </p>
 
         <div className="mt-6 flex w-full max-w-sm flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:items-center sm:justify-center">

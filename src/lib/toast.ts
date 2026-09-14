@@ -2,7 +2,7 @@
 
 import { toast as sonnerToast } from "sonner";
 
-/** App toast helpers — always import from here, not directly from sonner. */
+/** App toast helpers. Always import from here, not directly from sonner. */
 export const toast = {
   success(message: string, description?: string) {
     return sonnerToast.success(message, {

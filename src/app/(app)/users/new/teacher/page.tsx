@@ -10,7 +10,6 @@ import { CredentialsPanel } from "@/components/users/credentials-panel";
 import { OneOffPasswordField } from "@/components/users/one-off-password-field";
 import {
   TeacherAssignmentsFields,
-  assignmentsAreValid,
   type TeacherAssignmentDraft,
 } from "@/components/users/teacher-assignments-fields";
 import { classesApi, subjectsApi, usersApi } from "@/lib/api";
@@ -18,11 +17,19 @@ import { toast, toastFromError } from "@/lib/toast";
 import type { ClassRoom, IssuedCredentials, Subject } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { FieldError } from "@/components/ui/field-error";
 import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoading } from "@/components/ui/page-loading";
 import { SetupRequired } from "@/components/school/school-setup-guide";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { createTeacherSchema } from "@/lib/validation/schemas";
 
 type CreatedTeacher = {
   name: string;
@@ -124,6 +131,7 @@ export default function NewTeacherPage() {
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [assignments, setAssignments] = useState<TeacherAssignmentDraft[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -175,24 +183,31 @@ export default function NewTeacherPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!assignmentsAreValid(assignments)) {
-      toast.error(
-        "Select at least one subject and at least one class for each selected subject.",
-      );
+    const parsed = parseForm(createTeacherSchema, {
+      ...form,
+      password: form.password,
+      department: form.department || undefined,
+      qualification: form.qualification || undefined,
+      assignments,
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
       return;
     }
+    setFieldErrors({});
     setPending(true);
     try {
       const data = await usersApi.createTeacher({
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        phoneNumber: form.phoneNumber,
-        gender: form.gender,
-        ...(form.password.trim() ? { password: form.password.trim() } : {}),
-        department: form.department || undefined,
-        qualification: form.qualification || undefined,
-        assignments,
+        firstName: parsed.data.firstName,
+        lastName: parsed.data.lastName,
+        email: parsed.data.email,
+        phoneNumber: parsed.data.phoneNumber,
+        gender: parsed.data.gender,
+        ...(parsed.data.password ? { password: parsed.data.password } : {}),
+        department: parsed.data.department || undefined,
+        qualification: parsed.data.qualification || undefined,
+        assignments: parsed.data.assignments,
       });
       setCreated({
         name: `${data.user.firstName} ${data.user.lastName}`,
@@ -201,6 +216,7 @@ export default function NewTeacherPage() {
       });
       setPending(false);
     } catch (err) {
+      setFieldErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not create teacher");
       setPending(false);
     }
@@ -272,7 +288,7 @@ export default function NewTeacherPage() {
         </Link>
         <PageHeader
           title="Add teacher"
-          description="Creates an account for your school, assigns subjects and classes, and issues a one-time password."
+          description="Creates an account for your school, assigns subjects and classes, and issues a one time password."
           className="mt-4 pb-0"
         />
       </div>
@@ -287,6 +303,20 @@ export default function NewTeacherPage() {
         <>
 
       <form onSubmit={onSubmit} className="space-y-4">
+        {(fieldErrors.email ||
+          fieldErrors.phoneNumber ||
+          fieldErrors.assignments ||
+          fieldErrors["assignments.0.classIds"]) && (
+          <FieldError
+            message={
+              fieldErrors.email ||
+              fieldErrors.phoneNumber ||
+              fieldErrors.assignments ||
+              fieldErrors["assignments.0.classIds"] ||
+              firstFieldError(fieldErrors)
+            }
+          />
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="firstName" className="text-[13px] text-zinc-600">
@@ -299,8 +329,10 @@ export default function NewTeacherPage() {
               onChange={(e) =>
                 setForm((f) => ({ ...f, firstName: e.target.value }))
               }
+              aria-invalid={Boolean(fieldErrors.firstName)}
               className="h-9 rounded-md bg-transparent"
             />
+            <FieldError message={fieldErrors.firstName} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="lastName" className="text-[13px] text-zinc-600">
@@ -411,13 +443,14 @@ export default function NewTeacherPage() {
           onChange={setAssignments}
           disabled={pending}
         />
+        <FieldError
+          message={
+            fieldErrors.assignments || fieldErrors["assignments.0.classIds"]
+          }
+        />
 
         <div className="flex flex-wrap gap-2 pt-2">
-          <Button
-            type="submit"
-            disabled={pending || !assignmentsAreValid(assignments)}
-            size="sm"
-          >
+          <Button type="submit" disabled={pending} size="sm">
             {pending ? "Creating…" : "Create teacher"}
           </Button>
           <ButtonLink href="/users" variant="outline" size="sm">

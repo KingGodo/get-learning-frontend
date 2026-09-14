@@ -9,12 +9,20 @@ import { subjectsApi } from "@/lib/api";
 import { toast, toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { Textarea } from "@/components/ui/textarea";
 import { PageLoading } from "@/components/ui/page-loading";
 import { cn } from "@/lib/utils";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { createSubjectSchema } from "@/lib/validation/schemas";
 
 const SUBJECT_CATALOG: Array<{ name: string; code: string }> = [
   { name: "Accounting", code: "ACC" },
@@ -81,6 +89,7 @@ export default function NewSubjectPage() {
   const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
   const [pending, setPending] = useState(false);
   const [existingCount, setExistingCount] = useState<number | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({ name: "", code: "", description: "" });
 
   const [open, setOpen] = useState(false);
@@ -135,12 +144,23 @@ export default function NewSubjectPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const parsed = parseForm(createSubjectSchema, {
+      name: form.name,
+      code: form.code,
+      description: form.description || undefined,
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
+      return;
+    }
+    setFieldErrors({});
     setPending(true);
     try {
       await subjectsApi.create({
-        name: form.name,
-        code: form.code.trim().toUpperCase(),
-        description: form.description || undefined,
+        name: parsed.data.name,
+        code: parsed.data.code.trim().toUpperCase(),
+        description: parsed.data.description,
       });
       const firstSubject = (existingCount ?? 0) === 0;
       if (isSchoolAdmin && firstSubject) {
@@ -154,6 +174,7 @@ export default function NewSubjectPage() {
         router.push("/subjects");
       }
     } catch (err) {
+      setFieldErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not create");
       setPending(false);
     }
@@ -186,6 +207,7 @@ export default function NewSubjectPage() {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
+        <FieldError message={firstFieldError(fieldErrors)} />
         <div className="space-y-1.5" ref={wrapperRef}>
           <Label className="text-[13px] text-zinc-600">Subject</Label>
           <div className="relative">
@@ -222,7 +244,7 @@ export default function NewSubjectPage() {
                 <ul className="max-h-56 overflow-y-auto py-1">
                   {filtered.length === 0 ? (
                     <li className="px-3 py-4 text-center text-[13px] text-muted-foreground">
-                      No match — type a custom name below.
+                      No match. Type a custom name below.
                     </li>
                   ) : (
                     filtered.map((s) => {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import type { IssuedCredentials } from "@/lib/types";
+import { copyToClipboard } from "@/lib/copy";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +24,7 @@ export function CredentialsPanel({
 
   async function copy(text: string, key: "email" | "password" | "both") {
     try {
-      await navigator.clipboard.writeText(text);
+      await copyToClipboard(text);
       setCopied(key);
       window.setTimeout(() => setCopied(null), 2000);
     } catch {
@@ -110,7 +111,7 @@ export function CredentialsPanel({
         </Button>
         {credentials.mustChangePassword && (
           <p className="text-[12px] text-amber-800">
-            They should change this password after first sign-in.
+            They should change this password after first sign in.
           </p>
         )}
       </div>

@@ -8,9 +8,16 @@ import { AuthLoading } from "@/components/auth/auth-loading";
 import { authApi } from "@/lib/api";
 import { toast, toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { APP_NAME } from "@/lib/brand";
+import {
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { resetPasswordSchema } from "@/lib/validation/schemas";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -21,6 +28,7 @@ export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -35,18 +43,22 @@ export default function ResetPasswordPage() {
       toast.error("This reset link is missing a token. Request a new one.");
       return;
     }
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters.");
+
+    const parsed = parseForm(resetPasswordSchema, {
+      token,
+      password,
+      confirmPassword,
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
       return;
     }
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
-      return;
-    }
+    setFieldErrors({});
 
     setPending(true);
     try {
-      await authApi.resetPassword({ token, password, confirmPassword });
+      await authApi.resetPassword(parsed.data);
       setDone(true);
     } catch (err) {
       toastFromError(err, "Unable to reset password");
@@ -67,7 +79,7 @@ export default function ResetPasswordPage() {
         </h1>
         <p className="mt-2 text-[14px] text-zinc-500">
           This password reset link is incomplete. Request a new one from the
-          sign-in page.
+          sign in page.
         </p>
         <Link
           href="/forgot-password"
@@ -124,6 +136,7 @@ export default function ResetPasswordPage() {
                   minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  aria-invalid={Boolean(fieldErrors.password)}
                   className="h-10 rounded-md border-zinc-200 bg-white pr-10 pl-3 text-sm shadow-none focus-visible:border-brand-dark/30 focus-visible:ring-brand-dark/15"
                 />
                 <button
@@ -139,7 +152,10 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
               </div>
-              <p className="text-[12px] text-zinc-400">At least 8 characters</p>
+              <FieldError message={fieldErrors.password} />
+              {!fieldErrors.password && (
+                <p className="text-[12px] text-zinc-400">At least 8 characters</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label
@@ -156,8 +172,10 @@ export default function ResetPasswordPage() {
                 minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                aria-invalid={Boolean(fieldErrors.confirmPassword)}
                 className="h-10 rounded-md border-zinc-200 bg-white px-3 text-sm shadow-none focus-visible:border-brand-dark/30 focus-visible:ring-brand-dark/15"
               />
+              <FieldError message={fieldErrors.confirmPassword} />
             </div>
             <Button type="submit" disabled={pending} className="mt-2 w-full">
               {pending ? "Updating…" : "Update password"}

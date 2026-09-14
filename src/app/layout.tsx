@@ -28,10 +28,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: `${APP_NAME} — Learning management, clarified`,
+    default: `${APP_NAME}: Learning management, clarified`,
     template: `%s · ${APP_NAME}`,
   },
-  description: `${APP_NAME} is a learning platform for teachers and students — classes, assignments, and feedback.`,
+  description: `${APP_NAME} is a learning platform for teachers and students: classes, assignments, and feedback.`,
   icons: {
     icon: [{ url: "/logo.png?v=11", type: "image/png" }],
     apple: [{ url: "/logo.png?v=11", type: "image/png" }],

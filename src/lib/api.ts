@@ -33,7 +33,7 @@ export function getApiBaseUrl(): string {
     const apiOnAppPort =
       api.hostname === page.hostname && api.port === "4000";
 
-    // Public site is on 80/443/3000 — never send other machines to :4000.
+    // Public site is on 80/443/3000. Never send other machines to :4000.
     if (
       loopback ||
       apiOnAppPort ||
@@ -277,6 +277,16 @@ export const usersApi = {
       student: import("./types").Student;
       credentials: import("./types").IssuedCredentials;
     }>("/users/students", { method: "POST", body }),
+  createHeadmaster: (body: Record<string, unknown>) =>
+    api<{
+      user: import("./types").User;
+      credentials: import("./types").IssuedCredentials;
+    }>("/users/headmasters", { method: "POST", body }),
+  createParent: (body: Record<string, unknown>) =>
+    api<{
+      user: import("./types").User;
+      credentials: import("./types").IssuedCredentials;
+    }>("/users/parents", { method: "POST", body }),
   resetCredentials: (id: string) =>
     api<{
       user: import("./types").User;
@@ -361,4 +371,32 @@ export const notificationsApi = {
       method: "POST",
       body: ids ? { ids } : {},
     }),
+};
+
+export const auditApi = {
+  list: (params?: {
+    action?: string;
+    entityType?: string;
+    from?: string;
+    to?: string;
+    page?: number;
+    pageSize?: number;
+  }) => {
+    const search = new URLSearchParams();
+    if (params?.action) search.set("action", params.action);
+    if (params?.entityType) search.set("entityType", params.entityType);
+    if (params?.from) search.set("from", params.from);
+    if (params?.to) search.set("to", params.to);
+    if (params?.page) search.set("page", String(params.page));
+    if (params?.pageSize) search.set("pageSize", String(params.pageSize));
+    const qs = search.toString();
+    return api<import("./types").AuditListResult>(
+      qs ? `/audit?${qs}` : "/audit",
+    );
+  },
+};
+
+export const analyticsApi = {
+  teacher: () =>
+    api<import("./types").TeacherAnalytics>("/analytics/teacher"),
 };

@@ -7,6 +7,8 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, usersApi } from "@/lib/api";
+import { canManageUsers, canViewUsers } from "@/lib/roles";
+import { themeForRole } from "@/lib/theme";
 import { toastFromError } from "@/lib/toast";
 import type { AdminUserDetail } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -27,7 +29,7 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1.5 text-[13px] text-ink">{value ?? "—"}</p>
+      <p className="mt-1.5 text-[13px] text-ink">{value ?? "None"}</p>
     </div>
   );
 }
@@ -46,7 +48,7 @@ export default function UserDetailPage() {
 
   useEffect(() => {
     if (!authUser) return;
-    if (authUser.role !== "ADMIN" && authUser.role !== "SCHOOL_ADMIN") {
+    if (!canViewUsers(authUser.role)) {
       router.replace("/dashboard");
       return;
     }
@@ -64,11 +66,7 @@ export default function UserDetailPage() {
       .finally(() => setLoading(false));
   }, [authUser, id, router]);
 
-  if (
-    !authUser ||
-    (authUser.role !== "ADMIN" && authUser.role !== "SCHOOL_ADMIN") ||
-    loading
-  ) {
+  if (!authUser || !canViewUsers(authUser.role) || loading) {
     return <PageLoading label="Loading user…" />;
   }
 
@@ -126,10 +124,13 @@ export default function UserDetailPage() {
           className="mt-4 pb-0"
           actions={
             <>
-              <ButtonLink href={`/users/${user.id}/edit`} variant="outline" size="sm">
-                Edit
-              </ButtonLink>
-              {(authUser.role === "ADMIN" || user.role !== "SCHOOL_ADMIN") && (
+              {canManageUsers(authUser.role) && (
+                <ButtonLink href={`/users/${user.id}/edit`} variant="outline" size="sm">
+                  Edit
+                </ButtonLink>
+              )}
+              {canManageUsers(authUser.role) &&
+                (authUser.role === "ADMIN" || user.role !== "SCHOOL_ADMIN") && (
                 <Button
                   type="button"
                   variant="destructive"
@@ -141,9 +142,7 @@ export default function UserDetailPage() {
                 </Button>
               )}
               <StatusBadge>
-                {user.role === "SCHOOL_ADMIN"
-                  ? "School admin"
-                  : user.role.charAt(0) + user.role.slice(1).toLowerCase()}
+                {themeForRole(user.role).label}
               </StatusBadge>
               <StatusBadge tone={statusToneFor(user.status)}>
                 {user.status.charAt(0) + user.status.slice(1).toLowerCase()}
@@ -307,7 +306,7 @@ export default function UserDetailPage() {
                         <td className="px-4 py-3 text-zinc-600">
                           {ct.class.subject
                             ? `${ct.class.subject.name} (${ct.class.subject.code})`
-                            : "—"}
+                            : "None"}
                         </td>
                         <td className="px-4 py-3 text-zinc-500">
                           {ct.class.status}
@@ -379,7 +378,7 @@ export default function UserDetailPage() {
                         <td className="px-4 py-3 text-zinc-600">
                           {cs.class.subject
                             ? `${cs.class.subject.name} (${cs.class.subject.code})`
-                            : "—"}
+                            : "None"}
                         </td>
                         <td className="py-3 pl-4 text-zinc-500">
                           {cs.class.status}
@@ -390,6 +389,29 @@ export default function UserDetailPage() {
                 </table>
               </div>
             )}
+        </section>
+      )}
+
+      {user.parent && (
+        <section className="space-y-4">
+          <h2 className="text-[12px] font-medium text-muted-foreground">
+            Parent profile
+          </h2>
+          <div className="grid gap-5 border-y border-border py-5 sm:grid-cols-2">
+            <Field
+              label="Linked children"
+              value={
+                user.parent.children?.length
+                  ? user.parent.children
+                      .map(
+                        (row) =>
+                          `${row.student.user.firstName} ${row.student.user.lastName} (${row.student.studentNumber})`,
+                      )
+                      .join(", ")
+                  : "None"
+              }
+            />
+          </div>
         </section>
       )}
     </div>

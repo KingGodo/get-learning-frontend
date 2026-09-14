@@ -9,14 +9,22 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { CredentialsPanel } from "@/components/users/credentials-panel";
 import { OneOffPasswordField } from "@/components/users/one-off-password-field";
 import { schoolsApi } from "@/lib/api";
-import { toastFromError } from "@/lib/toast";
+import { toast, toastFromError } from "@/lib/toast";
 import type { IssuedCredentials, School } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { FieldError } from "@/components/ui/field-error";
 import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoading } from "@/components/ui/page-loading";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { createSchoolSchema } from "@/lib/validation/schemas";
 
 type CreatedResult = {
   school: School;
@@ -31,6 +39,7 @@ export default function NewSchoolPage() {
   const [checking, setChecking] = useState(true);
   const [pending, setPending] = useState(false);
   const [created, setCreated] = useState<CreatedResult | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -61,27 +70,53 @@ export default function NewSchoolPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const parsed = parseForm(createSchoolSchema, {
+      name: form.name,
+      email: form.email,
+      phoneNumber: form.phoneNumber,
+      website: form.website || undefined,
+      address: form.address,
+      city: form.city,
+      province: form.province,
+      country: form.country || undefined,
+      termSystem: form.termSystem,
+      termsPerYear: form.termsPerYear,
+      admin: {
+        firstName: form.adminFirstName,
+        lastName: form.adminLastName,
+        email: form.adminEmail,
+        phoneNumber: form.adminPhoneNumber,
+        gender: form.adminGender,
+        password: form.adminPassword,
+      },
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
+      return;
+    }
+    setFieldErrors({});
     setPending(true);
     try {
       const data = await schoolsApi.create({
-        name: form.name,
-        email: form.email,
-        phoneNumber: form.phoneNumber,
-        website: form.website || undefined,
-        address: form.address,
-        city: form.city,
-        province: form.province,
-        country: form.country || undefined,
-        termSystem: form.termSystem,
-        termsPerYear: form.termsPerYear,
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phoneNumber: parsed.data.phoneNumber,
+        website: parsed.data.website,
+        address: parsed.data.address,
+        city: parsed.data.city,
+        province: parsed.data.province,
+        country: parsed.data.country,
+        termSystem: parsed.data.termSystem,
+        termsPerYear: parsed.data.termsPerYear,
         admin: {
-          firstName: form.adminFirstName,
-          lastName: form.adminLastName,
-          email: form.adminEmail,
-          phoneNumber: form.adminPhoneNumber,
-          gender: form.adminGender,
-          ...(form.adminPassword.trim()
-            ? { password: form.adminPassword.trim() }
+          firstName: parsed.data.admin.firstName,
+          lastName: parsed.data.admin.lastName,
+          email: parsed.data.admin.email,
+          phoneNumber: parsed.data.admin.phoneNumber,
+          gender: parsed.data.admin.gender,
+          ...(parsed.data.admin.password
+            ? { password: parsed.data.admin.password }
             : {}),
         },
       });
@@ -92,6 +127,7 @@ export default function NewSchoolPage() {
       });
       setPending(false);
     } catch (err) {
+      setFieldErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not create school");
       setPending(false);
     }
@@ -153,12 +189,13 @@ export default function NewSchoolPage() {
         </Link>
         <PageHeader
           title="Create a school"
-          description="Add the school and its school admin account. Set a one-time password or leave it blank to generate one."
+          description="Add the school and its school admin account. Set a one time password or leave it blank to generate one."
           className="mt-4 pb-0"
         />
       </div>
 
       <form onSubmit={onSubmit} className="space-y-8">
+        <FieldError message={firstFieldError(fieldErrors)} />
         <section className="space-y-4">
           <div>
             <h2 className="text-[13px] font-semibold text-brand-dark">

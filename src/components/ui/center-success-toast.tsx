@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Centered success flash — not Sonner. Animates in/out, then closes. */
+/** Centered success flash, not Sonner. Animates in/out, then closes. */
 export function CenterSuccessToast({
   message,
   open,

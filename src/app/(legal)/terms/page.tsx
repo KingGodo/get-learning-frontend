@@ -140,8 +140,8 @@ export default function TermsPage() {
           </h2>
           <p>
             We aim to keep GetLeaning reliable, but we do not guarantee
-            uninterrupted or error-free service. Scheduled maintenance,
-            outages, or third-party failures may occur. We will work in good
+            uninterrupted or error free service. Scheduled maintenance,
+            outages, or third party failures may occur. We will work in good
             faith to restore service when issues arise.
           </p>
         </section>
@@ -153,7 +153,7 @@ export default function TermsPage() {
           <p>
             The Service is provided “as is” and “as available” to the fullest
             extent permitted by law. We disclaim warranties of merchantability,
-            fitness for a particular purpose, and non-infringement, except
+            fitness for a particular purpose, and non infringement, except
             where such disclaimers are not allowed.
           </p>
           <p>
@@ -211,7 +211,7 @@ export default function TermsPage() {
           </h2>
           <p>
             These Terms are governed by the laws of Zimbabwe, without regard to
-            conflict-of-law principles, unless mandatory local law requires
+            conflict of law principles, unless mandatory local law requires
             otherwise for your jurisdiction.
           </p>
         </section>

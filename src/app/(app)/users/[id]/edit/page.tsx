@@ -15,10 +15,18 @@ import { ApiRequestError, classesApi, subjectsApi, usersApi } from "@/lib/api";
 import { toast, toastFromError } from "@/lib/toast";
 import type { AdminUserDetail, ClassRoom, Subject } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { updateUserSchema } from "@/lib/validation/schemas";
 
 function hydrateAssignments(user: AdminUserDetail): TeacherAssignmentDraft[] {
   const bySubject = new Map<string, string[]>();
@@ -54,6 +62,7 @@ export default function EditUserPage() {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -149,44 +158,65 @@ export default function EditUserPage() {
     e.preventDefault();
     if (!canEdit || !user) return;
 
-    if (user.teacher && editorRole === "SCHOOL_ADMIN") {
-      if (!assignmentsAreValid(assignments)) {
-        toast.error(
-          "Select at least one subject and at least one class for each selected subject.",
-        );
-        return;
-      }
+    const parsed = parseForm(updateUserSchema, {
+      firstName: form.firstName,
+      middleName: form.middleName || null,
+      lastName: form.lastName,
+      email: form.email,
+      phoneNumber: form.phoneNumber,
+      gender: form.gender,
+      ...(user.teacher
+        ? {
+            department: form.department || null,
+            qualification: form.qualification || null,
+            ...(editorRole === "SCHOOL_ADMIN" ? { assignments } : {}),
+          }
+        : {}),
+      ...(user.student
+        ? {
+            guardianName: form.guardianName,
+            guardianPhone: form.guardianPhone,
+            guardianEmail: form.guardianEmail || null,
+            emergencyContact: form.emergencyContact || null,
+          }
+        : {}),
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
+      return;
     }
-
+    setFieldErrors({});
     setPending(true);
     try {
       await usersApi.update(id, {
-        firstName: form.firstName,
-        middleName: form.middleName || null,
-        lastName: form.lastName,
-        email: form.email,
-        phoneNumber: form.phoneNumber,
-        gender: form.gender,
+        firstName: parsed.data.firstName,
+        middleName: parsed.data.middleName ?? null,
+        lastName: parsed.data.lastName,
+        email: parsed.data.email,
+        phoneNumber: parsed.data.phoneNumber,
+        gender: parsed.data.gender,
         ...(user.teacher
           ? {
-              department: form.department || null,
-              qualification: form.qualification || null,
-              ...(editorRole === "SCHOOL_ADMIN"
-                ? { assignments }
+              department: parsed.data.department ?? null,
+              qualification: parsed.data.qualification ?? null,
+              ...(editorRole === "SCHOOL_ADMIN" && parsed.data.assignments
+                ? { assignments: parsed.data.assignments }
                 : {}),
             }
           : {}),
         ...(user.student
           ? {
-              guardianName: form.guardianName,
-              guardianPhone: form.guardianPhone,
-              guardianEmail: form.guardianEmail || null,
-              emergencyContact: form.emergencyContact || null,
+              guardianName: parsed.data.guardianName,
+              guardianPhone: parsed.data.guardianPhone,
+              guardianEmail: parsed.data.guardianEmail ?? null,
+              emergencyContact: parsed.data.emergencyContact ?? null,
             }
           : {}),
       });
       router.replace(`/users/${id}`);
     } catch (err) {
+      setFieldErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not update user");
       setPending(false);
     }
@@ -211,6 +241,15 @@ export default function EditUserPage() {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
+        <FieldError
+          message={
+            fieldErrors.email ||
+            fieldErrors.phoneNumber ||
+            fieldErrors.assignments ||
+            fieldErrors["assignments.0.classIds"] ||
+            firstFieldError(fieldErrors)
+          }
+        />
         <div className="grid gap-4 sm:grid-cols-3">
           <Field
             id="firstName"
@@ -218,12 +257,14 @@ export default function EditUserPage() {
             value={form.firstName ?? ""}
             onChange={(v) => setForm((f) => ({ ...f, firstName: v }))}
             required
+            error={fieldErrors.firstName}
           />
           <Field
             id="middleName"
             label="Middle name"
             value={form.middleName ?? ""}
             onChange={(v) => setForm((f) => ({ ...f, middleName: v }))}
+            error={fieldErrors.middleName}
           />
           <Field
             id="lastName"
@@ -231,6 +272,7 @@ export default function EditUserPage() {
             value={form.lastName ?? ""}
             onChange={(v) => setForm((f) => ({ ...f, lastName: v }))}
             required
+            error={fieldErrors.lastName}
           />
         </div>
 
@@ -242,6 +284,7 @@ export default function EditUserPage() {
             value={form.email ?? ""}
             onChange={(v) => setForm((f) => ({ ...f, email: v }))}
             required
+            error={fieldErrors.email}
           />
           <Field
             id="phoneNumber"
@@ -249,6 +292,7 @@ export default function EditUserPage() {
             value={form.phoneNumber ?? ""}
             onChange={(v) => setForm((f) => ({ ...f, phoneNumber: v }))}
             required
+            error={fieldErrors.phoneNumber}
           />
         </div>
 
@@ -276,13 +320,20 @@ export default function EditUserPage() {
         )}
 
         {user.teacher && authUser.role === "SCHOOL_ADMIN" && (
-          <TeacherAssignmentsFields
-            subjects={subjects}
-            classes={classes}
-            value={assignments}
-            onChange={setAssignments}
-            disabled={pending || !canEdit}
-          />
+          <>
+            <TeacherAssignmentsFields
+              subjects={subjects}
+              classes={classes}
+              value={assignments}
+              onChange={setAssignments}
+              disabled={pending || !canEdit}
+            />
+            <FieldError
+              message={
+                fieldErrors.assignments || fieldErrors["assignments.0.classIds"]
+              }
+            />
+          </>
         )}
 
         {user.student && (
@@ -354,6 +405,7 @@ function Field({
   onChange,
   type = "text",
   required,
+  error,
 }: {
   id: string;
   label: string;
@@ -361,6 +413,7 @@ function Field({
   onChange: (value: string) => void;
   type?: string;
   required?: boolean;
+  error?: string;
 }) {
   return (
     <div className="space-y-1.5">
@@ -374,7 +427,9 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="h-9 rounded-md bg-transparent"
+        aria-invalid={Boolean(error)}
       />
+      <FieldError message={error} />
     </div>
   );
 }

@@ -10,11 +10,13 @@ import { toast, toastFromError } from "@/lib/toast";
 import type { ClassRoom } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
 import { Textarea } from "@/components/ui/textarea";
+import { validateDocumentFiles } from "@/lib/validation/schemas";
 
 export default function AddClassMaterialsPage() {
   const params = useParams<{ id: string }>();
@@ -27,6 +29,7 @@ export default function AddClassMaterialsPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!canUpload) {
@@ -44,6 +47,7 @@ export default function AddClassMaterialsPage() {
   function onFilesChange(list: FileList | null) {
     if (!list?.length) return;
     const next = Array.from(list);
+    setFileError(null);
     setFiles((prev) => {
       const merged = [...prev];
       for (const file of next) {
@@ -68,11 +72,13 @@ export default function AddClassMaterialsPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (files.length === 0) {
-      toast.error("Select at least one PDF or Word file");
+    const validationError = validateDocumentFiles(files);
+    if (validationError) {
+      setFileError(validationError);
+      toast.error(validationError);
       return;
     }
-
+    setFileError(null);
     setUploading(true);
     try {
       const fd = new FormData();
@@ -158,6 +164,7 @@ export default function AddClassMaterialsPage() {
             You can select multiple files at once (up to 20). PDF or Word only,
             10 MB each.
           </p>
+          <FieldError message={fileError} />
         </div>
 
         {files.length > 0 && (

@@ -5,7 +5,7 @@ import { ApiRequestError, dashboardApi } from "@/lib/api";
 import type { Dashboard } from "@/lib/types";
 
 /**
- * Loads role-specific dashboard payload from the Nest backend
+ * Loads role specific dashboard payload from the Nest backend
  * (`GET /api/v1/dashboard`). Backend chooses the shape from JWT role.
  */
 export function useDashboard() {

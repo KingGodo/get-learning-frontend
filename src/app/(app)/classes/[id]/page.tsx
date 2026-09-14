@@ -15,6 +15,7 @@ import {
 import { MaterialPreviewCard } from "@/components/files/material-preview-card";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, classesApi, materialsApi } from "@/lib/api";
+import { copyToClipboard } from "@/lib/copy";
 import { toast, toastFromError } from "@/lib/toast";
 import type { ClassMaterial, ClassRoom } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -155,7 +156,7 @@ export default function ClassDetailPage() {
   async function copyCode() {
     if (!data) return;
     try {
-      await navigator.clipboard.writeText(data.classCode);
+      await copyToClipboard(data.classCode);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -522,9 +523,9 @@ export default function ClassDetailPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="name">Name A–Z</SelectItem>
+                  <SelectItem value="name">Name A to Z</SelectItem>
                   <SelectItem value="number">Student no.</SelectItem>
-                  <SelectItem value="email">Email A–Z</SelectItem>
+                  <SelectItem value="email">Email A to Z</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -587,7 +588,7 @@ export default function ClassDetailPage() {
                             </div>
                           </td>
                           <td className="px-5 py-3.5 align-middle font-mono text-[12px] text-ink tabular-nums">
-                            {s.student.studentNumber ?? "—"}
+                            {s.student.studentNumber ?? "None"}
                           </td>
                           <td className="px-5 py-3.5 align-middle">
                             <span className="block truncate text-[13px] text-slate-600">
@@ -602,7 +603,7 @@ export default function ClassDetailPage() {
                                 : "text-muted-foreground",
                             )}
                           >
-                            {s.student.user.phoneNumber ?? "—"}
+                            {s.student.user.phoneNumber ?? "None"}
                           </td>
                         </tr>
                       ))}
@@ -662,7 +663,7 @@ export default function ClassDetailPage() {
                 <SelectContent>
                   <SelectItem value="newest">Newest</SelectItem>
                   <SelectItem value="oldest">Oldest</SelectItem>
-                  <SelectItem value="title">Title A–Z</SelectItem>
+                  <SelectItem value="title">Title A to Z</SelectItem>
                 </SelectContent>
               </Select>
               {canUpload && (

@@ -18,13 +18,15 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1.5 text-[13px] text-ink">{value ?? "—"}</p>
+      <p className="mt-1.5 text-[13px] text-ink">{value ?? "None"}</p>
     </div>
   );
 }
 
 function roleLabel(role: string) {
   if (role === "SCHOOL_ADMIN") return "School admin";
+  if (role === "HEADMASTER") return "Headmaster";
+  if (role === "PARENT") return "Parent";
   return role.charAt(0) + role.slice(1).toLowerCase();
 }
 
@@ -104,7 +106,7 @@ export default function SchoolDetailPage() {
             <StatusBadge tone={statusToneFor(school.status ?? "")}>
               {school.status
                 ? school.status.charAt(0) + school.status.slice(1).toLowerCase()
-                : "—"}
+                : "None"}
             </StatusBadge>
           }
         />
@@ -196,7 +198,7 @@ export default function SchoolDetailPage() {
                     <td className="px-4 py-3.5 text-muted-foreground">
                       {u.teacher?.employeeNumber ??
                         u.student?.studentNumber ??
-                        "—"}
+                        "None"}
                       {u.teacher?.department
                         ? ` · ${u.teacher.department}`
                         : ""}
@@ -258,7 +260,7 @@ export default function SchoolDetailPage() {
                     <td className="px-4 py-3.5 text-muted-foreground">
                       {c.subject
                         ? `${c.subject.name} (${c.subject.code})`
-                        : "—"}
+                        : "None"}
                     </td>
                     <td className="px-4 py-3.5 tabular-nums text-muted-foreground">
                       {c.academicYear} / {c.semester}

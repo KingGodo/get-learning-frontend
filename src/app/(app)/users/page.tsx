@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ChevronRight, Plus, Search } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, usersApi } from "@/lib/api";
+import { canManageUsers, canViewUsers } from "@/lib/roles";
 import { themeForRole } from "@/lib/theme";
 import type { AdminUserSummary, UserRole } from "@/lib/types";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -17,10 +18,6 @@ import { StatStrip } from "@/components/ui/stat-strip";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
-
-function canManageUsers(role: string | undefined) {
-  return role === "ADMIN" || role === "SCHOOL_ADMIN";
-}
 
 function userInitials(first: string, last: string) {
   return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
@@ -38,10 +35,11 @@ export default function UsersPage() {
   const router = useRouter();
   const isPlatformAdmin = user?.role === "ADMIN";
   const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+  const canCreate = canManageUsers(user?.role);
 
   const roleFilters: Array<"ALL" | UserRole> = isPlatformAdmin
-    ? ["ALL", "ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT"]
-    : ["ALL", "SCHOOL_ADMIN", "TEACHER", "STUDENT"];
+    ? ["ALL", "ADMIN", "SCHOOL_ADMIN", "HEADMASTER", "TEACHER", "STUDENT", "PARENT"]
+    : ["ALL", "SCHOOL_ADMIN", "HEADMASTER", "TEACHER", "STUDENT", "PARENT"];
 
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +49,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!user) return;
-    if (!canManageUsers(user.role)) {
+    if (!canViewUsers(user.role)) {
       router.replace("/dashboard");
       return;
     }
@@ -86,7 +84,7 @@ export default function UsersPage() {
     );
   }, [users, query]);
 
-  if (!user || !canManageUsers(user.role)) {
+  if (!user || !canViewUsers(user.role)) {
     return <PageLoading label="Loading…" />;
   }
 
@@ -104,6 +102,10 @@ export default function UsersPage() {
       label: "Students",
       value: users.filter((u) => u.role === "STUDENT").length,
     },
+    {
+      label: "Parents",
+      value: users.filter((u) => u.role === "PARENT").length,
+    },
     ...(isPlatformAdmin
       ? [
           {
@@ -111,7 +113,12 @@ export default function UsersPage() {
             value: users.filter((u) => u.role === "SCHOOL_ADMIN").length,
           },
         ]
-      : []),
+      : [
+          {
+            label: "Headmasters",
+            value: users.filter((u) => u.role === "HEADMASTER").length,
+          },
+        ]),
   ];
 
   return (
@@ -130,11 +137,13 @@ export default function UsersPage() {
         title="Users"
         description={
           isSchoolAdmin
-            ? "Create teachers and students, then share their login credentials."
-            : `Every account on ${APP_NAME}.`
+            ? "Create teachers, students, the headmaster, and parents, then share their login credentials."
+            : user.role === "HEADMASTER"
+              ? "People at your school."
+              : `Every account on ${APP_NAME}.`
         }
         actions={
-          isSchoolAdmin ? (
+          canCreate && isSchoolAdmin ? (
             <>
               <ButtonLink href="/users/new/teacher" size="sm">
                 <Plus className="size-3.5" />
@@ -143,6 +152,14 @@ export default function UsersPage() {
               <ButtonLink href="/users/new/student" variant="outline" size="sm">
                 <Plus className="size-3.5" />
                 Add student
+              </ButtonLink>
+              <ButtonLink href="/users/new/parent" variant="outline" size="sm">
+                <Plus className="size-3.5" />
+                Add parent
+              </ButtonLink>
+              <ButtonLink href="/users/new/headmaster" variant="outline" size="sm">
+                <Plus className="size-3.5" />
+                Add headmaster
               </ButtonLink>
             </>
           ) : undefined
@@ -188,7 +205,7 @@ export default function UsersPage() {
             title="No users yet"
             description={
               isSchoolAdmin
-                ? "Add a teacher or student to get started."
+                ? "Add a teacher, student, parent, or headmaster to get started."
                 : "Accounts will appear here once schools and users are created."
             }
             action={
@@ -344,7 +361,7 @@ export default function UsersPage() {
                             </Link>
                           ) : (
                             <span className="text-[13px] text-muted-foreground">
-                              —
+                              None
                             </span>
                           )}
                         </td>

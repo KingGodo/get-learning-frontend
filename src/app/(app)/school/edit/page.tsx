@@ -6,13 +6,21 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, schoolsApi } from "@/lib/api";
-import { toastFromError } from "@/lib/toast";
+import { toast, toastFromError } from "@/lib/toast";
 import type { School } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageLoading } from "@/components/ui/page-loading";
+import {
+  fieldErrorsFromApi,
+  firstFieldError,
+  parseForm,
+  type FieldErrors,
+} from "@/lib/validation/form";
+import { updateSchoolSchema } from "@/lib/validation/schemas";
 
 export default function EditSchoolPage() {
   const { user, refreshUser } = useAuth();
@@ -22,6 +30,7 @@ export default function EditSchoolPage() {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -74,24 +83,43 @@ export default function EditSchoolPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const parsed = parseForm(updateSchoolSchema, {
+      name: form.name,
+      email: form.email,
+      phoneNumber: form.phoneNumber,
+      website: form.website || null,
+      address: form.address || undefined,
+      city: form.city,
+      province: form.province,
+      country: form.country || undefined,
+      termSystem: form.termSystem,
+      termsPerYear: form.termsPerYear,
+    });
+    if (!parsed.ok) {
+      setFieldErrors(parsed.fieldErrors);
+      toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
+      return;
+    }
+    setFieldErrors({});
     setPending(true);
     try {
       const updated = await schoolsApi.update({
-        name: form.name,
-        email: form.email,
-        phoneNumber: form.phoneNumber || undefined,
-        website: form.website || null,
-        address: form.address || undefined,
-        city: form.city,
-        province: form.province,
-        country: form.country || undefined,
-        termSystem: form.termSystem,
-        termsPerYear: form.termsPerYear,
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phoneNumber: parsed.data.phoneNumber || undefined,
+        website: parsed.data.website ?? null,
+        address: parsed.data.address,
+        city: parsed.data.city,
+        province: parsed.data.province,
+        country: parsed.data.country,
+        termSystem: parsed.data.termSystem,
+        termsPerYear: parsed.data.termsPerYear,
       });
       setSchool(updated);
       await refreshUser();
       router.push("/school");
     } catch (err) {
+      setFieldErrors(fieldErrorsFromApi(err));
       toastFromError(err, "Could not save");
       setPending(false);
     }
@@ -129,6 +157,7 @@ export default function EditSchoolPage() {
       )}
 
       <form onSubmit={onSubmit} className="space-y-4">
+        <FieldError message={firstFieldError(fieldErrors)} />
         <div className="space-y-1.5">
           <Label htmlFor="name" className="text-[13px] text-zinc-600">
             School name

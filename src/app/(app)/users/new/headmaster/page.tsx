@@ -9,6 +9,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { CredentialsPanel } from "@/components/users/credentials-panel";
 import { OneOffPasswordField } from "@/components/users/one-off-password-field";
 import { usersApi } from "@/lib/api";
+import { canManageUsers } from "@/lib/roles";
 import { toast, toastFromError } from "@/lib/toast";
 import type { IssuedCredentials } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -24,57 +25,43 @@ import {
   parseForm,
   type FieldErrors,
 } from "@/lib/validation/form";
-import { createStudentSchema } from "@/lib/validation/schemas";
+import { createHeadmasterSchema } from "@/lib/validation/schemas";
 
-type CreatedStudent = {
-  name: string;
-  credentials: IssuedCredentials;
-  userId: string;
+const emptyForm = {
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  email: "",
+  phoneNumber: "",
+  gender: "PREFER_NOT_TO_SAY",
+  password: "",
 };
 
-export default function NewStudentPage() {
+export default function NewHeadmasterPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const canCreate =
-    user?.role === "SCHOOL_ADMIN" || user?.role === "ADMIN";
   const [checking, setChecking] = useState(true);
   const [pending, setPending] = useState(false);
-  const [created, setCreated] = useState<CreatedStudent | null>(null);
+  const [created, setCreated] = useState<{
+    name: string;
+    credentials: IssuedCredentials;
+    userId: string;
+  } | null>(null);
+  const [form, setForm] = useState(emptyForm);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [form, setForm] = useState({
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
-    gender: "PREFER_NOT_TO_SAY",
-    password: "",
-    guardianName: "",
-    guardianPhone: "",
-    guardianEmail: "",
-    emergencyContact: "",
-  });
 
   useEffect(() => {
     if (!user) return;
-    if (!canCreate) {
-      router.replace("/dashboard");
-      return;
-    }
-    if (user.role === "ADMIN") {
+    if (!canManageUsers(user.role) || user.role === "ADMIN") {
       router.replace("/users");
       return;
     }
     setChecking(false);
-  }, [user, canCreate, router]);
+  }, [user, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = parseForm(createStudentSchema, {
-      ...form,
-      guardianEmail: form.guardianEmail || undefined,
-      emergencyContact: form.emergencyContact || undefined,
-    });
+    const parsed = parseForm(createHeadmasterSchema, form);
     if (!parsed.ok) {
       setFieldErrors(parsed.fieldErrors);
       toast.error(firstFieldError(parsed.fieldErrors) ?? "Check the form");
@@ -83,7 +70,7 @@ export default function NewStudentPage() {
     setFieldErrors({});
     setPending(true);
     try {
-      const data = await usersApi.createStudent({
+      const data = await usersApi.createHeadmaster({
         firstName: parsed.data.firstName,
         middleName: parsed.data.middleName || undefined,
         lastName: parsed.data.lastName,
@@ -91,20 +78,16 @@ export default function NewStudentPage() {
         phoneNumber: parsed.data.phoneNumber,
         gender: parsed.data.gender,
         ...(parsed.data.password ? { password: parsed.data.password } : {}),
-        guardianName: parsed.data.guardianName,
-        guardianPhone: parsed.data.guardianPhone,
-        guardianEmail: parsed.data.guardianEmail || undefined,
-        emergencyContact: parsed.data.emergencyContact || undefined,
       });
       setCreated({
         name: `${data.user.firstName} ${data.user.lastName}`,
         credentials: data.credentials,
         userId: data.user.id,
       });
-      setPending(false);
     } catch (err) {
       setFieldErrors(fieldErrorsFromApi(err));
-      toastFromError(err, "Could not create student");
+      toastFromError(err, "Could not create headmaster");
+    } finally {
       setPending(false);
     }
   }
@@ -117,7 +100,7 @@ export default function NewStudentPage() {
     return (
       <div className="relative mx-auto max-w-xl space-y-8">
         <PageHeader
-          eyebrow="Student created"
+          eyebrow="Headmaster created"
           title={created.name}
           description="Share these credentials so they can sign in."
         />
@@ -134,19 +117,7 @@ export default function NewStudentPage() {
                 size="sm"
                 onClick={() => {
                   setCreated(null);
-                  setForm({
-                    firstName: "",
-                    middleName: "",
-                    lastName: "",
-                    email: "",
-                    phoneNumber: "",
-                    gender: "PREFER_NOT_TO_SAY",
-                    password: "",
-                    guardianName: "",
-                    guardianPhone: "",
-                    guardianEmail: "",
-                    emergencyContact: "",
-                  });
+                  setForm(emptyForm);
                 }}
               >
                 Add another
@@ -166,7 +137,7 @@ export default function NewStudentPage() {
 
   return (
     <div className="relative mx-auto max-w-xl space-y-8">
-      {pending && <PageLoading overlay label="Creating student…" />}
+      {pending && <PageLoading overlay label="Creating headmaster…" />}
       <div>
         <Link
           href="/users"
@@ -176,8 +147,8 @@ export default function NewStudentPage() {
           Back to people
         </Link>
         <PageHeader
-          title="Add student"
-          description="Creates an account for your school. Set a one time password or leave it blank to generate one."
+          title="Add headmaster"
+          description="Creates a school wide oversight account. They can view people, classes, assignments, and submissions."
           className="mt-4 pb-0"
         />
       </div>
@@ -193,9 +164,7 @@ export default function NewStudentPage() {
               id="firstName"
               required
               value={form.firstName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, firstName: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
               className="h-9 rounded-md bg-transparent"
             />
           </div>
@@ -206,9 +175,7 @@ export default function NewStudentPage() {
             <Input
               id="middleName"
               value={form.middleName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, middleName: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, middleName: e.target.value }))}
               className="h-9 rounded-md bg-transparent"
               placeholder="Optional"
             />
@@ -221,9 +188,7 @@ export default function NewStudentPage() {
               id="lastName"
               required
               value={form.lastName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, lastName: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
               className="h-9 rounded-md bg-transparent"
             />
           </div>
@@ -264,89 +229,17 @@ export default function NewStudentPage() {
           value={form.gender}
           onChange={(value) => setForm((f) => ({ ...f, gender: value }))}
         />
-
         <OneOffPasswordField
           id="password"
           value={form.password}
           onChange={(password) => setForm((f) => ({ ...f, password }))}
         />
 
-        <div className="border-t border-border pt-4">
-          <h2 className="text-[13px] font-semibold text-brand-dark">Guardian</h2>
-          <div className="mt-4 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="guardianName" className="text-[13px] text-zinc-600">
-                  Guardian name
-                </Label>
-                <Input
-                  id="guardianName"
-                  required
-                  value={form.guardianName}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, guardianName: e.target.value }))
-                  }
-                  className="h-9 rounded-md bg-transparent"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="guardianPhone" className="text-[13px] text-zinc-600">
-                  Guardian phone
-                </Label>
-                <Input
-                  id="guardianPhone"
-                  required
-                  value={form.guardianPhone}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, guardianPhone: e.target.value }))
-                  }
-                  className="h-9 rounded-md bg-transparent"
-                  placeholder="+263…"
-                />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="guardianEmail" className="text-[13px] text-zinc-600">
-                  Guardian email
-                </Label>
-                <Input
-                  id="guardianEmail"
-                  type="email"
-                  value={form.guardianEmail}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, guardianEmail: e.target.value }))
-                  }
-                  className="h-9 rounded-md bg-transparent"
-                  placeholder="Optional"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="emergencyContact"
-                  className="text-[13px] text-zinc-600"
-                >
-                  Emergency contact
-                </Label>
-                <Input
-                  id="emergencyContact"
-                  value={form.emergencyContact}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, emergencyContact: e.target.value }))
-                  }
-                  className="h-9 rounded-md bg-transparent"
-                  placeholder="Optional"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="flex flex-wrap gap-2 pt-2">
-          <Button type="submit" disabled={pending} size="sm">
-            {pending ? "Creating…" : "Create student"}
+          <Button type="submit" disabled={pending}>
+            Create headmaster
           </Button>
-          <ButtonLink href="/users" variant="outline" size="sm">
+          <ButtonLink href="/users" variant="outline">
             Cancel
           </ButtonLink>
         </div>

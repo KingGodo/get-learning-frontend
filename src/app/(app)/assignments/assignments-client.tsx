@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
+import { canCreateAssignments, isStudentLike } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 type StatusFilter = "ALL" | "DRAFT" | "PUBLISHED" | "CLOSED";
@@ -56,11 +57,8 @@ export default function AssignmentsPageClient() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const classIdFilter = searchParams.get("classId") ?? undefined;
-  const isStudent = user?.role === "STUDENT";
-  const canManage =
-    user?.role === "TEACHER" ||
-    user?.role === "ADMIN" ||
-    user?.role === "SCHOOL_ADMIN";
+  const isStudent = isStudentLike(user?.role);
+  const canManage = canCreateAssignments(user?.role);
 
   const [items, setItems] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -251,7 +249,7 @@ export default function AssignmentsPageClient() {
               <SelectContent>
                 <SelectItem value="due_soon">Due soon</SelectItem>
                 <SelectItem value="due_late">Due latest</SelectItem>
-                <SelectItem value="title">Title A–Z</SelectItem>
+                <SelectItem value="title">Title A to Z</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -453,7 +451,7 @@ export default function AssignmentsPageClient() {
                             </Link>
                           ) : (
                             <span className="text-[13px] text-muted-foreground">
-                              —
+                              None
                             </span>
                           )}
                         </td>

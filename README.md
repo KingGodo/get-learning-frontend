@@ -16,4 +16,4 @@ API default: `http://localhost:4000/api/v1` (start `getleaning-backend` first).
 
 ## Brand
 
-**GetLeaning** — calm pine + cool mist UI, Fraunces display + Outfit body.
+**GetLeaning**: calm pine + cool mist UI, Fraunces display + Outfit body.
