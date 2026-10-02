@@ -27,21 +27,21 @@ const capabilities = [
     title: "Classes & codes",
     body: "Open a class, share a code, students join in seconds.",
     src: landingIllustrations.classes,
-    alt: `A student with books in ${APP_NAME}`,
+    alt: `High school students working in a computer lab in ${APP_NAME}`,
   },
   {
     number: "02",
     title: "Assignments & files",
     body: "Publish work with due dates and attachments. One submit flow.",
     src: landingIllustrations.assignments,
-    alt: `Watching a lesson in ${APP_NAME}`,
+    alt: `High school students using a computer together in ${APP_NAME}`,
   },
   {
     number: "03",
     title: "Grading & feedback",
     body: "See what’s waiting, score it, and reply without leaving the page.",
     src: landingIllustrations.grading,
-    alt: `Focused grading work in ${APP_NAME}`,
+    alt: `A high school lesson shown on a projector in ${APP_NAME}`,
   },
 ];
 
@@ -254,7 +254,7 @@ export function LandingPillars() {
               <div className="relative h-52 shrink-0 overflow-hidden bg-landing">
                 <LandingIllustration
                   src={landingIllustrations.student}
-                  alt={`Student reading and learning in ${APP_NAME}`}
+                  alt={`High school students working together on a laptop in ${APP_NAME}`}
                   fillHeight
                   className="h-full"
                 />

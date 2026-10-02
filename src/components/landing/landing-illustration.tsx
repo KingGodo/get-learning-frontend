@@ -3,15 +3,15 @@ import { cn } from "@/lib/utils";
 
 /** School photos under /public/landing/photos. */
 export const landingIllustrations = {
-  hero: "/landing/photos/classroom.jpg",
-  teacher: "/landing/photos/lesson.jpg",
-  student: "/landing/photos/uniform.jpg",
-  cta: "/landing/photos/classroom.jpg",
-  classes: "/landing/photos/classroom.jpg",
-  assignments: "/landing/photos/writing.jpg",
-  grading: "/landing/photos/lesson.jpg",
-  materials: "/landing/photos/writing.jpg",
-  activity: "/landing/photos/smile.jpg",
+  hero: "/landing/photos/lab.jpg",
+  teacher: "/landing/photos/projector.jpg",
+  student: "/landing/photos/laptops.jpg",
+  cta: "/landing/photos/lab.jpg",
+  classes: "/landing/photos/lab.jpg",
+  assignments: "/landing/photos/computers.jpg",
+  grading: "/landing/photos/projector.jpg",
+  materials: "/landing/photos/computers.jpg",
+  activity: "/landing/photos/laptops.jpg",
 } as const;
 
 type LandingIllustrationProps = {

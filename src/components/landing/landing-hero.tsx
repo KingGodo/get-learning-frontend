@@ -14,9 +14,9 @@ import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const faces = [
-  "/landing/photos/lesson.jpg",
-  "/landing/photos/uniform.jpg",
-  "/landing/photos/smile.jpg",
+  { src: "/landing/photos/student.jpg", position: "center 18%" },
+  { src: "/landing/photos/computers.jpg", position: "42% 28%" },
+  { src: "/landing/photos/laptops.jpg", position: "82% 32%" },
 ];
 
 const assignments = [
@@ -67,9 +67,9 @@ export function LandingHero() {
             className="mx-1 inline-flex translate-y-[0.08em] items-center align-middle"
             aria-hidden
           >
-            {faces.map((src, i) => (
+            {faces.map((face, i) => (
               <span
-                key={src}
+                key={face.src}
                 className={cn(
                   "relative inline-block size-[0.82em] overflow-hidden rounded-full ring-2 ring-white",
                   i > 0 && "-ml-[0.22em]",
@@ -77,11 +77,12 @@ export function LandingHero() {
                 style={{ zIndex: faces.length - i }}
               >
                 <Image
-                  src={src}
+                  src={face.src}
                   alt=""
                   width={96}
                   height={96}
                   className="size-full object-cover"
+                  style={{ objectPosition: face.position }}
                   priority
                 />
               </span>
