@@ -42,6 +42,46 @@ export type User = {
   school?: School | null;
 };
 
+export type TeacherOnboarding = {
+  profile: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    gender: string;
+    department?: string | null;
+    qualification?: string | null;
+    employeeNumber: string;
+    schoolName: string | null;
+  };
+  subjects: Array<{ id: string; name: string; code: string }>;
+  classes: Array<{ id: string; name: string; subjectName: string | null }>;
+  pendingRequest: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    department?: string | null;
+    qualification?: string | null;
+    note?: string | null;
+    createdAt: string;
+  } | null;
+};
+
+export type TeacherProfileRequest = {
+  id: string;
+  status: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  department?: string | null;
+  qualification?: string | null;
+  note?: string | null;
+  createdAt: string;
+  teacher: { id: string; firstName: string; lastName: string; email: string };
+  school?: { id: string; name: string } | null;
+};
+
 export type Teacher = {
   id: string;
   employeeNumber: string;

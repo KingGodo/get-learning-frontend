@@ -145,6 +145,9 @@ export default function UsersPage() {
         actions={
           canCreate && isSchoolAdmin ? (
             <>
+              <ButtonLink href="/users/corrections" variant="outline" size="sm">
+                Profile corrections
+              </ButtonLink>
               <ButtonLink href="/users/new/teacher" size="sm">
                 <Plus className="size-3.5" />
                 Add teacher

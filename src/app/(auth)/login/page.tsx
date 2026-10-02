@@ -46,7 +46,11 @@ export default function LoginPage() {
     setPending(true);
     clearToken();
     try {
-      await login(parsed.data.email, parsed.data.password);
+      const signedIn = await login(parsed.data.email, parsed.data.password);
+      if (signedIn.role === "TEACHER" && signedIn.mustChangePassword) {
+        router.replace("/welcome");
+        return;
+      }
       router.replace("/dashboard");
     } catch (err) {
       toastFromError(err, "Unable to sign in");

@@ -173,6 +173,18 @@ export const authApi = {
       method: "POST",
       body: { currentPassword },
     }),
+  teacherOnboarding: () =>
+    api<import("./types").TeacherOnboarding>("/auth/teacher-onboarding"),
+  submitTeacherCorrections: (body: Record<string, unknown>) =>
+    api<unknown>("/auth/teacher-onboarding/corrections", {
+      method: "POST",
+      body,
+    }),
+  setInitialPassword: (body: { password: string; confirmPassword: string }) =>
+    api<import("./types").User>("/auth/teacher-onboarding/password", {
+      method: "POST",
+      body,
+    }),
 };
 
 export const dashboardApi = {
@@ -282,6 +294,12 @@ export const usersApi = {
       user: import("./types").User;
       credentials: import("./types").IssuedCredentials;
     }>("/users/headmasters", { method: "POST", body }),
+  profileRequests: () =>
+    api<import("./types").TeacherProfileRequest[]>("/users/profile-requests"),
+  applyProfileRequest: (id: string) =>
+    api<{ id: string; status: string }>(`/users/profile-requests/${id}/apply`, {
+      method: "POST",
+    }),
   createParent: (body: Record<string, unknown>) =>
     api<{
       user: import("./types").User;

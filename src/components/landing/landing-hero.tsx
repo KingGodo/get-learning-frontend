@@ -14,9 +14,9 @@ import { APP_NAME } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const faces = [
-  "/landing/avatars/teacher.webp",
-  "/landing/avatars/student.webp",
-  "/landing/avatars/peer.webp",
+  "/landing/photos/lesson.jpg",
+  "/landing/photos/uniform.jpg",
+  "/landing/photos/smile.jpg",
 ];
 
 const assignments = [

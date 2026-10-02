@@ -120,13 +120,12 @@ export function LandingPillars() {
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.25, delay: index * 0.05, ease }}
               >
-                <div className="flex h-52 shrink-0 items-center justify-center bg-landing px-6">
+                <div className="relative h-52 shrink-0 overflow-hidden bg-landing">
                   <LandingIllustration
                     src={item.src}
                     alt={item.alt}
                     fillHeight
-                    className="h-40"
-                    imageClassName="illustration-quiet"
+                    className="h-full"
                   />
                 </div>
                 <div className="flex flex-1 flex-col border-t border-border p-5">
@@ -164,13 +163,12 @@ export function LandingPillars() {
               className="hidden h-52 w-56 overflow-hidden rounded-lg border border-border bg-white lg:block"
               {...fade}
             >
-              <div className="flex h-full items-center justify-center bg-landing px-4">
+              <div className="relative h-full overflow-hidden bg-landing">
                 <LandingIllustration
                   src={landingIllustrations.activity}
                   alt={`Working through class activity in ${APP_NAME}`}
                   fillHeight
-                  className="h-40"
-                  imageClassName="illustration-quiet"
+                  className="h-full"
                 />
               </div>
             </motion.div>
@@ -218,13 +216,12 @@ export function LandingPillars() {
               className="overflow-hidden rounded-lg border border-border bg-white"
               {...fade}
             >
-              <div className="flex h-52 shrink-0 items-center justify-center bg-landing px-8">
+              <div className="relative h-52 shrink-0 overflow-hidden bg-landing">
                 <LandingIllustration
                   src={landingIllustrations.teacher}
                   alt={`Teacher managing class assignments in ${APP_NAME}`}
                   fillHeight
-                  className="h-40"
-                  imageClassName="illustration-quiet"
+                  className="h-full"
                 />
               </div>
               <div className="border-t border-border p-6">
@@ -254,13 +251,12 @@ export function LandingPillars() {
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.25, delay: 0.06, ease }}
             >
-              <div className="flex h-52 shrink-0 items-center justify-center bg-landing px-8">
+              <div className="relative h-52 shrink-0 overflow-hidden bg-landing">
                 <LandingIllustration
                   src={landingIllustrations.student}
                   alt={`Student reading and learning in ${APP_NAME}`}
                   fillHeight
-                  className="h-40"
-                  imageClassName="illustration-quiet"
+                  className="h-full"
                 />
               </div>
               <div className="border-t border-border p-6">
@@ -295,13 +291,12 @@ export function LandingPillars() {
             <h2 className="mt-3 font-display text-[2rem] font-semibold leading-[1.1] tracking-[-0.02em] text-ink md:text-[2.5rem]">
               Before you ask for a login.
             </h2>
-            <div className="mt-8 hidden h-52 overflow-hidden rounded-lg border border-border bg-landing px-8 lg:flex lg:items-center lg:justify-center">
+            <div className="relative mt-8 hidden h-52 overflow-hidden rounded-lg border border-border bg-landing lg:block">
               <LandingIllustration
                 src={landingIllustrations.materials}
                 alt={`Preparing materials in ${APP_NAME}`}
                 fillHeight
-                className="h-40"
-                imageClassName="illustration-quiet"
+                className="h-full"
               />
             </div>
           </motion.div>
@@ -371,13 +366,12 @@ export function LandingPillars() {
               </ButtonLink>
             </div>
           </div>
-          <div className="flex h-52 items-center justify-center border-t border-border bg-landing px-8 lg:h-auto lg:min-h-full lg:border-l lg:border-t-0">
+          <div className="relative h-52 overflow-hidden border-t border-border bg-landing lg:h-auto lg:min-h-full lg:border-l lg:border-t-0">
             <LandingIllustration
               src={landingIllustrations.cta}
               alt={`Teachers and students working together in ${APP_NAME}`}
               fillHeight
-              className="h-40 lg:h-52"
-              imageClassName="illustration-quiet"
+              className="h-full min-h-52"
             />
           </div>
         </motion.div>
