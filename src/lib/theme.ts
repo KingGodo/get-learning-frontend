@@ -147,7 +147,7 @@ export function themeForRole(role: UserRole | null | undefined): RoleTheme {
   if (!role) {
     return {
       id: "ADMIN",
-      label: "GetLeaning",
+      label: "TakeLearning",
       direction: "Default",
       ...defaultTheme,
       sidebar: defaultTheme.brand,

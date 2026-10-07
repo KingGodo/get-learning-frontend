@@ -8,7 +8,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { usersApi } from "@/lib/api";
 import { canManageUsers } from "@/lib/roles";
 import { toast, toastFromError } from "@/lib/toast";
-import type { TeacherProfileRequest } from "@/lib/types";
+import type { ProfileCorrection } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
@@ -17,7 +17,7 @@ import { PageLoading } from "@/components/ui/page-loading";
 export default function TeacherCorrectionsPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [items, setItems] = useState<TeacherProfileRequest[]>([]);
+  const [items, setItems] = useState<ProfileCorrection[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -60,33 +60,45 @@ export default function TeacherCorrectionsPage() {
       </Link>
       <PageHeader
         title="Profile corrections"
-        description="Teachers send these on their first sign in when a detail needs a change."
+        description="Teachers and students send these on their first sign in when a detail needs a change."
       />
       {items.length === 0 ? (
         <EmptyState
           title="No corrections waiting"
-          description="New requests from teachers will show up here."
+          description="New requests from teachers and students will show up here."
         />
       ) : (
         <ul className="space-y-3">
-          {items.map((item) => (
+          {items.map((item) => {
+            const person = item.kind === "STUDENT" ? item.student : item.teacher;
+            return (
             <li key={item.id} className="space-y-3 rounded-lg border border-border bg-card p-4">
               <div>
                 <p className="text-sm font-semibold text-ink">
-                  {item.teacher.firstName} {item.teacher.lastName}
+                  {person.firstName} {person.lastName}
                 </p>
                 <p className="text-[12px] text-muted-foreground">
-                  {item.teacher.email}
+                  {item.kind === "STUDENT" ? "Student" : "Teacher"} · {person.email}
                   {item.school ? ` · ${item.school.name}` : ""}
                 </p>
               </div>
               <p className="text-sm text-ink">
                 {item.firstName} {item.lastName} · {item.phoneNumber}
               </p>
-              <p className="text-[13px] text-muted-foreground">
-                Department: {item.department || "None"} · Qualification:{" "}
-                {item.qualification || "None"}
-              </p>
+              {item.kind === "STUDENT" ? (
+                <p className="text-[13px] text-muted-foreground">
+                  Guardian: {item.guardianName} · {item.guardianPhone}
+                  {item.guardianEmail ? ` · ${item.guardianEmail}` : ""}
+                  {item.emergencyContact
+                    ? ` · Emergency: ${item.emergencyContact}`
+                    : ""}
+                </p>
+              ) : (
+                <p className="text-[13px] text-muted-foreground">
+                  Department: {item.department || "None"} · Qualification:{" "}
+                  {item.qualification || "None"}
+                </p>
+              )}
               {item.note && (
                 <p className="text-[13px] text-ink">Note: {item.note}</p>
               )}
@@ -99,7 +111,8 @@ export default function TeacherCorrectionsPage() {
                 {busyId === item.id ? "Saving…" : "Apply corrections"}
               </Button>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

@@ -69,6 +69,7 @@ export type TeacherOnboarding = {
 };
 
 export type TeacherProfileRequest = {
+  kind: "TEACHER";
   id: string;
   status: string;
   firstName: string;
@@ -81,6 +82,54 @@ export type TeacherProfileRequest = {
   teacher: { id: string; firstName: string; lastName: string; email: string };
   school?: { id: string; name: string } | null;
 };
+
+export type StudentOnboarding = {
+  profile: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    gender: string;
+    studentNumber: string;
+    guardianName: string;
+    guardianPhone: string;
+    guardianEmail?: string | null;
+    emergencyContact?: string | null;
+    schoolName: string | null;
+  };
+  classes: Array<{ id: string; name: string; subjectName: string | null }>;
+  pendingRequest: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    guardianName: string;
+    guardianPhone: string;
+    guardianEmail?: string | null;
+    emergencyContact?: string | null;
+    note?: string | null;
+    createdAt: string;
+  } | null;
+};
+
+export type StudentProfileRequest = {
+  kind: "STUDENT";
+  id: string;
+  status: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  guardianName: string;
+  guardianPhone: string;
+  guardianEmail?: string | null;
+  emergencyContact?: string | null;
+  note?: string | null;
+  createdAt: string;
+  student: { id: string; firstName: string; lastName: string; email: string };
+  school?: { id: string; name: string } | null;
+};
+
+export type ProfileCorrection = TeacherProfileRequest | StudentProfileRequest;
 
 export type Teacher = {
   id: string;

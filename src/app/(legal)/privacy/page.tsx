@@ -25,14 +25,14 @@ export default function PrivacyPage() {
         <section className="space-y-3">
           <h2 className="text-lg font-semibold text-brand-dark">1. Overview</h2>
           <p>
-            GetLeaning (“we”, “us”, or “our”) provides a learning management system
+            {APP_NAME} (“we”, “us”, or “our”) provides a learning management system
             for teachers, students, and system administrators. This Privacy
             Policy explains what personal information we collect, how we use it,
-            and the choices you have when you use GetLeaning (the “Service”).
+            and the choices you have when you use {APP_NAME} (the “Service”).
           </p>
           <p>
             By creating an account or using the Service, you acknowledge this
-            Policy. If you do not agree, please do not use GetLeaning.
+            Policy. If you do not agree, please do not use {APP_NAME}.
           </p>
         </section>
 
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
             </li>
             <li>
               When required by law, or to protect the safety, rights, or
-              property of GetLeaning, our users, or others
+              property of {APP_NAME}, our users, or others
             </li>
             <li>
               In connection with a merger, acquisition, or asset transfer, with
@@ -151,7 +151,7 @@ export default function PrivacyPage() {
             8. Children’s privacy
           </h2>
           <p>
-            GetLeaning may be used by students, including minors, under the
+            {APP_NAME} may be used by students, including minors, under the
             supervision of a school or guardian where required by law. If you
             believe we have collected information inappropriately, contact us
             and we will take appropriate steps.

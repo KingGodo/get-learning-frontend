@@ -212,7 +212,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [loading, isAuthenticated, router]);
 
   useEffect(() => {
-    if (!user || user.role !== "TEACHER" || !user.mustChangePassword) return;
+    if (
+      !user ||
+      (user.role !== "TEACHER" && user.role !== "STUDENT") ||
+      !user.mustChangePassword
+    ) {
+      return;
+    }
     const allowed =
       pathname === "/welcome" || pathname.startsWith("/welcome/");
     if (!allowed) router.replace("/welcome");

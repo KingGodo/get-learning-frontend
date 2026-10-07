@@ -47,7 +47,10 @@ export default function LoginPage() {
     clearToken();
     try {
       const signedIn = await login(parsed.data.email, parsed.data.password);
-      if (signedIn.role === "TEACHER" && signedIn.mustChangePassword) {
+      if (
+        (signedIn.role === "TEACHER" || signedIn.role === "STUDENT") &&
+        signedIn.mustChangePassword
+      ) {
         router.replace("/welcome");
         return;
       }

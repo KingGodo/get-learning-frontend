@@ -28,8 +28,8 @@ export default function TermsPage() {
           </h2>
           <p>
             These Terms &amp; Conditions (“Terms”) govern your access to and
-            use of GetLeaning, including our websites, applications, and related
-            services (the “Service”). By registering for or using GetLeaning, you
+            use of {APP_NAME}, including our websites, applications, and related
+            services (the “Service”). By registering for or using {APP_NAME}, you
             agree to these Terms and our{" "}
             <Link
               href="/privacy"
@@ -40,7 +40,7 @@ export default function TermsPage() {
             .
           </p>
           <p>
-            If you use GetLeaning on behalf of a school or organisation, you
+            If you use {APP_NAME} on behalf of a school or organisation, you
             confirm that you have authority to bind that organisation to these
             Terms.
           </p>
@@ -51,7 +51,7 @@ export default function TermsPage() {
             2. The Service
           </h2>
           <p>
-            GetLeaning is a learning management platform that enables teachers and
+            {APP_NAME} is a learning management platform that enables teachers and
             students to manage classes, assignments, submissions, grades, and
             related academic workflows. Features may change as we improve the
             product. We may add, modify, or discontinue features with
@@ -112,7 +112,7 @@ export default function TermsPage() {
           </h2>
           <p>
             You retain ownership of content you submit (such as assignment
-            files, descriptions, and feedback). You grant GetLeaning a limited
+            files, descriptions, and feedback). You grant {APP_NAME} a limited
             licence to host, process, display, and transmit that content solely
             to operate and improve the Service.
           </p>
@@ -128,7 +128,7 @@ export default function TermsPage() {
             6. Intellectual property
           </h2>
           <p>
-            GetLeaning, including its name, branding, software, and design, is owned
+            {APP_NAME}, including its name, branding, software, and design, is owned
             by us or our licensors. Except for the limited rights needed to use
             the Service, no licence to our intellectual property is granted.
           </p>
@@ -139,7 +139,7 @@ export default function TermsPage() {
             7. Availability and support
           </h2>
           <p>
-            We aim to keep GetLeaning reliable, but we do not guarantee
+            We aim to keep {APP_NAME} reliable, but we do not guarantee
             uninterrupted or error free service. Scheduled maintenance,
             outages, or third party failures may occur. We will work in good
             faith to restore service when issues arise.
@@ -157,7 +157,7 @@ export default function TermsPage() {
             where such disclaimers are not allowed.
           </p>
           <p>
-            GetLeaning is a tool to support teaching and learning. It does not
+            {APP_NAME} is a tool to support teaching and learning. It does not
             replace professional educational judgment or institutional
             policies.
           </p>
@@ -168,7 +168,7 @@ export default function TermsPage() {
             9. Limitation of liability
           </h2>
           <p>
-            To the maximum extent permitted by law, GetLeaning and its operators
+            To the maximum extent permitted by law, {APP_NAME} and its operators
             will not be liable for indirect, incidental, special,
             consequential, or punitive damages, or for loss of data, grades,
             profits, or goodwill, arising from your use of the Service.
@@ -186,7 +186,7 @@ export default function TermsPage() {
             10. Termination
           </h2>
           <p>
-            You may stop using GetLeaning at any time. We may suspend or end access
+            You may stop using {APP_NAME} at any time. We may suspend or end access
             if you breach these Terms, if required by law, or if we discontinue
             the Service. Provisions that should survive termination (including
             intellectual property, disclaimers, and liability limits) will

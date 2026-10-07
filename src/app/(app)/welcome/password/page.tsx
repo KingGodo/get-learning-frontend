@@ -45,9 +45,18 @@ export default function TeacherPasswordPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
-    if (!user || user.role !== "TEACHER" || !user.mustChangePassword) return;
-    authApi
-      .teacherOnboarding()
+    if (
+      !user ||
+      (user.role !== "TEACHER" && user.role !== "STUDENT") ||
+      !user.mustChangePassword
+    ) {
+      return;
+    }
+    const load =
+      user.role === "STUDENT"
+        ? authApi.studentOnboarding()
+        : authApi.teacherOnboarding();
+    load
       .then((next) => {
         if (next.pendingRequest) router.replace("/welcome");
       })
@@ -56,7 +65,11 @@ export default function TeacherPasswordPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!user || user.role !== "TEACHER" || !user.mustChangePassword) {
+    if (
+      !user ||
+      (user.role !== "TEACHER" && user.role !== "STUDENT") ||
+      !user.mustChangePassword
+    ) {
       router.replace("/dashboard");
       return;
     }
@@ -69,7 +82,10 @@ export default function TeacherPasswordPage() {
     setFieldErrors({});
     setPending(true);
     try {
-      await authApi.setInitialPassword(parsed.data);
+      await authApi.setInitialPassword(
+        parsed.data,
+        user.role === "STUDENT" ? "student" : "teacher",
+      );
       await refreshUser();
       toast.success("Password saved");
       router.replace("/dashboard");

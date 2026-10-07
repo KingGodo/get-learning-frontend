@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { authApi } from "@/lib/api";
 import { toast, toastFromError } from "@/lib/toast";
-import type { TeacherOnboarding } from "@/lib/types";
+import type { StudentOnboarding, TeacherOnboarding } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 export default function TeacherWelcomePage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [data, setData] = useState<TeacherOnboarding | null>(null);
+  const [teacherData, setTeacherData] = useState<TeacherOnboarding | null>(null);
+  const [studentData, setStudentData] = useState<StudentOnboarding | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState(false);
@@ -26,28 +27,56 @@ export default function TeacherWelcomePage() {
     phoneNumber: "",
     department: "",
     qualification: "",
+    guardianName: "",
+    guardianPhone: "",
+    guardianEmail: "",
+    emergencyContact: "",
     note: "",
   });
 
+  const isStudent = user?.role === "STUDENT";
+
   useEffect(() => {
     if (!user) return;
-    if (user.role !== "TEACHER" || !user.mustChangePassword) {
+    if (
+      (user.role !== "TEACHER" && user.role !== "STUDENT") ||
+      !user.mustChangePassword
+    ) {
       router.replace("/dashboard");
       return;
     }
-    authApi
-      .teacherOnboarding()
-      .then((next) => {
-        setData(next);
-        setForm({
-          firstName: next.profile.firstName,
-          lastName: next.profile.lastName,
-          phoneNumber: next.profile.phoneNumber,
-          department: next.profile.department ?? "",
-          qualification: next.profile.qualification ?? "",
-          note: "",
+    const load = user.role === "STUDENT"
+      ? authApi.studentOnboarding().then((next) => {
+          setStudentData(next);
+          setForm({
+            firstName: next.profile.firstName,
+            lastName: next.profile.lastName,
+            phoneNumber: next.profile.phoneNumber,
+            department: "",
+            qualification: "",
+            guardianName: next.profile.guardianName,
+            guardianPhone: next.profile.guardianPhone,
+            guardianEmail: next.profile.guardianEmail ?? "",
+            emergencyContact: next.profile.emergencyContact ?? "",
+            note: "",
+          });
+        })
+      : authApi.teacherOnboarding().then((next) => {
+          setTeacherData(next);
+          setForm({
+            firstName: next.profile.firstName,
+            lastName: next.profile.lastName,
+            phoneNumber: next.profile.phoneNumber,
+            department: next.profile.department ?? "",
+            qualification: next.profile.qualification ?? "",
+            guardianName: "",
+            guardianPhone: "",
+            guardianEmail: "",
+            emergencyContact: "",
+            note: "",
+          });
         });
-      })
+    load
       .catch((err) => toastFromError(err, "Could not load your profile"))
       .finally(() => setLoading(false));
   }, [user, router]);
@@ -56,17 +85,30 @@ export default function TeacherWelcomePage() {
     e.preventDefault();
     setPending(true);
     try {
-      await authApi.submitTeacherCorrections({
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        phoneNumber: form.phoneNumber.trim(),
-        department: form.department.trim() || undefined,
-        qualification: form.qualification.trim() || undefined,
-        note: form.note.trim() || undefined,
-      });
+      if (isStudent) {
+        await authApi.submitStudentCorrections({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          phoneNumber: form.phoneNumber.trim(),
+          guardianName: form.guardianName.trim(),
+          guardianPhone: form.guardianPhone.trim(),
+          guardianEmail: form.guardianEmail.trim() || undefined,
+          emergencyContact: form.emergencyContact.trim() || undefined,
+          note: form.note.trim() || undefined,
+        });
+        setStudentData(await authApi.studentOnboarding());
+      } else {
+        await authApi.submitTeacherCorrections({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          phoneNumber: form.phoneNumber.trim(),
+          department: form.department.trim() || undefined,
+          qualification: form.qualification.trim() || undefined,
+          note: form.note.trim() || undefined,
+        });
+        setTeacherData(await authApi.teacherOnboarding());
+      }
       toast.success("Sent to your school admin");
-      const next = await authApi.teacherOnboarding();
-      setData(next);
       setEditing(false);
     } catch (err) {
       toastFromError(err, "Could not send corrections");
@@ -75,18 +117,25 @@ export default function TeacherWelcomePage() {
     }
   }
 
+  const data = isStudent ? studentData : teacherData;
+
   if (loading || !data) {
     return <PageLoading label="Loading your profile…" />;
   }
 
   const profile = data.profile;
+  const studentProfile = isStudent ? studentData?.profile : null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader
         eyebrow="First sign in"
         title="Review your details"
-        description="Your school admin created this account and assigned your subjects. Confirm the details, or send corrections before you choose a password."
+        description={
+          isStudent
+            ? "Your school created this account. Confirm the details, or send corrections before you choose a password."
+            : "Your school admin created this account and assigned your subjects. Confirm the details, or send corrections before you choose a password."
+        }
       />
 
       {data.pendingRequest && (
@@ -99,19 +148,46 @@ export default function TeacherWelcomePage() {
       <section className="space-y-3 rounded-lg border border-border bg-card p-4">
         <Row label="School" value={profile.schoolName ?? "None"} />
         <Row label="Email" value={profile.email} />
-        <Row label="Staff number" value={profile.employeeNumber} />
+        <Row
+          label={isStudent ? "Student number" : "Staff number"}
+          value={
+            studentProfile
+              ? studentProfile.studentNumber
+              : teacherData?.profile.employeeNumber ?? "None"
+          }
+        />
         <Row label="Name" value={`${profile.firstName} ${profile.lastName}`} />
         <Row label="Phone" value={profile.phoneNumber} />
-        <Row label="Department" value={profile.department || "None"} />
-        <Row label="Qualification" value={profile.qualification || "None"} />
-        <div>
-          <p className="text-[12px] text-muted-foreground">Subjects</p>
-          <p className="text-sm text-ink">
-            {data.subjects.length
-              ? data.subjects.map((subject) => subject.name).join(", ")
-              : "None"}
-          </p>
-        </div>
+        {studentProfile ? (
+          <>
+            <Row label="Guardian" value={studentProfile.guardianName} />
+            <Row label="Guardian phone" value={studentProfile.guardianPhone} />
+            <Row
+              label="Guardian email"
+              value={studentProfile.guardianEmail || "None"}
+            />
+            <Row
+              label="Emergency contact"
+              value={studentProfile.emergencyContact || "None"}
+            />
+          </>
+        ) : (
+          <>
+            <Row label="Department" value={teacherData?.profile.department || "None"} />
+            <Row
+              label="Qualification"
+              value={teacherData?.profile.qualification || "None"}
+            />
+            <div>
+              <p className="text-[12px] text-muted-foreground">Subjects</p>
+              <p className="text-sm text-ink">
+                {teacherData?.subjects.length
+                  ? teacherData.subjects.map((subject) => subject.name).join(", ")
+                  : "None"}
+              </p>
+            </div>
+          </>
+        )}
         <div>
           <p className="text-[12px] text-muted-foreground">Classes</p>
           <p className="text-sm text-ink">
@@ -154,20 +230,59 @@ export default function TeacherWelcomePage() {
               value={form.phoneNumber}
               onChange={(value) => setForm((f) => ({ ...f, phoneNumber: value }))}
             />
-            <Field
-              id="department"
-              label="Department"
-              value={form.department}
-              onChange={(value) => setForm((f) => ({ ...f, department: value }))}
-            />
-            <Field
-              id="qualification"
-              label="Qualification"
-              value={form.qualification}
-              onChange={(value) =>
-                setForm((f) => ({ ...f, qualification: value }))
-              }
-            />
+            {isStudent ? (
+              <>
+                <Field
+                  id="guardianName"
+                  label="Guardian name"
+                  value={form.guardianName}
+                  onChange={(value) =>
+                    setForm((f) => ({ ...f, guardianName: value }))
+                  }
+                />
+                <Field
+                  id="guardianPhone"
+                  label="Guardian phone"
+                  value={form.guardianPhone}
+                  onChange={(value) =>
+                    setForm((f) => ({ ...f, guardianPhone: value }))
+                  }
+                />
+                <Field
+                  id="guardianEmail"
+                  label="Guardian email"
+                  value={form.guardianEmail}
+                  onChange={(value) =>
+                    setForm((f) => ({ ...f, guardianEmail: value }))
+                  }
+                />
+                <Field
+                  id="emergencyContact"
+                  label="Emergency contact"
+                  value={form.emergencyContact}
+                  onChange={(value) =>
+                    setForm((f) => ({ ...f, emergencyContact: value }))
+                  }
+                />
+              </>
+            ) : (
+              <>
+                <Field
+                  id="department"
+                  label="Department"
+                  value={form.department}
+                  onChange={(value) => setForm((f) => ({ ...f, department: value }))}
+                />
+                <Field
+                  id="qualification"
+                  label="Qualification"
+                  value={form.qualification}
+                  onChange={(value) =>
+                    setForm((f) => ({ ...f, qualification: value }))
+                  }
+                />
+              </>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="note">Note for the school admin</Label>
@@ -175,12 +290,18 @@ export default function TeacherWelcomePage() {
               id="note"
               value={form.note}
               onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-              placeholder="For example, the subject or class is wrong"
+              placeholder={
+                isStudent
+                  ? "For example, the class is wrong"
+                  : "For example, the subject or class is wrong"
+              }
               rows={3}
             />
           </div>
           <p className="text-[12px] text-muted-foreground">
-            Subjects and classes stay with your school admin. Mention them in the note if they are wrong.
+            {isStudent
+              ? "Classes stay with your school admin. Mention them in the note if they are wrong."
+              : "Subjects and classes stay with your school admin. Mention them in the note if they are wrong."}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={pending}>

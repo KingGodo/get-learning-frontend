@@ -180,8 +180,18 @@ export const authApi = {
       method: "POST",
       body,
     }),
-  setInitialPassword: (body: { password: string; confirmPassword: string }) =>
-    api<import("./types").User>("/auth/teacher-onboarding/password", {
+  setInitialPassword: (
+    body: { password: string; confirmPassword: string },
+    role: "teacher" | "student" = "teacher",
+  ) =>
+    api<import("./types").User>(`/auth/${role}-onboarding/password`, {
+      method: "POST",
+      body,
+    }),
+  studentOnboarding: () =>
+    api<import("./types").StudentOnboarding>("/auth/student-onboarding"),
+  submitStudentCorrections: (body: Record<string, unknown>) =>
+    api<unknown>("/auth/student-onboarding/corrections", {
       method: "POST",
       body,
     }),
@@ -295,7 +305,7 @@ export const usersApi = {
       credentials: import("./types").IssuedCredentials;
     }>("/users/headmasters", { method: "POST", body }),
   profileRequests: () =>
-    api<import("./types").TeacherProfileRequest[]>("/users/profile-requests"),
+    api<import("./types").ProfileCorrection[]>("/users/profile-requests"),
   applyProfileRequest: (id: string) =>
     api<{ id: string; status: string }>(`/users/profile-requests/${id}/apply`, {
       method: "POST",

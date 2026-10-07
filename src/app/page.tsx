@@ -1,14 +1,12 @@
-import { LandingHero } from "@/components/landing/landing-hero";
+import { LandingHome } from "@/components/landing/landing-home";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { LandingPillars } from "@/components/landing/landing-pillars";
 import { SiteFooter } from "@/components/landing/site-footer";
 
 export default function HomePage() {
   return (
-    <main className="flex-1 bg-landing text-ink">
+    <main className="flex-1 bg-zinc-50 text-zinc-950">
       <LandingNav />
-      <LandingHero />
-      <LandingPillars />
+      <LandingHome />
       <SiteFooter />
     </main>
   );
