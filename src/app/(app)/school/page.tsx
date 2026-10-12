@@ -184,8 +184,19 @@ function AdminSchoolsPage() {
                     <td className="py-3.5 pr-4 font-medium text-brand-dark">
                       <Link
                         href={`/school/${school.id}`}
-                        className="hover:underline"
+                        className="inline-flex items-center gap-2.5 hover:underline"
                       >
+                        {school.logo ? (
+                          <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
+                            {/* School logo stored on the API. */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={school.logo}
+                              alt=""
+                              className="size-full object-cover"
+                            />
+                          </span>
+                        ) : null}
                         {school.name}
                       </Link>
                     </td>
@@ -327,7 +338,17 @@ function TeacherSchoolPage() {
 
       {/* ── Header ── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="flex items-start gap-4">
+          <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-zinc-50 text-sm font-semibold text-zinc-500">
+            {school.logo ? (
+              // School logo stored on the API.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={school.logo} alt="" className="size-full object-cover" />
+            ) : (
+              initials
+            )}
+          </div>
+          <div>
           <p className="text-[12px] font-medium text-muted-foreground">School profile</p>
           <h1 className="mt-1 text-[1.75rem] font-semibold tracking-tight text-ink sm:text-[2rem]">
             {school.name}
@@ -341,6 +362,7 @@ function TeacherSchoolPage() {
             <span>{school.city}, {school.province}</span>
             <span>·</span>
             <span className="font-mono text-[12px]">{school.code}</span>
+          </div>
           </div>
         </div>
         {canEdit && (

@@ -158,6 +158,13 @@ export default function EditUserPage() {
     e.preventDefault();
     if (!canEdit || !user) return;
 
+    const readyAssignments = assignments.filter((assignment) =>
+      classes.some(
+        (room) =>
+          room.subjectId === assignment.subjectId ||
+          room.subject?.id === assignment.subjectId,
+      ),
+    );
     const parsed = parseForm(updateUserSchema, {
       firstName: form.firstName,
       middleName: form.middleName || null,
@@ -169,7 +176,9 @@ export default function EditUserPage() {
         ? {
             department: form.department || null,
             qualification: form.qualification || null,
-            ...(editorRole === "SCHOOL_ADMIN" ? { assignments } : {}),
+            ...(editorRole === "SCHOOL_ADMIN"
+              ? { assignments: readyAssignments }
+              : {}),
           }
         : {}),
       ...(user.student
@@ -380,7 +389,7 @@ export default function EditUserPage() {
               !canEdit ||
               (Boolean(user.teacher) &&
                 authUser.role === "SCHOOL_ADMIN" &&
-                !assignmentsAreValid(assignments))
+                !assignmentsAreValid(assignments, classes))
             }
             className="h-9 rounded-md bg-brand-dark px-5 text-sm font-medium text-white transition-colors hover:bg-brand-dark-hover"
           >

@@ -161,6 +161,7 @@ export type School = {
   city: string;
   province: string;
   country?: string;
+  logo?: string | null;
   termSystem?: TermSystem;
   termsPerYear?: number;
   status?: "ACTIVE" | "INACTIVE";

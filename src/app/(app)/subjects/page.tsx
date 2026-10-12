@@ -165,7 +165,7 @@ export default function SubjectsPage() {
     subjects.length === 0
       ? isTeacher
         ? "Subjects allocated to you by your school admin."
-        : "Create subjects for your school, then assign them when adding teachers."
+        : "Create subjects for your school. A class for a subject is given to a teacher."
       : `${subjects.length} subject${subjects.length === 1 ? "" : "s"} in your catalog.`;
 
   return (

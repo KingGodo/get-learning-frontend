@@ -52,14 +52,8 @@ export function TeacherAssignmentsFields({
   if (subjects.length === 0) {
     return (
       <div className="border border-border bg-muted/40 px-3.5 py-3 text-[13px] text-muted-foreground">
-        Add subjects and classes for your school first, then assign them here.{" "}
-        <Link href="/subjects/new" className="font-medium text-brand hover:underline">
-          Add subject
-        </Link>
-        {" · "}
-        <Link href="/classes/new" className="font-medium text-brand hover:underline">
-          Add class
-        </Link>
+        No subjects yet. You can still save this teacher. When you create a
+        class, choose the subject and the teacher who will take it.
       </div>
     );
   }
@@ -71,8 +65,8 @@ export function TeacherAssignmentsFields({
           Subjects &amp; classes
         </p>
         <p className="mt-0.5 text-[12px] text-muted-foreground">
-          Select subjects, then choose which classes this teacher will teach for
-          each.
+          Optional. Select a subject, then the classes this teacher will take.
+          You can also give a class to a teacher when the class is created.
         </p>
       </div>
 
@@ -108,7 +102,8 @@ export function TeacherAssignmentsFields({
                 <div className="mt-3 ml-6 space-y-2">
                   {subjectClasses.length === 0 ? (
                     <p className="text-[12px] text-muted-foreground">
-                      No classes for this subject yet.{" "}
+                      No classes for this subject yet. Create the class later
+                      and give it to this teacher.{" "}
                       <Link
                         href="/classes/new"
                         className="font-medium text-brand hover:underline"
@@ -156,8 +151,17 @@ export function TeacherAssignmentsFields({
   );
 }
 
-export function assignmentsAreValid(value: TeacherAssignmentDraft[]) {
-  return (
-    value.length > 0 && value.every((a) => a.classIds.length > 0)
-  );
+export function assignmentsAreValid(
+  value: TeacherAssignmentDraft[],
+  classes: ClassRoom[] = [],
+) {
+  return value.every((assignment) => {
+    const subjectHasClasses = classes.some(
+      (room) =>
+        room.subjectId === assignment.subjectId ||
+        room.subject?.id === assignment.subjectId,
+    );
+    if (!subjectHasClasses) return true;
+    return assignment.classIds.length > 0;
+  });
 }

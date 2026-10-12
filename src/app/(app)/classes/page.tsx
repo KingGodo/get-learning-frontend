@@ -331,7 +331,7 @@ export default function ClassesPage() {
                   ? "Your school admin will allocate classes to your account."
                   : needsSubjectFirst
                     ? "Add a subject first, then create a class under it."
-                    : "Create a class under a subject, then add a teacher and assign them to it."
+                    : "Create a class under a subject and give it to a teacher."
             }
             action={
               canManage ? (

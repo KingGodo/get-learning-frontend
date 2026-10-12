@@ -274,6 +274,22 @@ export const schoolsApi = {
     }),
   update: (body: Record<string, unknown>) =>
     api<import("./types").School>("/schools/me", { method: "PATCH", body }),
+  uploadLogo: (schoolId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("logo", file);
+    return api<import("./types").School>(`/schools/${schoolId}/logo`, {
+      method: "POST",
+      formData,
+    });
+  },
+  uploadMyLogo: (file: File) => {
+    const formData = new FormData();
+    formData.append("logo", file);
+    return api<import("./types").School>("/schools/me/logo", {
+      method: "POST",
+      formData,
+    });
+  },
 };
 
 export const usersApi = {

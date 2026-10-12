@@ -97,19 +97,28 @@ export default function SchoolDetailPage() {
           <ArrowLeft className="size-3.5" />
           Back to schools
         </Link>
-        <PageHeader
-          eyebrow="School detail"
-          title={school.name}
-          description={school.code}
-          className="mt-4 pb-0"
-          actions={
-            <StatusBadge tone={statusToneFor(school.status ?? "")}>
-              {school.status
-                ? school.status.charAt(0) + school.status.slice(1).toLowerCase()
-                : "None"}
-            </StatusBadge>
-          }
-        />
+        <div className="mt-4 flex items-center gap-4">
+          {school.logo ? (
+            <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white">
+              {/* School logo stored on the API. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={school.logo} alt="" className="size-full object-cover" />
+            </div>
+          ) : null}
+          <PageHeader
+            eyebrow="School detail"
+            title={school.name}
+            description={school.code}
+            className="min-w-0 flex-1 pb-0"
+            actions={
+              <StatusBadge tone={statusToneFor(school.status ?? "")}>
+                {school.status
+                  ? school.status.charAt(0) + school.status.slice(1).toLowerCase()
+                  : "None"}
+              </StatusBadge>
+            }
+          />
+        </div>
       </div>
 
       <StatStrip

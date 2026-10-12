@@ -22,7 +22,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoading } from "@/components/ui/page-loading";
-import { SetupRequired } from "@/components/school/school-setup-guide";
 import {
   fieldErrorsFromApi,
   firstFieldError,
@@ -183,12 +182,20 @@ export default function NewTeacherPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const readyAssignments = assignments.filter((assignment) => {
+      const hasClasses = classes.some(
+        (room) =>
+          room.subjectId === assignment.subjectId ||
+          room.subject?.id === assignment.subjectId,
+      );
+      return hasClasses;
+    });
     const parsed = parseForm(createTeacherSchema, {
       ...form,
       password: form.password,
       department: form.department || undefined,
       qualification: form.qualification || undefined,
-      assignments,
+      assignments: readyAssignments,
     });
     if (!parsed.ok) {
       setFieldErrors(parsed.fieldErrors);
@@ -207,7 +214,9 @@ export default function NewTeacherPage() {
         ...(parsed.data.password ? { password: parsed.data.password } : {}),
         department: parsed.data.department || undefined,
         qualification: parsed.data.qualification || undefined,
-        assignments: parsed.data.assignments,
+        ...(parsed.data.assignments && parsed.data.assignments.length > 0
+          ? { assignments: parsed.data.assignments }
+          : {}),
       });
       setCreated({
         name: `${data.user.firstName} ${data.user.lastName}`,
@@ -288,19 +297,10 @@ export default function NewTeacherPage() {
         </Link>
         <PageHeader
           title="Add teacher"
-          description="Creates an account for your school, assigns subjects and classes, and issues a one time password."
+          description="Creates an account for your school and issues a one time password. Subjects are not required yet. A class is given to this teacher when you create the class."
           className="mt-4 pb-0"
         />
       </div>
-
-      {subjects.length === 0 || classes.length === 0 ? (
-        <SetupRequired
-          reason="A teacher is assigned to subjects and classes. Add a subject and a class first."
-          href={subjects.length === 0 ? "/subjects/new" : "/classes/new"}
-          action={subjects.length === 0 ? "Add a subject" : "Add a class"}
-        />
-      ) : (
-        <>
 
       <form onSubmit={onSubmit} className="space-y-4">
         {(fieldErrors.email ||
@@ -436,13 +436,20 @@ export default function NewTeacherPage() {
           </div>
         </div>
 
-        <TeacherAssignmentsFields
-          subjects={subjects}
-          classes={classes}
-          value={assignments}
-          onChange={setAssignments}
-          disabled={pending}
-        />
+        {subjects.length > 0 ? (
+          <TeacherAssignmentsFields
+            subjects={subjects}
+            classes={classes}
+            value={assignments}
+            onChange={setAssignments}
+            disabled={pending}
+          />
+        ) : (
+          <p className="text-[13px] leading-relaxed text-zinc-500">
+            No subjects yet. You can still create this teacher. When you add a
+            class, choose the subject and the teacher who will take it.
+          </p>
+        )}
         <FieldError
           message={
             fieldErrors.assignments || fieldErrors["assignments.0.classIds"]
@@ -458,8 +465,6 @@ export default function NewTeacherPage() {
           </ButtonLink>
         </div>
       </form>
-        </>
-      )}
     </div>
   );
 }

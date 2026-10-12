@@ -40,6 +40,8 @@ export default function NewSchoolPage() {
   const [pending, setPending] = useState(false);
   const [created, setCreated] = useState<CreatedResult | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -120,8 +122,16 @@ export default function NewSchoolPage() {
             : {}),
         },
       });
+      let school = data.school;
+      if (logoFile) {
+        try {
+          school = await schoolsApi.uploadLogo(school.id, logoFile);
+        } catch (logoError) {
+          toastFromError(logoError, "School created, but the logo was not saved");
+        }
+      }
       setCreated({
-        school: data.school,
+        school,
         credentials: data.credentials,
         adminName: `${data.admin.firstName} ${data.admin.lastName}`,
       });
@@ -159,7 +169,14 @@ export default function NewSchoolPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setCreated(null)}
+                onClick={() => {
+                  setCreated(null);
+                  setLogoFile(null);
+                  setLogoPreview((current) => {
+                    if (current) URL.revokeObjectURL(current);
+                    return null;
+                  });
+                }}
               >
                 Create another
               </Button>
@@ -203,6 +220,44 @@ export default function NewSchoolPage() {
             </h2>
             <p className="mt-0.5 text-[12px] text-zinc-500">
               A unique school code is generated automatically.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="logo" className="text-[13px] text-zinc-600">
+              Logo
+            </Label>
+            <div className="flex items-center gap-3">
+              <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-zinc-50">
+                {logoPreview ? (
+                  // Local preview of a file the admin just chose.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={logoPreview}
+                    alt=""
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <span className="text-[11px] text-zinc-400">None</span>
+                )}
+              </div>
+              <Input
+                id="logo"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setLogoFile(file);
+                  setLogoPreview((current) => {
+                    if (current) URL.revokeObjectURL(current);
+                    return file ? URL.createObjectURL(file) : null;
+                  });
+                }}
+                className="h-9 rounded-md bg-transparent"
+              />
+            </div>
+            <p className="text-[12px] text-zinc-500">
+              Optional. JPEG, PNG, or WebP, up to 2 MB.
             </p>
           </div>
 

@@ -31,6 +31,8 @@ export default function EditSchoolPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -103,7 +105,7 @@ export default function EditSchoolPage() {
     setFieldErrors({});
     setPending(true);
     try {
-      const updated = await schoolsApi.update({
+      let updated = await schoolsApi.update({
         name: parsed.data.name,
         email: parsed.data.email,
         phoneNumber: parsed.data.phoneNumber || undefined,
@@ -115,6 +117,9 @@ export default function EditSchoolPage() {
         termSystem: parsed.data.termSystem,
         termsPerYear: parsed.data.termsPerYear,
       });
+      if (logoFile) {
+        updated = await schoolsApi.uploadMyLogo(logoFile);
+      }
       setSchool(updated);
       await refreshUser();
       router.push("/school");
@@ -158,6 +163,43 @@ export default function EditSchoolPage() {
 
       <form onSubmit={onSubmit} className="space-y-4">
         <FieldError message={firstFieldError(fieldErrors)} />
+        <div className="space-y-1.5">
+          <Label htmlFor="logo" className="text-[13px] text-zinc-600">
+            Logo
+          </Label>
+          <div className="flex items-center gap-3">
+            <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-zinc-50">
+              {logoPreview || school.logo ? (
+                // Preview of the current logo or a newly chosen file.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoPreview || school.logo || ""}
+                  alt=""
+                  className="size-full object-cover"
+                />
+              ) : (
+                <span className="text-[11px] text-zinc-400">None</span>
+              )}
+            </div>
+            <Input
+              id="logo"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                setLogoFile(file);
+                setLogoPreview((current) => {
+                  if (current) URL.revokeObjectURL(current);
+                  return file ? URL.createObjectURL(file) : null;
+                });
+              }}
+              className="h-9 rounded-md bg-transparent"
+            />
+          </div>
+          <p className="text-[12px] text-zinc-500">
+            Optional. JPEG, PNG, or WebP, up to 2 MB.
+          </p>
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor="name" className="text-[13px] text-zinc-600">
             School name

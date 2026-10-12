@@ -56,9 +56,7 @@ export const teacherAssignmentSchema = z.object({
 export const createTeacherSchema = personFieldsSchema.extend({
   department: z.string().trim().max(100).optional(),
   qualification: z.string().trim().max(200).optional(),
-  assignments: z
-    .array(teacherAssignmentSchema)
-    .min(1, "Assign at least one subject with classes"),
+  assignments: z.array(teacherAssignmentSchema).optional(),
 });
 
 export const createStudentSchema = personFieldsSchema.extend({
@@ -94,7 +92,7 @@ export const updateUserSchema = z.object({
   gender: genderSchema,
   department: z.string().trim().max(100).optional().nullable(),
   qualification: z.string().trim().max(200).optional().nullable(),
-  assignments: z.array(teacherAssignmentSchema).min(1).optional(),
+  assignments: z.array(teacherAssignmentSchema).optional(),
   guardianName: z.string().trim().min(1).max(150).optional(),
   guardianPhone: phoneSchema.optional(),
   guardianEmail: z.preprocess((val) => {
@@ -203,6 +201,7 @@ export const updateSchoolSchema = z.object({
 
 export const createClassSchema = z.object({
   subjectId: z.string().min(1, "Select a subject"),
+  teacherId: z.string().min(1, "Select a teacher"),
   name: z.string().trim().min(1, "Class name is required").max(150),
   description: z.string().trim().max(1000).optional(),
   academicYear: z.coerce

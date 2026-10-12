@@ -525,8 +525,6 @@ function SchoolAdminDashboardView({
     { label: "Subjects", value: data.totalSubjects, href: "/subjects" },
   ];
 
-  const needsSetup = data.totalSubjects === 0 || data.totalClasses === 0;
-
   return (
     <div className="space-y-6">
       <DashHero
@@ -535,7 +533,7 @@ function SchoolAdminDashboardView({
         description={
           isHeadmaster
             ? "School wide view of people, classes, assignments, and work still waiting."
-            : "Set up subjects and classes, then assign them when you add teachers."
+            : "Add teachers anytime. A class belongs to a subject and is given to a teacher."
         }
         actions={
           isHeadmaster ? (
@@ -566,16 +564,22 @@ function SchoolAdminDashboardView({
         data.totalTeachers === 0) ? (
         <SchoolOrderCard
           action={
-            needsSetup ? (
-              <ButtonLink
-                href={
-                  data.totalSubjects === 0 ? "/subjects/new" : "/classes/new"
-                }
-                size="sm"
-              >
-                {data.totalSubjects === 0 ? "Add subject" : "Add class"}
-              </ButtonLink>
-            ) : undefined
+            <ButtonLink
+              href={
+                data.totalTeachers === 0
+                  ? "/users/new/teacher"
+                  : data.totalSubjects === 0
+                    ? "/subjects/new"
+                    : "/classes/new"
+              }
+              size="sm"
+            >
+              {data.totalTeachers === 0
+                ? "Add teacher"
+                : data.totalSubjects === 0
+                  ? "Add subject"
+                  : "Add class"}
+            </ButtonLink>
           }
         />
       ) : null}

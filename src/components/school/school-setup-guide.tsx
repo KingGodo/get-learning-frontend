@@ -25,9 +25,9 @@ export function SchoolOrderCard({
       )}
     >
       <p className="max-w-xl text-[13px] leading-relaxed text-muted-foreground">
-        <span className="font-medium text-ink">Add in this order:</span>{" "}
-        subjects, then classes, then teachers. A class belongs to a subject.
-        Students can be added anytime.
+        <span className="font-medium text-ink">Add teachers anytime.</span>{" "}
+        A class belongs to a subject and is given to a teacher. Students can
+        be added anytime.
       </p>
       {action}
     </aside>

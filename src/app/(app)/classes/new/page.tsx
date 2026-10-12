@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { ApiRequestError, classesApi, schoolsApi, subjectsApi } from "@/lib/api";
+import { ApiRequestError, classesApi, schoolsApi, subjectsApi, usersApi } from "@/lib/api";
 import { toast, toastFromError } from "@/lib/toast";
-import type { School, Subject } from "@/lib/types";
+import type { AdminUserSummary, School, Subject } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { FieldError } from "@/components/ui/field-error";
@@ -17,7 +17,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Textarea } from "@/components/ui/textarea";
 import { PageLoading } from "@/components/ui/page-loading";
 import { SetupRequired } from "@/components/school/school-setup-guide";
-import { useSchoolSetupCounts } from "@/hooks/use-school-setup";
 import {
   fieldErrorsFromApi,
   firstFieldError,
@@ -30,15 +29,15 @@ export default function NewClassPage() {
   const { user } = useAuth();
   const router = useRouter();
   const canManage = user?.role === "SCHOOL_ADMIN" || user?.role === "ADMIN";
-  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
-  const { counts: setupCounts } = useSchoolSetupCounts(isSchoolAdmin);
 
   const [school, setSchool] = useState<School | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [teachers, setTeachers] = useState<AdminUserSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subjectId, setSubjectId] = useState("");
+  const [teacherId, setTeacherId] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     name: "",
@@ -60,9 +59,10 @@ export default function NewClassPage() {
       setLoading(true);
       setError(null);
 
-      const [schoolResult, subjectsResult] = await Promise.allSettled([
+      const [schoolResult, subjectsResult, teachersResult] = await Promise.allSettled([
         schoolsApi.me(),
         subjectsApi.list(),
+        usersApi.list({ role: "TEACHER" }),
       ]);
 
       if (cancelled) return;
@@ -78,6 +78,16 @@ export default function NewClassPage() {
             ? subjectsResult.reason.message
             : "Could not load your subjects",
         );
+      }
+
+      if (teachersResult.status === "fulfilled") {
+        const mine = teachersResult.value.filter((person) => person.teacher?.id);
+        setTeachers(mine);
+        if (mine.length === 1 && mine[0].teacher?.id) {
+          setTeacherId(mine[0].teacher.id);
+        }
+      } else {
+        setTeachers([]);
       }
 
       if (schoolResult.status === "fulfilled") {
@@ -97,6 +107,7 @@ export default function NewClassPage() {
     e.preventDefault();
     const parsed = parseForm(createClassSchema, {
       subjectId,
+      teacherId,
       name: form.name,
       description: form.description || undefined,
       academicYear: form.academicYear,
@@ -112,20 +123,13 @@ export default function NewClassPage() {
     try {
       const created = await classesApi.create({
         subjectId: parsed.data.subjectId,
+        teacherId: parsed.data.teacherId,
         name: parsed.data.name,
         description: parsed.data.description,
         academicYear: parsed.data.academicYear,
         semester: parsed.data.semester,
       });
-      const firstClass = (setupCounts?.classes ?? 0) === 0;
-      if (isSchoolAdmin && firstClass) {
-        toast.success(
-          "Class created",
-          "Next: add a teacher and assign them to this class.",
-        );
-      } else {
-        toast.success("Class created");
-      }
+      toast.success("Class created");
       router.push(`/classes/${created.id}`);
     } catch (err) {
       setFieldErrors(fieldErrorsFromApi(err));
@@ -151,16 +155,22 @@ export default function NewClassPage() {
         </Link>
         <PageHeader
           title="Create a class"
-          description="Create a class under a school subject. A join code is generated automatically. Assign teachers afterward."
+          description="A class belongs to a subject and is given to a teacher. A join code is generated automatically."
           className="mt-4 pb-0"
         />
       </div>
 
       {subjects.length === 0 ? (
         <SetupRequired
-          reason="A class belongs to a subject. Add a subject first, then create the class under it."
+          reason="A class belongs to a subject. Add a subject first, then give the class to a teacher."
           href="/subjects/new"
           action="Add a subject"
+        />
+      ) : teachers.length === 0 ? (
+        <SetupRequired
+          reason="Each class is given to a teacher for that subject. Add a teacher first."
+          href="/users/new/teacher"
+          action="Add a teacher"
         />
       ) : (
         <>
@@ -261,6 +271,30 @@ export default function NewClassPage() {
               </Link>
             </p>
           )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="teacherId" className="text-[13px] text-zinc-600">
+            Teacher
+          </Label>
+          <select
+            id="teacherId"
+            required
+            value={teacherId}
+            onChange={(e) => setTeacherId(e.target.value)}
+            className="h-9 w-full rounded-md border border-border bg-white px-2.5 text-sm"
+          >
+            <option value="">Choose a teacher</option>
+            {teachers.map((person) => (
+              <option key={person.id} value={person.teacher?.id}>
+                {person.firstName} {person.lastName}
+              </option>
+            ))}
+          </select>
+          <p className="text-[12px] text-zinc-400">
+            This teacher takes the class for the subject you chose.
+          </p>
+          <FieldError message={fieldErrors.teacherId} />
         </div>
 
         <div className="space-y-1.5">
