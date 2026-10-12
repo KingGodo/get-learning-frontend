@@ -32,6 +32,7 @@ export default function TeacherWelcomePage() {
     guardianEmail: "",
     emergencyContact: "",
     note: "",
+    subjectIds: [] as string[],
   });
 
   const isStudent = user?.role === "STUDENT";
@@ -59,6 +60,7 @@ export default function TeacherWelcomePage() {
             guardianEmail: next.profile.guardianEmail ?? "",
             emergencyContact: next.profile.emergencyContact ?? "",
             note: "",
+            subjectIds: [],
           });
         })
       : authApi.teacherOnboarding().then((next) => {
@@ -74,6 +76,7 @@ export default function TeacherWelcomePage() {
             guardianEmail: "",
             emergencyContact: "",
             note: "",
+            subjectIds: next.subjects.map((subject) => subject.id),
           });
         });
     load
@@ -98,12 +101,21 @@ export default function TeacherWelcomePage() {
         });
         setStudentData(await authApi.studentOnboarding());
       } else {
+        if (
+          (teacherData?.schoolSubjects.length ?? 0) > 0 &&
+          form.subjectIds.length === 0
+        ) {
+          toast.error("Select the subject you teach");
+          setPending(false);
+          return;
+        }
         await authApi.submitTeacherCorrections({
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
           phoneNumber: form.phoneNumber.trim(),
           department: form.department.trim() || undefined,
           qualification: form.qualification.trim() || undefined,
+          subjectIds: form.subjectIds,
           note: form.note.trim() || undefined,
         });
         setTeacherData(await authApi.teacherOnboarding());
@@ -134,7 +146,7 @@ export default function TeacherWelcomePage() {
         description={
           isStudent
             ? "Your school created this account. Confirm the details, or send corrections before you choose a password."
-            : "Your school admin created this account and assigned your subjects. Confirm the details, or send corrections before you choose a password."
+            : "Your school admin created this account. Confirm the details, or choose the subject you teach before you set a password."
         }
       />
 
@@ -284,6 +296,45 @@ export default function TeacherWelcomePage() {
               </>
             )}
           </div>
+          {!isStudent && (
+            <div className="space-y-2">
+              <p className="text-[13px] font-medium text-ink">Subjects you teach</p>
+              {(teacherData?.schoolSubjects.length ?? 0) === 0 ? (
+                <p className="text-[13px] text-muted-foreground">
+                  Your school has no subjects yet. Write the subject in the note.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border border-y border-border">
+                  {teacherData?.schoolSubjects.map((subject) => {
+                    const checked = form.subjectIds.includes(subject.id);
+                    return (
+                      <li key={subject.id}>
+                        <label className="flex cursor-pointer items-center gap-2.5 py-2.5">
+                          <input
+                            type="checkbox"
+                            className="size-4 rounded border-border"
+                            checked={checked}
+                            onChange={() =>
+                              setForm((current) => ({
+                                ...current,
+                                subjectIds: checked
+                                  ? current.subjectIds.filter((id) => id !== subject.id)
+                                  : [...current.subjectIds, subject.id],
+                              }))
+                            }
+                          />
+                          <span className="text-sm text-ink">{subject.name}</span>
+                          <span className="font-mono text-[12px] text-muted-foreground">
+                            {subject.code}
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="note">Note for the school admin</Label>
             <Textarea
@@ -293,7 +344,7 @@ export default function TeacherWelcomePage() {
               placeholder={
                 isStudent
                   ? "For example, the class is wrong"
-                  : "For example, the subject or class is wrong"
+                  : "For example, a class is wrong"
               }
               rows={3}
             />
@@ -301,7 +352,7 @@ export default function TeacherWelcomePage() {
           <p className="text-[12px] text-muted-foreground">
             {isStudent
               ? "Classes stay with your school admin. Mention them in the note if they are wrong."
-              : "Subjects and classes stay with your school admin. Mention them in the note if they are wrong."}
+              : "Choose every subject you teach. Classes for a subject you remove are taken off when the school admin applies this."}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={pending}>

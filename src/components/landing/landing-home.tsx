@@ -66,7 +66,7 @@ const roles = [
   },
   {
     title: "Teacher",
-    body: "Runs classes, publishes assignments, grades submissions, and reviews each class from the analytics page. Subjects and classes are set by the school.",
+    body: "Runs classes, publishes assignments, grades submissions, and reviews each class from the analytics page. On the first sign in they can correct the subjects they teach.",
   },
   {
     title: "Student",
@@ -115,7 +115,7 @@ const faqs = [
   },
   {
     q: "What if my subjects or classes are wrong?",
-    a: "Subjects and classes are read only on that first review. Write the correction in the note and the school admin applies it. You set a password after the details are right.",
+    a: "Teachers choose the subjects they teach and send that with any other correction. Classes stay with the school admin. Students mention a wrong class in the note. A password is set after the details are right.",
   },
   {
     q: "What can a parent see?",

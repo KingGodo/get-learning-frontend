@@ -99,6 +99,14 @@ export default function TeacherCorrectionsPage() {
                   {item.qualification || "None"}
                 </p>
               )}
+              {item.kind === "TEACHER" && (
+                <p className="text-[13px] text-ink">
+                  Subjects:{" "}
+                  {item.subjects?.length
+                    ? item.subjects.map((subject) => subject.name).join(", ")
+                    : "None"}
+                </p>
+              )}
               {item.note && (
                 <p className="text-[13px] text-ink">Note: {item.note}</p>
               )}

@@ -55,6 +55,7 @@ export type TeacherOnboarding = {
     schoolName: string | null;
   };
   subjects: Array<{ id: string; name: string; code: string }>;
+  schoolSubjects: Array<{ id: string; name: string; code: string }>;
   classes: Array<{ id: string; name: string; subjectName: string | null }>;
   pendingRequest: {
     id: string;
@@ -63,6 +64,7 @@ export type TeacherOnboarding = {
     phoneNumber: string;
     department?: string | null;
     qualification?: string | null;
+    subjectIds?: string[];
     note?: string | null;
     createdAt: string;
   } | null;
@@ -78,6 +80,7 @@ export type TeacherProfileRequest = {
   department?: string | null;
   qualification?: string | null;
   note?: string | null;
+  subjects?: Array<{ id: string; name: string; code: string }>;
   createdAt: string;
   teacher: { id: string; firstName: string; lastName: string; email: string };
   school?: { id: string; name: string } | null;
