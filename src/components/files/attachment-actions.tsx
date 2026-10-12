@@ -7,14 +7,30 @@ import { toastFromError } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+function sameOriginUploadPath(pathOrUrl: string): string | null {
+  if (pathOrUrl.startsWith("/uploads/")) return pathOrUrl;
+  try {
+    const url = new URL(pathOrUrl);
+    if (url.pathname.startsWith("/uploads/")) return url.pathname;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export function resolveFileUrl(
   pathOrUrl: string | null | undefined,
 ): string | null {
   if (!pathOrUrl) return null;
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+  if (pathOrUrl.startsWith("blob:") || pathOrUrl.startsWith("data:")) {
+    return pathOrUrl;
+  }
 
   const apiBase = getApiOrigin();
+  const uploadPath = sameOriginUploadPath(pathOrUrl);
+  if (uploadPath) return `${apiBase}${uploadPath}`;
 
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
   if (pathOrUrl.startsWith("/")) return `${apiBase}${pathOrUrl}`;
   return `${apiBase}/uploads/${pathOrUrl}`;
 }

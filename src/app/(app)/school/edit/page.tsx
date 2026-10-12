@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, schoolsApi } from "@/lib/api";
+import { resolveFileUrl } from "@/components/files/attachment-actions";
 import { toast, toastFromError } from "@/lib/toast";
 import type { School } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -173,9 +174,9 @@ export default function EditSchoolPage() {
                 // Preview of the current logo or a newly chosen file.
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={logoPreview || school.logo || ""}
+                  src={logoPreview || resolveFileUrl(school.logo) || ""}
                   alt=""
-                  className="size-full object-cover"
+                  className="size-full object-contain p-1"
                 />
               ) : (
                 <span className="text-[11px] text-zinc-400">None</span>

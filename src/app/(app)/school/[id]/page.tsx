@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, schoolsApi } from "@/lib/api";
+import { resolveFileUrl } from "@/components/files/attachment-actions";
 import type { AdminSchoolDetail } from "@/lib/types";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
@@ -102,7 +103,7 @@ export default function SchoolDetailPage() {
             <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white">
               {/* School logo stored on the API. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={school.logo} alt="" className="size-full object-cover" />
+              <img src={resolveFileUrl(school.logo) ?? ""} alt="" className="size-full object-contain p-1" />
             </div>
           ) : null}
           <PageHeader

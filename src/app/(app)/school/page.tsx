@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Calendar, Globe, Mail, MapPin, Pencil, Phone, Plus, Search } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, schoolsApi } from "@/lib/api";
+import { resolveFileUrl } from "@/components/files/attachment-actions";
 import type { School, TermSystem } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -191,9 +192,9 @@ function AdminSchoolsPage() {
                             {/* School logo stored on the API. */}
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={school.logo}
+                              src={resolveFileUrl(school.logo) ?? ""}
                               alt=""
-                              className="size-full object-cover"
+                              className="size-full object-contain p-0.5"
                             />
                           </span>
                         ) : null}
@@ -343,7 +344,11 @@ function TeacherSchoolPage() {
             {school.logo ? (
               // School logo stored on the API.
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={school.logo} alt="" className="size-full object-cover" />
+              <img
+                src={resolveFileUrl(school.logo) ?? ""}
+                alt=""
+                className="size-full object-contain p-1"
+              />
             ) : (
               initials
             )}
