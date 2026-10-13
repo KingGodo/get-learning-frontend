@@ -450,6 +450,7 @@ export type TeacherDashboard = {
 
 export type StudentDashboard = {
   role: UserRole;
+  school: Pick<School, "id" | "name" | "logo"> | null;
   joinedClasses: number;
   activeAssignments: number;
   upcomingDeadlines: Assignment[];
@@ -472,6 +473,7 @@ export type AdminDashboard = {
     email: string;
     city: string;
     province: string;
+    logo?: string | null;
     status: "ACTIVE" | "INACTIVE";
     createdAt: string;
     _count: { users: number; classes: number };

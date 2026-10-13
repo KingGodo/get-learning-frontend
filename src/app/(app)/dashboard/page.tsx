@@ -26,6 +26,7 @@ import { PageLoading } from "@/components/ui/page-loading";
 import { ButtonLink } from "@/components/ui/button-link";
 import { StatusBadge, statusToneFor } from "@/components/ui/status-badge";
 import { SchoolOrderCard } from "@/components/school/school-setup-guide";
+import { resolveFileUrl } from "@/components/files/attachment-actions";
 import { APP_NAME } from "@/lib/brand";
 import { copyToClipboard } from "@/lib/copy";
 import { toast } from "@/lib/toast";
@@ -82,16 +83,27 @@ function DashHero({
   title,
   description,
   actions,
+  logo,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   actions?: ReactNode;
+  logo?: string | null;
 }) {
+  const logoSrc = resolveFileUrl(logo);
   return (
     <header className="border-b border-border pb-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="max-w-2xl">
+        <div className="flex min-w-0 items-start gap-4">
+          {logoSrc ? (
+            <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white">
+              {/* School logo stored on the API. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoSrc} alt="" className="size-full object-contain p-1" />
+            </div>
+          ) : null}
+          <div className="min-w-0 max-w-2xl">
           {eyebrow ? (
             <p className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
               {eyebrow}
@@ -105,6 +117,7 @@ function DashHero({
               {description}
             </p>
           ) : null}
+          </div>
         </div>
         {actions ? (
           <div className="flex flex-wrap items-center gap-2">{actions}</div>
@@ -451,8 +464,18 @@ function AdminDashboardView({
                     <td className="px-5 py-3.5 font-medium text-ink">
                       <Link
                         href={`/school/${school.id}`}
-                        className="hover:text-brand hover:underline"
+                        className="inline-flex items-center gap-2.5 hover:text-brand hover:underline"
                       >
+                        {school.logo ? (
+                          <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={resolveFileUrl(school.logo) ?? ""}
+                              alt=""
+                              className="size-full object-contain p-0.5"
+                            />
+                          </span>
+                        ) : null}
                         {school.name}
                       </Link>
                     </td>
@@ -535,6 +558,7 @@ function SchoolAdminDashboardView({
             ? "School wide view of people, classes, assignments, and work still waiting."
             : "Add teachers anytime. A class belongs to a subject and is given to a teacher."
         }
+        logo={data.school?.logo}
         actions={
           isHeadmaster ? (
             <>
@@ -680,6 +704,7 @@ function ParentDashboardView({
         eyebrow={data.school?.name ?? "Family"}
         title={`${greet}, ${name}`}
         description="See classes, due work, and grades for your children."
+        logo={data.school?.logo}
         actions={
           <>
             <ButtonLink href="/assignments" size="sm">
@@ -840,6 +865,7 @@ function TeacherDashboardView({ data }: { data: TeacherDashboard }) {
         eyebrow={data.school?.name ?? "Teaching"}
         title={`${greet}, ${data.profile.firstName}`}
         description="Classes, deadlines, and work that needs your review."
+        logo={data.school?.logo}
         actions={
           <ButtonLink href="/assignments" size="sm">
             Assignments
@@ -1054,9 +1080,10 @@ function StudentDashboardView({
   return (
     <div className="space-y-6">
       <DashHero
-        eyebrow="Your learning"
         title={`${greet}, ${userName}`}
+        eyebrow={data.school?.name ?? "Your learning"}
         description="Track what’s due, submit work, and review feedback in one place."
+        logo={data.school?.logo}
         actions={
           <>
             <ButtonLink href="/classes" size="sm">
