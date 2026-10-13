@@ -443,4 +443,45 @@ export const auditApi = {
 export const analyticsApi = {
   teacher: () =>
     api<import("./types").TeacherAnalytics>("/analytics/teacher"),
+  report: (params: {
+    classId?: string;
+    from?: string;
+    to?: string;
+    compareFrom?: string;
+    compareTo?: string;
+  }) => {
+    const search = new URLSearchParams();
+    if (params.classId) search.set("classId", params.classId);
+    if (params.from) search.set("from", params.from);
+    if (params.to) search.set("to", params.to);
+    if (params.compareFrom) search.set("compareFrom", params.compareFrom);
+    if (params.compareTo) search.set("compareTo", params.compareTo);
+    const qs = search.toString();
+    return api<import("./types").PerformanceReport>(
+      qs ? `/analytics/reports?${qs}` : "/analytics/reports",
+    );
+  },
+};
+
+export const chatApi = {
+  inbox: () => api<import("./types").ChatInbox>("/chat"),
+  open: (body: Record<string, unknown>) =>
+    api<import("./types").ChatRoomSummary>("/chat/rooms", {
+      method: "POST",
+      body,
+    }),
+  messages: (roomId: string, after?: string) => {
+    const search = new URLSearchParams();
+    if (after) search.set("after", after);
+    const qs = search.toString();
+    return api<{
+      room: import("./types").ChatRoomSummary;
+      messages: import("./types").ChatMessage[];
+    }>(qs ? `/chat/rooms/${roomId}/messages?${qs}` : `/chat/rooms/${roomId}/messages`);
+  },
+  send: (roomId: string, body: string) =>
+    api<import("./types").ChatMessage>(`/chat/rooms/${roomId}/messages`, {
+      method: "POST",
+      body: { body },
+    }),
 };

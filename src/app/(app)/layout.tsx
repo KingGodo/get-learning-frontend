@@ -8,12 +8,14 @@ import {
   BookOpen,
   Building2,
   ChartColumn,
+  LineChart,
   ClipboardCheck,
   ClipboardList,
   LayoutDashboard,
   Library,
   LogOut,
   Menu,
+  MessageCircle,
   ScrollText,
   UserRound,
   Users,
@@ -81,6 +83,7 @@ const schoolAdminNavGroups: NavGroup[] = [
       { href: "/classes", label: "Classes", icon: BookOpen },
       { href: "/users", label: "Users", icon: Users },
       { href: "/assignments", label: "Assignments", icon: ClipboardList },
+      { href: "/reports", label: "Reports", icon: LineChart },
       { href: "/school", label: "School", icon: Building2 },
       { href: "/audit", label: "Audit", icon: ScrollText },
     ],
@@ -97,7 +100,10 @@ const schoolAdminNavGroups: NavGroup[] = [
 const headmasterNavGroups: NavGroup[] = [
   {
     label: "Main",
-    items: [{ href: "/dashboard", label: "Overview", icon: LayoutDashboard }],
+    items: [
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/messages", label: "Messages", icon: MessageCircle },
+    ],
   },
   {
     label: "School",
@@ -107,6 +113,7 @@ const headmasterNavGroups: NavGroup[] = [
       { href: "/users", label: "People", icon: Users },
       { href: "/assignments", label: "Assignments", icon: ClipboardList },
       { href: "/submissions", label: "Submissions", icon: ClipboardCheck },
+      { href: "/reports", label: "Reports", icon: LineChart },
       { href: "/school", label: "School", icon: Building2 },
       { href: "/audit", label: "Audit", icon: ScrollText },
     ],
@@ -123,7 +130,10 @@ const headmasterNavGroups: NavGroup[] = [
 const teacherNavGroups: NavGroup[] = [
   {
     label: "Main",
-    items: [{ href: "/dashboard", label: "Overview", icon: LayoutDashboard }],
+    items: [
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/messages", label: "Messages", icon: MessageCircle },
+    ],
   },
   {
     label: "Teaching",
@@ -133,6 +143,7 @@ const teacherNavGroups: NavGroup[] = [
       { href: "/assignments", label: "Assignments", icon: ClipboardList },
       { href: "/submissions", label: "Submissions", icon: ClipboardCheck },
       { href: "/analytics", label: "Analytics", icon: ChartColumn },
+      { href: "/reports", label: "Reports", icon: LineChart },
     ],
   },
   {
@@ -151,7 +162,10 @@ const teacherNavGroups: NavGroup[] = [
 const studentNavGroups: NavGroup[] = [
   {
     label: "Main",
-    items: [{ href: "/dashboard", label: "Overview", icon: LayoutDashboard }],
+    items: [
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/messages", label: "Messages", icon: MessageCircle },
+    ],
   },
   {
     label: "Learning",
@@ -173,7 +187,10 @@ const studentNavGroups: NavGroup[] = [
 const parentNavGroups: NavGroup[] = [
   {
     label: "Main",
-    items: [{ href: "/dashboard", label: "Overview", icon: LayoutDashboard }],
+    items: [
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+      { href: "/messages", label: "Messages", icon: MessageCircle },
+    ],
   },
   {
     label: "Family",

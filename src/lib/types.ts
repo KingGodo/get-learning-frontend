@@ -633,6 +633,50 @@ export type TeacherAnalytics = {
   classCount: number;
 };
 
+export type PerformancePeriod = {
+  graded: number;
+  passes: number;
+  passRatePercent: number | null;
+  averageScorePercent: number | null;
+  studentsGraded: number;
+  studentsPassed: number;
+  studentPassRatePercent: number | null;
+};
+
+export type PerformanceReport = {
+  passMarkPercent: number;
+  classes: Array<{
+    id: string;
+    name: string;
+    subjectName: string | null;
+    academicYear: number;
+    semester: number;
+  }>;
+  period: { from: string | null; to: string | null };
+  compare: { from: string | null; to: string | null } | null;
+  rows: Array<{
+    classId: string;
+    className: string;
+    subjectName: string | null;
+    academicYear: number;
+    semester: number;
+    studentCount: number;
+    period: PerformancePeriod;
+    compare: PerformancePeriod | null;
+    students?: Array<{
+      id: string;
+      name: string;
+      studentNumber: string;
+      graded: number;
+      passes: number;
+      passRatePercent: number | null;
+      averageScorePercent: number | null;
+      comparePassRatePercent: number | null;
+      compareAverageScorePercent: number | null;
+    }>;
+  }>;
+};
+
 export type ApiError = {
   success: false;
   message: string;
@@ -642,4 +686,56 @@ export type ApiError = {
 export type ApiSuccess<T> = {
   success: true;
   data: T;
+};
+
+export type ChatRoomKind = "CLASS" | "TEACHER_PARENT" | "HEADMASTER_PARENT";
+
+export type ChatRoomSummary = {
+  id: string;
+  kind: ChatRoomKind;
+  title: string;
+  subtitle: string;
+  classId?: string | null;
+  teacherId?: string | null;
+  parentId?: string | null;
+  studentId?: string | null;
+  updatedAt: string;
+  lastMessage: {
+    body: string;
+    createdAt: string;
+    senderName: string;
+  } | null;
+};
+
+export type ChatMessage = {
+  id: string;
+  body: string;
+  createdAt: string;
+  mine: boolean;
+  sender: { id: string; name: string; role: string };
+};
+
+export type ChatInbox = {
+  rooms: ChatRoomSummary[];
+  starts: {
+    classes: Array<{ classId: string; name: string; subjectName: string | null }>;
+    withParents: Array<{
+      parentId: string;
+      parentName: string;
+      studentId: string;
+      studentName: string;
+    }>;
+    withTeachers: Array<{
+      teacherId: string;
+      teacherName: string;
+      studentId: string;
+      studentName: string;
+    }>;
+    withHeadmaster: boolean;
+    parents: Array<{
+      parentId: string;
+      parentName: string;
+      studentNames: string;
+    }>;
+  };
 };

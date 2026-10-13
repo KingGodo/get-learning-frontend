@@ -348,6 +348,15 @@ export default function ClassDetailPage() {
                       </span>
                     </span>
                   </Button>
+                  {(user?.role === "TEACHER" || user?.role === "STUDENT") && (
+                    <ButtonLink
+                      href={`/messages?classId=${data.id}`}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Class chat
+                    </ButtonLink>
+                  )}
                   {canUpload && (
                     <>
                       <ButtonLink
