@@ -34,6 +34,7 @@ export type User = {
   schoolId?: string | null;
   gender?: string;
   dateOfBirth?: string | null;
+  profileImage?: string | null;
   mustChangePassword?: boolean;
   status?: string;
   teacher?: Teacher | null;
@@ -700,6 +701,7 @@ export type ChatRoomSummary = {
   parentId?: string | null;
   studentId?: string | null;
   updatedAt: string;
+  unreadCount: number;
   lastMessage: {
     body: string;
     createdAt: string;
@@ -717,6 +719,7 @@ export type ChatMessage = {
 
 export type ChatInbox = {
   rooms: ChatRoomSummary[];
+  unreadTotal: number;
   starts: {
     classes: Array<{ classId: string; name: string; subjectName: string | null }>;
     withParents: Array<{

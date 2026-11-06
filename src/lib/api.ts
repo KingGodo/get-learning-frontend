@@ -154,6 +154,14 @@ export const authApi = {
       method: "PATCH",
       body,
     }),
+  uploadProfileImage: (file: File) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+    return api<import("./types").User>("/auth/me/profile-image", {
+      method: "POST",
+      formData,
+    });
+  },
   changePassword: (body: {
     currentPassword: string;
     newPassword: string;
@@ -465,6 +473,7 @@ export const analyticsApi = {
 
 export const chatApi = {
   inbox: () => api<import("./types").ChatInbox>("/chat"),
+  unreadCount: () => api<{ unreadCount: number }>("/chat/unread-count"),
   open: (body: Record<string, unknown>) =>
     api<import("./types").ChatRoomSummary>("/chat/rooms", {
       method: "POST",
@@ -479,6 +488,10 @@ export const chatApi = {
       messages: import("./types").ChatMessage[];
     }>(qs ? `/chat/rooms/${roomId}/messages?${qs}` : `/chat/rooms/${roomId}/messages`);
   },
+  markRead: (roomId: string) =>
+    api<{ roomId: string; unreadCount: number }>(`/chat/rooms/${roomId}/read`, {
+      method: "POST",
+    }),
   send: (roomId: string, body: string) =>
     api<import("./types").ChatMessage>(`/chat/rooms/${roomId}/messages`, {
       method: "POST",

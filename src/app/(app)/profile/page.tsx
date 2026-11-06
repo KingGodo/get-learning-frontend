@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { UserRound } from "lucide-react";
+import { resolveFileUrl } from "@/components/files/attachment-actions";
 import { useAuth } from "@/components/providers/auth-provider";
 import { authApi } from "@/lib/api";
 import { toast, toastFromError } from "@/lib/toast";
@@ -75,6 +76,8 @@ export default function ProfilePage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [emailErrors, setEmailErrors] = useState<FieldErrors>({});
   const [passwordErrors, setPasswordErrors] = useState<FieldErrors>({});
+  const [photoPending, setPhotoPending] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -260,13 +263,44 @@ export default function ProfilePage() {
   }
 
   const roleLabel = themeForRole(user.role).label;
+  const photoSrc =
+    photoPreview || resolveFileUrl(user.profileImage) || null;
+
+  async function onPhotoChange(file: File | null) {
+    setPhotoPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return file ? URL.createObjectURL(file) : null;
+    });
+    if (!file) return;
+    setPhotoPending(true);
+    try {
+      await authApi.uploadProfileImage(file);
+      await refreshUser();
+      toast.success("Profile photo saved");
+    } catch (err) {
+      toastFromError(err, "Could not upload the photo");
+      setPhotoPreview((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return null;
+      });
+    } finally {
+      setPhotoPending(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div className="flex flex-wrap items-start gap-4">
-        <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-brand-dark text-lg font-semibold tracking-wide text-white">
-          {user.firstName[0]}
-          {user.lastName[0]}
+        <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-dark text-lg font-semibold tracking-wide text-white">
+          {photoSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoSrc} alt="" className="size-full object-cover" />
+          ) : (
+            <>
+              {user.firstName[0]}
+              {user.lastName[0]}
+            </>
+          )}
         </div>
         <PageHeader
           eyebrow="Account"
@@ -276,11 +310,45 @@ export default function ProfilePage() {
         />
       </div>
 
+      <section className="space-y-3.5 border-b border-border pb-6">
+        <div>
+          <h2 className="text-sm font-semibold text-brand-dark">Profile photo</h2>
+          <p className="mt-0.5 text-[12px] text-zinc-400">
+            JPEG, PNG, or WebP, up to 2 MB. This photo shows on your account menu.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-zinc-50">
+            {photoSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photoSrc} alt="" className="size-full object-cover" />
+            ) : (
+              <UserRound className="size-6 text-zinc-400" />
+            )}
+          </div>
+          <Input
+            id="profilePhoto"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            disabled={photoPending}
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+              void onPhotoChange(file);
+              e.target.value = "";
+            }}
+            className="h-9 max-w-xs rounded-md bg-transparent"
+          />
+          {photoPending ? (
+            <span className="text-[12px] text-muted-foreground">Saving…</span>
+          ) : null}
+        </div>
+      </section>
+
       <form onSubmit={onSubmit} className="relative space-y-8">
         {pending && <PageLoading overlay label="Saving profile…" />}
         <FieldError message={firstFieldError(fieldErrors)} />
 
-        <section className="space-y-3.5 border-y border-border py-6">
+        <section className="space-y-3.5 border-b border-border pb-6">
           <div>
             <h2 className="text-sm font-semibold text-brand-dark">
               Personal details

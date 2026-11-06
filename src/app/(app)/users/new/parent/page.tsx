@@ -9,7 +9,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { CredentialsPanel } from "@/components/users/credentials-panel";
 import { OneOffPasswordField } from "@/components/users/one-off-password-field";
 import { usersApi } from "@/lib/api";
-import { canManageUsers } from "@/lib/roles";
+import { canCreateParents } from "@/lib/roles";
 import { toast, toastFromError } from "@/lib/toast";
 import type { AdminUserSummary, IssuedCredentials } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export default function NewParentPage() {
 
   useEffect(() => {
     if (!user) return;
-    if (!canManageUsers(user.role) || user.role === "ADMIN") {
+    if (!canCreateParents(user.role)) {
       router.replace("/users");
       return;
     }
@@ -165,13 +165,18 @@ export default function NewParentPage() {
         </Link>
         <PageHeader
           title="Add parent"
-          description="Creates a parent account and links it to one or more students."
+          description="Fill in the parent details, choose at least one child who is already a student, then share the login details that appear after you save."
           className="mt-4 pb-0"
         />
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <FieldError message={firstFieldError(fieldErrors)} />
+        <div className="rounded-lg border border-border bg-muted/30 px-3.5 py-3 text-[13px] text-muted-foreground">
+          A student account must exist first. Tick every child this parent should
+          follow, then create the parent. You will get an email and temporary
+          password to share with them.
+        </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
             <Label htmlFor="firstName" className="text-[13px] text-zinc-600">
@@ -258,9 +263,22 @@ export default function NewParentPage() {
             Select the students this parent should follow.
           </p>
           {students.length === 0 ? (
-            <p className="text-[13px] text-muted-foreground">
-              Add a student first, then come back to create a parent account.
-            </p>
+            <div className="space-y-3 rounded-lg border border-dashed border-border px-4 py-5">
+              <p className="text-[13px] text-muted-foreground">
+                There are no students yet. Add a student first, then come back
+                here to link a parent.
+              </p>
+              {user.role === "SCHOOL_ADMIN" ? (
+                <ButtonLink href="/users/new/student" size="sm">
+                  Add a student
+                </ButtonLink>
+              ) : (
+                <p className="text-[12px] text-muted-foreground">
+                  Ask the school admin to add the student, or open People after
+                  the student exists.
+                </p>
+              )}
+            </div>
           ) : (
             <ul className="divide-y divide-border border border-border">
               {students.map((student) => {

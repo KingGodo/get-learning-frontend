@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ChevronRight, Plus, Search } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ApiRequestError, usersApi } from "@/lib/api";
-import { canManageUsers, canViewUsers } from "@/lib/roles";
+import { canCreateParents, canManageUsers, canViewUsers } from "@/lib/roles";
 import { themeForRole } from "@/lib/theme";
 import type { AdminUserSummary, UserRole } from "@/lib/types";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -35,7 +35,9 @@ export default function UsersPage() {
   const router = useRouter();
   const isPlatformAdmin = user?.role === "ADMIN";
   const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+  const isHeadmaster = user?.role === "HEADMASTER";
   const canCreate = canManageUsers(user?.role);
+  const canAddParent = canCreateParents(user?.role);
 
   const roleFilters: Array<"ALL" | UserRole> = isPlatformAdmin
     ? ["ALL", "ADMIN", "SCHOOL_ADMIN", "HEADMASTER", "TEACHER", "STUDENT", "PARENT"]
@@ -133,13 +135,13 @@ export default function UsersPage() {
       )}
 
       <PageHeader
-        eyebrow={isSchoolAdmin ? "Your school" : "Administration"}
-        title="Users"
+        eyebrow={isSchoolAdmin || isHeadmaster ? "Your school" : "Administration"}
+        title={isHeadmaster ? "People" : "Users"}
         description={
           isSchoolAdmin
             ? "Create teachers, students, the headmaster, and parents, then share their login credentials."
-            : user.role === "HEADMASTER"
-              ? "People at your school."
+            : isHeadmaster
+              ? "People at your school. Add a parent after the student account exists, then share the login details."
               : `Every account on ${APP_NAME}.`
         }
         actions={
@@ -165,6 +167,11 @@ export default function UsersPage() {
                 Add headmaster
               </ButtonLink>
             </>
+          ) : canAddParent ? (
+            <ButtonLink href="/users/new/parent" size="sm">
+              <Plus className="size-3.5" />
+              Add parent
+            </ButtonLink>
           ) : undefined
         }
       />

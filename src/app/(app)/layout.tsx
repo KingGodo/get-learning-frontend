@@ -21,9 +21,11 @@ import {
   Users,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
+import { resolveFileUrl } from "@/components/files/attachment-actions";
 import { HeaderNotifications } from "@/components/layout/header-notifications";
 import { APP_NAME } from "@/lib/brand";
 import { useAuth } from "@/components/providers/auth-provider";
+import { chatApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { PageLoading } from "@/components/ui/page-loading";
 import {
@@ -218,11 +220,21 @@ function navForRole(role: UserRole): NavGroup[] {
   return studentNavGroups;
 }
 
+function canUseMessages(role: UserRole) {
+  return (
+    role === "TEACHER" ||
+    role === "STUDENT" ||
+    role === "PARENT" ||
+    role === "HEADMASTER"
+  );
+}
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [messageUnread, setMessageUnread] = useState(0);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) router.replace("/login");
@@ -245,6 +257,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     setMobileNavOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!user || !canUseMessages(user.role)) {
+      setMessageUnread(0);
+      return;
+    }
+    const refresh = () => {
+      chatApi
+        .unreadCount()
+        .then((data) => setMessageUnread(data.unreadCount))
+        .catch(() => undefined);
+    };
+    refresh();
+    const id = window.setInterval(refresh, 15000);
+    return () => window.clearInterval(id);
+  }, [user, pathname]);
+
   if (loading || !user) {
     return (
       <div className="flex min-h-[100svh] items-center justify-center bg-page">
@@ -263,6 +291,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     (link) =>
       pathname === link.href || pathname.startsWith(`${link.href}/`),
   );
+  const profilePhoto = resolveFileUrl(user.profileImage);
+  const profileInitials = `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`;
+  const profileName = `${user.firstName} ${user.lastName}`;
 
   function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
     return (
@@ -278,6 +309,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   pathname === link.href ||
                   pathname.startsWith(`${link.href}/`);
                 const Icon = link.icon;
+                const showBadge =
+                  link.href === "/messages" && messageUnread > 0;
                 return (
                   <Link
                     key={link.href}
@@ -305,7 +338,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       )}
                       strokeWidth={1.75}
                     />
-                    {link.label}
+                    <span className="min-w-0 flex-1 truncate">{link.label}</span>
+                    {showBadge ? (
+                      <span className="inline-flex min-w-5 shrink-0 items-center justify-center rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white tabular-nums">
+                        {messageUnread > 99 ? "99+" : messageUnread}
+                      </span>
+                    ) : null}
                   </Link>
                 );
               })}
@@ -313,6 +351,38 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         ))}
       </div>
+    );
+  }
+
+  function ProfileChip({ className }: { className?: string }) {
+    return (
+      <Link
+        href="/profile"
+        className={cn(
+          "flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-slate-50",
+          className,
+        )}
+      >
+        {profilePhoto ? (
+          <img
+            src={profilePhoto}
+            alt=""
+            className="size-8 shrink-0 rounded-md object-cover"
+          />
+        ) : (
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-light text-[11px] font-semibold text-brand">
+            {profileInitials}
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[13px] font-medium text-ink">
+            {profileName}
+          </span>
+          <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
+            {roleLabel}
+          </span>
+        </span>
+      </Link>
     );
   }
 
@@ -331,23 +401,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="border-t border-sidebar-border p-3">
-          <Link
-            href="/profile"
-            className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-slate-50"
-          >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-light text-[11px] font-semibold text-brand">
-              {user.firstName[0]}
-              {user.lastName[0]}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-medium text-ink">
-                {user.firstName} {user.lastName}
-              </span>
-              <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                {roleLabel}
-              </span>
-            </span>
-          </Link>
+          <ProfileChip />
           <button
             type="button"
             className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-2 text-[12px] text-muted-foreground transition-colors hover:bg-slate-50 hover:text-ink"
@@ -400,10 +454,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         />
                       }
                     >
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-light text-[11px] font-semibold text-brand">
-                        {user.firstName[0]}
-                        {user.lastName[0]}
-                      </span>
+                      {profilePhoto ? (
+                        <img
+                          src={profilePhoto}
+                          alt=""
+                          className="size-8 shrink-0 rounded-md object-cover"
+                        />
+                      ) : (
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-light text-[11px] font-semibold text-brand">
+                          {user.firstName[0]}
+                          {user.lastName[0]}
+                        </span>
+                      )}
                       <span className="min-w-0 flex-1 text-left">
                         <span className="block truncate text-[13px] font-medium text-ink">
                           {user.firstName} {user.lastName}
@@ -447,11 +509,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <HeaderNotifications />
             <Link
               href="/profile"
-              className="flex size-8 items-center justify-center rounded-md border border-border bg-background text-[11px] font-semibold text-ink transition-colors hover:bg-muted"
+              className="flex size-8 items-center justify-center overflow-hidden rounded-md border border-border bg-background text-[11px] font-semibold text-ink transition-colors hover:bg-muted"
               aria-label={`${user.firstName} ${user.lastName}`}
             >
-              {user.firstName[0]}
-              {user.lastName[0]}
+              {profilePhoto ? (
+                <img
+                  src={profilePhoto}
+                  alt=""
+                  className="size-full object-cover"
+                />
+              ) : (
+                <>
+                  {user.firstName[0]}
+                  {user.lastName[0]}
+                </>
+              )}
             </Link>
           </div>
         </header>

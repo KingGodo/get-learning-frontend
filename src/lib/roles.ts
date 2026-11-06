@@ -8,6 +8,10 @@ export function canViewUsers(role: UserRole | undefined) {
   return canManageUsers(role) || role === "HEADMASTER";
 }
 
+export function canCreateParents(role: UserRole | undefined) {
+  return role === "SCHOOL_ADMIN" || role === "HEADMASTER";
+}
+
 export function canManageSchoolOps(role: UserRole | undefined) {
   return role === "ADMIN" || role === "SCHOOL_ADMIN";
 }

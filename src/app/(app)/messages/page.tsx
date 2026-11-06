@@ -72,8 +72,10 @@ function MessagesScreen() {
     let cancelled = false;
     chatApi
       .messages(activeId)
-      .then((data) => {
-        if (!cancelled) setMessages(data.messages);
+      .then(async (data) => {
+        if (cancelled) return;
+        setMessages(data.messages);
+        await refreshInbox().catch(() => undefined);
       })
       .catch((err) => toastFromError(err, "Could not load the conversation"));
     return () => {
@@ -94,6 +96,7 @@ function MessagesScreen() {
             const next = data.messages.filter((message) => !ids.has(message.id));
             return next.length > 0 ? [...current, ...next] : current;
           });
+          void refreshInbox();
         })
         .catch(() => undefined);
     }, 4000);
@@ -170,17 +173,31 @@ function MessagesScreen() {
                       type="button"
                       onClick={() => setActiveId(room.id)}
                       className={cn(
-                        "w-full px-4 py-3 text-left transition-colors hover:bg-muted/60",
+                        "flex w-full items-start gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/60",
                         room.id === activeId && "bg-brand-light",
                       )}
                     >
-                      <p className="truncate text-sm font-medium text-ink">
-                        {room.title}
-                      </p>
-                      <p className="truncate text-[12px] text-muted-foreground">
-                        {room.subtitle}
-                        {room.lastMessage ? ` · ${room.lastMessage.body}` : ""}
-                      </p>
+                      <span className="min-w-0 flex-1">
+                        <p
+                          className={cn(
+                            "truncate text-sm text-ink",
+                            room.unreadCount > 0
+                              ? "font-semibold"
+                              : "font-medium",
+                          )}
+                        >
+                          {room.title}
+                        </p>
+                        <p className="truncate text-[12px] text-muted-foreground">
+                          {room.subtitle}
+                          {room.lastMessage ? ` · ${room.lastMessage.body}` : ""}
+                        </p>
+                      </span>
+                      {room.unreadCount > 0 ? (
+                        <span className="mt-0.5 inline-flex min-w-5 shrink-0 items-center justify-center rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white tabular-nums">
+                          {room.unreadCount > 99 ? "99+" : room.unreadCount}
+                        </span>
+                      ) : null}
                     </button>
                   </li>
                 ))}
